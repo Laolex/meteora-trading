@@ -62,8 +62,25 @@ docker compose up -d postgres
 psql postgresql://meteora:meteora@localhost:5432/meteora_agent -f sql/001_initial_schema.sql
 METEORA_SKIP_CONFIG_LOAD=1 python -m pytest -q
 python -m src.main --mode=discovery   # populate pool rankings
-python -m src.main --mode=run          # autonomous loop skeleton
+python -m src.main --mode=run          # autonomous loop (dry-run by default)
 ```
+
+## Continuous runtime (VPS)
+
+```bash
+cd meteora-agent
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -e ".[dev]"
+
+# Keep DRY_RUN=true until node-helper is fully wired to @meteora-ag/dlmm
+nohup .venv/bin/python -m src.main --mode=run > runtime.log 2>&1 &
+```
+
+Set `DRY_RUN=false` only after `node-helper/index.js` is implemented for:
+- `openPosition`
+- `closePosition`
+- `claimFees`
 
 ## Safety rails (hard-coded, not optional)
 

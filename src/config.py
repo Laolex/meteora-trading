@@ -38,6 +38,21 @@ def _required_bool(key: str) -> bool:
     return val == "true"
 
 
+def _optional(key: str, default: str) -> str:
+    val = os.getenv(key)
+    return val if val is not None and val != "" else default
+
+
+def _optional_int(key: str, default: int) -> int:
+    val = os.getenv(key)
+    return int(val) if val not in (None, "") else default
+
+
+def _optional_float(key: str, default: float) -> float:
+    val = os.getenv(key)
+    return float(val) if val not in (None, "") else default
+
+
 @dataclass(frozen=True)
 class Config:
     # RPC
@@ -50,6 +65,12 @@ class Config:
 
     # DB
     database_url: str
+
+    # Execution
+    node_helper_path: Path
+    default_position_size_usd: float
+    target_position_width_bins: int
+    max_open_positions: int
 
     # Meteora
     meteora_api_base: str
@@ -106,6 +127,15 @@ class Config:
         if not self.hot_wallet_keypair_path.exists():
             raise RuntimeError(f"Wallet keypair not found at {self.hot_wallet_keypair_path}")
 
+        if self.default_position_size_usd <= 0:
+            raise RuntimeError("DEFAULT_POSITION_SIZE_USD must be > 0")
+
+        if self.target_position_width_bins <= 0:
+            raise RuntimeError("TARGET_POSITION_WIDTH_BINS must be > 0")
+
+        if self.max_open_positions <= 0:
+            raise RuntimeError("MAX_OPEN_POSITIONS must be > 0")
+
 
 def load_config() -> Config:
     network = _required("NETWORK")
@@ -118,6 +148,10 @@ def load_config() -> Config:
         solana_devnet_rpc_url=_required("SOLANA_DEVNET_RPC_URL"),
         hot_wallet_keypair_path=Path(_required("HOT_WALLET_KEYPAIR_PATH")),
         database_url=_required("DATABASE_URL"),
+        node_helper_path=Path(_optional("NODE_HELPER_PATH", "node-helper/index.js")),
+        default_position_size_usd=_optional_float("DEFAULT_POSITION_SIZE_USD", 100.0),
+        target_position_width_bins=_optional_int("TARGET_POSITION_WIDTH_BINS", 40),
+        max_open_positions=_optional_int("MAX_OPEN_POSITIONS", 1),
         meteora_api_base=_required("METEORA_API_BASE"),
         dry_run=_required_bool("DRY_RUN"),
         network=network,  # type: ignore[arg-type]
