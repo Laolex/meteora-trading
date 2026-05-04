@@ -49,10 +49,9 @@ Autonomous discovery and rebalancing agent for Meteora DLMM liquidity positions 
 | `src/discovery/` | Pull pools, score, rank |
 | `src/position/` | Read state, open/close positions |
 | `src/rebalance/` | Decision logic, safety rails |
-| `src/executor/` | Wallet signer, tx submission, retries |
-| `src/db/` | Postgres models, migrations |
-| `src/dashboard/` | FastAPI + Next.js frontend |
-| `scripts/` | One-off ops: backtest, fund-wallet, kill-switch |
+| `src/executor/` | Reserved for tx executor integration (stub) |
+| `src/db/` | Reserved for persistence layer (stub) |
+| `src/dashboard/` | Reserved for dashboard API/UI (stub) |
 | `sql/` | Schema migrations |
 
 ## Quick start
@@ -60,9 +59,10 @@ Autonomous discovery and rebalancing agent for Meteora DLMM liquidity positions 
 ```bash
 cp .env.example .env  # fill in HELIUS_API_KEY, DATABASE_URL, HOT_WALLET_KEYPAIR_PATH
 docker compose up -d postgres
-python -m src.db.migrate
+psql postgresql://meteora:meteora@localhost:5432/meteora_agent -f sql/001_initial_schema.sql
+METEORA_SKIP_CONFIG_LOAD=1 python -m pytest -q
 python -m src.main --mode=discovery   # populate pool rankings
-python -m src.main --mode=run          # autonomous loop
+python -m src.main --mode=run          # autonomous loop skeleton
 ```
 
 ## Safety rails (hard-coded, not optional)
