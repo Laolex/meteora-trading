@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
@@ -73,10 +73,20 @@ class MeteoraPositionManager:
                 "[DRY_RUN] open_position pool=%s range=%d..%d x=%.4f y=%.4f",
                 pool_address, bin_range.lower_bin_id, bin_range.upper_bin_id, amount_x, amount_y,
             )
+            position = self._build_position(
+                pool_address,
+                pool_name,
+                bin_range,
+                amount_x,
+                amount_y,
+                "DRY_RUN_SIG",
+            )
             return OpenResult(
                 tx_signature="DRY_RUN_SIG",
-                position=self._build_position(pool_address, pool_name, bin_range, amount_x, amount_y, "DRY_RUN_SIG"),
+                position=position,
             )
+
+        position = self._build_position(pool_address, pool_name, bin_range, amount_x, amount_y, "")
 
         # Real path: invoke node helper
         result = await self._invoke_helper("openPosition", {
@@ -85,10 +95,11 @@ class MeteoraPositionManager:
             "amountY": amount_y,
             "lowerBinId": bin_range.lower_bin_id,
             "upperBinId": bin_range.upper_bin_id,
+            "clientPositionId": position.id,
         })
         sig = result["signature"]
-        pos = self._build_position(pool_address, pool_name, bin_range, amount_x, amount_y, sig)
-        return OpenResult(tx_signature=sig, position=pos)
+        position.tx_signature_open = sig
+        return OpenResult(tx_signature=sig, position=position)
 
     async def close_position(self, position: Position) -> str:
         """Close fully — withdraw all liquidity + claim fees. Returns tx sig."""
@@ -151,7 +162,7 @@ class MeteoraPositionManager:
             fees_earned_x=0.0,
             fees_earned_y=0.0,
             fees_earned_usd=0.0,
-            opened_at=datetime.utcnow(),
+            opened_at=datetime.now(timezone.utc),
             last_rebalanced_at=None,
             status=PositionStatus.OPEN,
             tx_signature_open=sig,
