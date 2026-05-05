@@ -1,0 +1,75 @@
+"use client"
+
+import { motion } from "motion/react"
+import { viewportOnce, ease } from "@/lib/motion"
+
+const steps = [
+  {
+    n: "01",
+    title: "Discover Pools",
+    description: "Pull the full Meteora DLMM universe via API. Filter by liquidity, age, and token quality.",
+  },
+  {
+    n: "02",
+    title: "Score & Decide",
+    description: "Rank by a weighted composite: fees/24h, volume/TVL, bin liquidity depth, token quality.",
+  },
+  {
+    n: "03",
+    title: "Risk Gate",
+    description: "Check kill switch, position caps, total deployment limit, and daily loss guard before any execution.",
+  },
+  {
+    n: "04",
+    title: "Execute & Monitor",
+    description: "Hot wallet signs via node-helper. Every action logs to Postgres. Rebalances if price drifts.",
+  },
+]
+
+export default function HowItWorks() {
+  return (
+    <section
+      className="py-24 px-6"
+      style={{ background: "#111111", borderTop: "1px solid #1a1a1a", borderBottom: "1px solid #1a1a1a" }}
+    >
+      <div className="max-w-6xl mx-auto">
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={viewportOnce}
+          transition={{ duration: 0.6 }}
+          className="text-3xl md:text-4xl font-bold text-center mb-16"
+          style={{ color: "#f5f5f5" }}
+        >
+          How it works
+        </motion.h2>
+
+        <div className="grid md:grid-cols-4 gap-0">
+          {steps.map(({ n, title, description }, i) => (
+            <motion.div
+              key={n}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={viewportOnce}
+              transition={{ duration: 0.6, ease, delay: i * 0.1 }}
+              className="relative flex flex-col px-6 py-8"
+              style={{
+                borderRight: i < steps.length - 1 ? "1px solid #222222" : undefined,
+              }}
+            >
+              <span className="font-mono text-xs mb-4 block" style={{ color: "#14f195" }}>
+                {n}
+              </span>
+              <h3 className="text-base font-semibold mb-3" style={{ color: "#f5f5f5" }}>
+                {title}
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#888888" }}>
+                {description}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
