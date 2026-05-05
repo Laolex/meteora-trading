@@ -29,10 +29,12 @@ export default function WalletButton() {
 
   useEffect(() => {
     if (connected && publicKey) {
-      attemptVerify()
+      const timer = setTimeout(() => {
+        void attemptVerify()
+      }, 0)
+      return () => clearTimeout(timer)
     } else {
       clearToken()
-      setState("idle")
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, publicKey?.toBase58()])
