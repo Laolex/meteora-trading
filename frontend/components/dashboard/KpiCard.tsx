@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "motion/react"
-import { viewportOnce } from "@/lib/motion"
+import { viewportOnce, ease } from "@/lib/motion"
 
 interface KpiCardProps {
   label: string
@@ -17,7 +17,7 @@ export default function KpiCard({ label, value, sub, accent = false, index = 0 }
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={viewportOnce}
-      transition={{ duration: 0.5, delay: index * 0.08 }}
+      transition={{ duration: 0.6, delay: index * 0.1, ease }}
       whileHover={{
         borderColor: "rgba(20,241,149,0.25)",
         boxShadow: "0 0 20px rgba(20,241,149,0.06)",

@@ -24,10 +24,10 @@ const receipts = [
 export default function ProofBlock() {
   return (
     <section
-      className="py-24 px-6"
-      style={{ background: "#111111", borderTop: "1px solid #1a1a1a", borderBottom: "1px solid #1a1a1a" }}
+      id="proof"
+      className="py-20 md:py-24 px-6 scroll-mt-24"
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto rounded-[36px] border border-[rgba(20,241,149,0.1)] bg-[linear-gradient(180deg,rgba(23,28,35,0.58)_0%,rgba(23,28,35,0.46)_100%)] backdrop-blur-[4px] px-6 md:px-10 py-12 md:py-14 md:min-h-[68vh] flex flex-col justify-center">
         <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -43,10 +43,10 @@ export default function ProofBlock() {
           whileInView={{ opacity: 1 }}
           viewport={viewportOnce}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-center text-sm mb-12"
-          style={{ color: "#888888" }}
+          className="text-center text-sm mb-10"
+          style={{ color: "#a3a3a3" }}
         >
-          The agent runs. These aren't mock screenshots.
+          The agent runs. These aren&apos;t mock screenshots.
         </motion.p>
 
         <motion.div
@@ -54,8 +54,12 @@ export default function ProofBlock() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewportOnce}
           transition={{ duration: 0.7, ease }}
-          className="rounded-2xl overflow-hidden font-mono text-sm"
-          style={{ background: "#0d0d0d", border: "1px solid #222222" }}
+             className="rounded-3xl overflow-hidden font-mono text-sm"
+             style={{
+               background: "linear-gradient(180deg, rgba(23,28,35,0.78) 0%, rgba(23,28,35,0.62) 100%)",
+               border: "1px solid rgba(20,241,149,0.1)",
+               backdropFilter: "blur(5px)",
+             }}
         >
           {/* terminal header */}
           <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid #1a1a1a" }}>

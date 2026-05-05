@@ -9,7 +9,7 @@ export default function ProofPage() {
           Proof of Operation
         </h1>
         <p className="text-sm" style={{ color: "#888888" }}>
-          Receipts. The agent runs. Here's the evidence.
+          Receipts. The agent runs. Here&apos;s the evidence.
         </p>
       </div>
 

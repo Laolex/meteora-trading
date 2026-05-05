@@ -42,10 +42,10 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
         Recent Activity
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[700px] text-sm">
           <thead>
             <tr style={{ borderBottom: "1px solid #1a1a1a" }}>
-              {["Time", "Pool", "Action", "Reason", "Tx"].map((h) => (
+              {["Time", "Pool", "Action", "Reason", "Result", "Tx"].map((h) => (
                 <th
                   key={h}
                   className="px-4 py-3 text-left text-xs uppercase tracking-wider font-medium"
@@ -78,6 +78,11 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
                 </td>
                 <td className="px-4 py-3 text-xs max-w-xs" style={{ color: "#666666" }}>
                   {item.reason}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {item.success === true && <Badge variant="green">ok</Badge>}
+                  {item.success === false && <Badge variant="red">failed</Badge>}
+                  {item.success === null && <Badge variant="amber">pending</Badge>}
                 </td>
                 <td className="px-4 py-3 font-mono text-xs" style={{ color: "#444444" }}>
                   {item.txSignature ? (

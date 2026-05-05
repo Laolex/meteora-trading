@@ -11,8 +11,8 @@ export default function Home() {
       <HeroSection />
       <ValuePillars />
       <HowItWorks />
-      <SafetyBlock />
       <ProofBlock />
+      <SafetyBlock />
       <CtaSection />
     </>
   )

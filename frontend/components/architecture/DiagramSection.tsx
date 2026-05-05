@@ -43,13 +43,13 @@ export default function DiagramSection() {
           transition={{ duration: 0.5, ease, delay: i * 0.08 }}
         >
           <div
-            className="rounded-xl p-4"
+            className="rounded-xl p-4 text-center"
             style={{ background: "#111111", border: `1px solid ${color}22` }}
           >
             <p className="text-xs uppercase tracking-widest mb-3 font-medium" style={{ color }}>
               {label}
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-center">
               {nodes.map((n) => (
                 <span
                   key={n}

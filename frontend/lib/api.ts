@@ -73,6 +73,12 @@ export interface SafetyConfig {
   network: Network
 }
 
+export interface MarketSnapshot {
+  solPriceUsd: number
+  ongoingTrades: number
+  updatedAt: string
+}
+
 // --- Mock data ---
 
 export async function getAgentStatus(): Promise<AgentStatus> {
@@ -105,7 +111,7 @@ export async function getKpiSummary(): Promise<KpiSummary> {
 
 export async function getActivity(limit = 20): Promise<ActivityItem[]> {
   // TODO: replace with fetch(`${API_BASE}/activity?limit=${limit}`)
-  return [
+  const activity: ActivityItem[] = [
     {
       id: 1,
       positionId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -143,6 +149,7 @@ export async function getActivity(limit = 20): Promise<ActivityItem[]> {
       success: null,
     },
   ]
+  return activity.slice(0, limit)
 }
 
 export async function getRiskUtilization(): Promise<RiskUtilization> {
@@ -166,6 +173,33 @@ export async function getSafetyConfig(): Promise<SafetyConfig> {
     dailyLossLimitPct: 5,
     maxOpenPositions: 1,
     network: "devnet",
+  }
+}
+
+export async function getMarketSnapshot(): Promise<MarketSnapshot> {
+  const response = await fetch(
+    "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",
+    { cache: "no-store" },
+  )
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch SOL price: ${response.status}`)
+  }
+
+  const data = (await response.json()) as { solana?: { usd?: number } }
+  const solPriceUsd = data.solana?.usd
+
+  if (typeof solPriceUsd !== "number") {
+    throw new Error("Invalid SOL price payload")
+  }
+
+  const activity = await getActivity(50)
+  const ongoingTrades = activity.filter((item) => item.success === null).length
+
+  return {
+    solPriceUsd,
+    ongoingTrades,
+    updatedAt: new Date().toISOString(),
   }
 }
 

@@ -33,33 +33,36 @@ export default function HeroSection() {
 
   return (
     <section
+      id="hero"
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden"
-      style={{ paddingTop: "80px" }}
+      className="relative min-h-screen pt-24 md:pt-28 pb-10 flex flex-col items-center justify-center px-6 overflow-hidden scroll-mt-24"
     >
       {/* background */}
-      <div className="absolute inset-0" style={{ background: "#0a0a0a" }}>
+      <div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(180deg, #171c23 0%, #141920 56%, #11161d 100%)" }}
+      >
         <ParticleCanvas />
         {/* radial glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse 70% 55% at 50% 65%, rgba(20,241,149,0.09) 0%, rgba(20,241,149,0.03) 40%, transparent 70%)",
+              "radial-gradient(ellipse 72% 56% at 50% 65%, rgba(20,241,149,0.11) 0%, rgba(20,241,149,0.04) 42%, transparent 72%)",
           }}
         />
         {/* bottom fade */}
         <div
           className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-          style={{ background: "linear-gradient(to bottom, transparent, #0a0a0a)" }}
+          style={{ background: "linear-gradient(to bottom, transparent, #11161d)" }}
         />
       </div>
 
       {/* content with parallax */}
       <motion.div
-        className="relative z-10 text-center max-w-4xl mx-auto"
+        className="relative z-10 text-center max-w-5xl mx-auto rounded-[32px] border border-[rgba(20,241,149,0.14)] bg-[linear-gradient(180deg,rgba(23,28,35,0.8)_0%,rgba(23,28,35,0.62)_100%)] backdrop-blur-[4px] px-6 md:px-10 py-10 md:py-14"
         style={{ rotateX, rotateY, translateX, translateY, transformPerspective: 800 }}
       >
         <motion.div
@@ -96,7 +99,7 @@ export default function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease, delay: 0.25 }}
           className="mt-6 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
-          style={{ color: "#888888" }}
+          style={{ color: "#a3a3a3" }}
         >
           A safety-first Meteora DLMM agent for Solana. Scores the pool universe,
           opens optimal positions, rebalances on drift, exits on volatility —
