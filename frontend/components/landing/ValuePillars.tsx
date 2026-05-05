@@ -4,21 +4,46 @@ import { motion } from "motion/react"
 import { staggerContainer, cardReveal, viewportOnce } from "@/lib/motion"
 import Card from "@/components/ui/Card"
 
+function IconBolt() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14f195" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+    </svg>
+  )
+}
+
+function IconShield() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14f195" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  )
+}
+
+function IconSearch() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14f195" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <path d="M21 21l-4.35-4.35" />
+    </svg>
+  )
+}
+
 const pillars = [
   {
-    icon: "⚡",
+    Icon: IconBolt,
     title: "Automated Discovery & Rebalancing",
     description:
       "Scores the full Meteora pool universe every cycle. Opens positions in optimal bins and rebalances automatically when price drifts beyond the configured threshold.",
   },
   {
-    icon: "🛡️",
+    Icon: IconShield,
     title: "Explicit Risk Rails",
     description:
       "Hard limits on position size, total deployment, and daily loss. A kill-switch file stops the agent instantly. DRY_RUN mode enforces safe testing before any real capital moves.",
   },
   {
-    icon: "🔍",
+    Icon: IconSearch,
     title: "Verifiable Operations",
     description:
       "Every decision logged to Postgres. Systemd service health, dry-run DB writes, and test suite results are all surfaced — nothing happens silently.",
@@ -47,14 +72,19 @@ export default function ValuePillars() {
         viewport={viewportOnce}
         className="grid md:grid-cols-3 gap-6"
       >
-        {pillars.map(({ icon, title, description }) => (
+        {pillars.map(({ Icon, title, description }) => (
           <motion.div key={title} variants={cardReveal}>
-            <Card className="h-full">
-              <div className="text-3xl mb-4" aria-hidden>{icon}</div>
-              <h3 className="text-lg font-semibold mb-3" style={{ color: "#f5f5f5" }}>
+            <Card className="h-full" hover>
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
+                style={{ background: "rgba(20,241,149,0.08)", border: "1px solid rgba(20,241,149,0.15)" }}
+              >
+                <Icon />
+              </div>
+              <h3 className="text-base font-semibold mb-3" style={{ color: "#f5f5f5" }}>
                 {title}
               </h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#888888" }}>
+              <p className="text-sm leading-relaxed" style={{ color: "#666666" }}>
                 {description}
               </p>
             </Card>

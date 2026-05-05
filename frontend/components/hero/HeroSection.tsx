@@ -1,18 +1,45 @@
 "use client"
 
-import { motion } from "motion/react"
+import { useRef } from "react"
+import { motion, useMotionValue, useTransform, useSpring } from "motion/react"
 import { ease } from "@/lib/motion"
 import ParticleCanvas from "./ParticleCanvas"
 import Button from "@/components/ui/Button"
 import Badge from "@/components/ui/Badge"
 
 export default function HeroSection() {
+  const containerRef = useRef<HTMLElement>(null)
+
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+
+  const springConfig = { stiffness: 50, damping: 20 }
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [4, -4]), springConfig)
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-4, 4]), springConfig)
+  const translateX = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), springConfig)
+  const translateY = useSpring(useTransform(mouseY, [-0.5, 0.5], [-8, 8]), springConfig)
+
+  function handleMouseMove(e: React.MouseEvent) {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5)
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5)
+  }
+
+  function handleMouseLeave() {
+    mouseX.set(0)
+    mouseY.set(0)
+  }
+
   return (
     <section
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden"
       style={{ paddingTop: "80px" }}
     >
-      {/* particle background */}
+      {/* background */}
       <div className="absolute inset-0" style={{ background: "#0a0a0a" }}>
         <ParticleCanvas />
         {/* radial glow */}
@@ -20,13 +47,21 @@ export default function HeroSection() {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse 60% 50% at 50% 60%, rgba(20,241,149,0.04) 0%, transparent 70%)",
+              "radial-gradient(ellipse 70% 55% at 50% 65%, rgba(20,241,149,0.09) 0%, rgba(20,241,149,0.03) 40%, transparent 70%)",
           }}
+        />
+        {/* bottom fade */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+          style={{ background: "linear-gradient(to bottom, transparent, #0a0a0a)" }}
         />
       </div>
 
-      {/* content */}
-      <div className="relative z-10 text-center max-w-4xl mx-auto">
+      {/* content with parallax */}
+      <motion.div
+        className="relative z-10 text-center max-w-4xl mx-auto"
+        style={{ rotateX, rotateY, translateX, translateY, transformPerspective: 800 }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -46,7 +81,14 @@ export default function HeroSection() {
           style={{ color: "#f5f5f5" }}
         >
           Autonomous Liquidity,{" "}
-          <span style={{ color: "#14f195" }}>Human Risk Controls.</span>
+          <span
+            style={{
+              color: "#14f195",
+              textShadow: "0 0 40px rgba(20,241,149,0.4)",
+            }}
+          >
+            Human Risk Controls.
+          </span>
         </motion.h1>
 
         <motion.p
@@ -67,19 +109,15 @@ export default function HeroSection() {
           transition={{ duration: 0.8, ease, delay: 0.4 }}
           className="mt-10 flex flex-wrap items-center justify-center gap-4"
         >
-          <Button href="/dashboard" variant="primary">
-            View Live Dashboard
-          </Button>
-          <Button href="/architecture" variant="secondary">
-            Read Architecture
-          </Button>
+          <Button href="/dashboard" variant="primary">View Live Dashboard</Button>
+          <Button href="/architecture" variant="secondary">Read Architecture</Button>
         </motion.div>
 
         {/* stat strip */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, ease, delay: 0.7 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease, delay: 0.65 }}
           className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto"
         >
           {[
@@ -88,16 +126,19 @@ export default function HeroSection() {
             { label: "Agent", value: "Active" },
           ].map(({ label, value }) => (
             <div key={label} className="text-center">
-              <p className="text-2xl font-semibold" style={{ color: "#14f195" }}>
+              <p
+                className="text-2xl font-semibold"
+                style={{ color: "#14f195", textShadow: "0 0 20px rgba(20,241,149,0.3)" }}
+              >
                 {value}
               </p>
-              <p className="text-xs mt-1 uppercase tracking-wider" style={{ color: "#888888" }}>
+              <p className="text-xs mt-1 uppercase tracking-wider" style={{ color: "#555555" }}>
                 {label}
               </p>
             </div>
           ))}
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* scroll indicator */}
       <motion.div
@@ -105,10 +146,10 @@ export default function HeroSection() {
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 1.2 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-        style={{ color: "#444444" }}
+        style={{ color: "#333333" }}
         aria-hidden
       >
-        <span className="text-xs uppercase tracking-widest">scroll</span>
+        <span className="text-xs uppercase tracking-widest font-mono">scroll</span>
         <motion.div
           animate={{ y: [0, 6, 0] }}
           transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}

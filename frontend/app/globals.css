@@ -11,8 +11,8 @@
   --color-amber: #f59e0b;
   --color-danger: #ef4444;
 
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-mono), "Fira Code", monospace;
 }
 
 * {
@@ -43,6 +43,27 @@ body {
 
 .font-mono {
   font-family: var(--font-mono);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(20, 241, 149, 0.15), 0 0 40px rgba(20, 241, 149, 0.05);
+}
+.glow-green-sm {
+  box-shadow: 0 0 12px rgba(20, 241, 149, 0.2);
 }
 
 @media (prefers-reduced-motion: reduce) {

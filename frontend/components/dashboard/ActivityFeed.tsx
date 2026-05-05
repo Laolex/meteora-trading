@@ -1,3 +1,7 @@
+"use client"
+
+import { motion } from "motion/react"
+import { viewportOnce, ease } from "@/lib/motion"
 import type { ActivityItem } from "@/lib/api"
 import Badge from "@/components/ui/Badge"
 
@@ -23,10 +27,17 @@ function fmtTime(iso: string) {
 
 export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid #222222" }}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={viewportOnce}
+      transition={{ duration: 0.6, ease }}
+      className="rounded-2xl overflow-hidden"
+      style={{ border: "1px solid #222222" }}
+    >
       <div
         className="px-4 py-3 text-xs font-medium uppercase tracking-wider"
-        style={{ borderBottom: "1px solid #222222", color: "#888888", background: "#111111" }}
+        style={{ borderBottom: "1px solid #222222", color: "#555555", background: "#111111" }}
       >
         Recent Activity
       </div>
@@ -46,12 +57,17 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
-              <tr
+            {items.map((item, i) => (
+              <motion.tr
                 key={item.id}
+                initial={{ opacity: 0, x: -8 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={viewportOnce}
+                transition={{ duration: 0.35, delay: i * 0.04, ease }}
+                whileHover={{ backgroundColor: "rgba(20,241,149,0.03)" }}
                 style={{ borderBottom: "1px solid #111111", background: "#0a0a0a" }}
               >
-                <td className="px-4 py-3 font-mono text-xs whitespace-nowrap" style={{ color: "#888888" }}>
+                <td className="px-4 py-3 font-mono text-xs whitespace-nowrap" style={{ color: "#666666" }}>
                   {fmtTime(item.decidedAt)}
                 </td>
                 <td className="px-4 py-3 font-mono text-xs whitespace-nowrap" style={{ color: "#f5f5f5" }}>
@@ -60,7 +76,7 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
                 <td className="px-4 py-3 whitespace-nowrap">
                   <Badge variant={actionColor(item.actionType)}>{item.actionType}</Badge>
                 </td>
-                <td className="px-4 py-3 text-xs max-w-xs" style={{ color: "#888888" }}>
+                <td className="px-4 py-3 text-xs max-w-xs" style={{ color: "#666666" }}>
                   {item.reason}
                 </td>
                 <td className="px-4 py-3 font-mono text-xs" style={{ color: "#444444" }}>
@@ -70,11 +86,11 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
                     <span>—</span>
                   )}
                 </td>
-              </tr>
+              </motion.tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
+    </motion.div>
   )
 }

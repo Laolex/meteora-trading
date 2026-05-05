@@ -9,12 +9,15 @@ interface Particle {
   vy: number
 }
 
-const NODE_COUNT = 60
-const CONNECTION_DIST = 120
-const SPEED = 0.2
+const NODE_COUNT = 70
+const CONNECTION_DIST = 140
+const SPEED = 0.25
+const MOUSE_REPEL_RADIUS = 100
+const MOUSE_REPEL_STRENGTH = 1.5
 
 export default function ParticleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const mouse = useRef({ x: -9999, y: -9999 })
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -22,13 +25,11 @@ export default function ParticleCanvas() {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    if (prefersReduced) return
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
 
     let animId: number
     let width = 0
     let height = 0
-
     const particles: Particle[] = []
 
     function resize() {
@@ -53,16 +54,39 @@ export default function ParticleCanvas() {
       if (!ctx) return
       ctx.clearRect(0, 0, width, height)
 
+      const mx = mouse.current.x
+      const my = mouse.current.y
+
       for (const p of particles) {
+        // mouse repulsion
+        const dx = p.x - mx
+        const dy = p.y - my
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        if (dist < MOUSE_REPEL_RADIUS && dist > 0) {
+          const force = (1 - dist / MOUSE_REPEL_RADIUS) * MOUSE_REPEL_STRENGTH
+          p.vx += (dx / dist) * force * 0.05
+          p.vy += (dy / dist) * force * 0.05
+        }
+
+        // dampen speed to max
+        const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
+        if (speed > SPEED * 3) {
+          p.vx = (p.vx / speed) * SPEED * 3
+          p.vy = (p.vy / speed) * SPEED * 3
+        }
+
         p.x += p.vx
         p.y += p.vy
         if (p.x < 0 || p.x > width) p.vx *= -1
         if (p.y < 0 || p.y > height) p.vy *= -1
 
+        const distToMouse = Math.sqrt((p.x - mx) ** 2 + (p.y - my) ** 2)
+        const glowing = distToMouse < MOUSE_REPEL_RADIUS * 1.5
+
         ctx.beginPath()
-        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2)
+        ctx.arc(p.x, p.y, glowing ? 2.5 : 1.8, 0, Math.PI * 2)
         ctx.fillStyle = "#14f195"
-        ctx.globalAlpha = 0.5
+        ctx.globalAlpha = glowing ? 0.9 : 0.55
         ctx.fill()
       }
 
@@ -76,8 +100,8 @@ export default function ParticleCanvas() {
             ctx.moveTo(particles[i].x, particles[i].y)
             ctx.lineTo(particles[j].x, particles[j].y)
             ctx.strokeStyle = "#14f195"
-            ctx.globalAlpha = (1 - dist / CONNECTION_DIST) * 0.15
-            ctx.lineWidth = 0.5
+            ctx.globalAlpha = (1 - dist / CONNECTION_DIST) * 0.22
+            ctx.lineWidth = 0.6
             ctx.stroke()
           }
         }
@@ -87,9 +111,19 @@ export default function ParticleCanvas() {
       animId = requestAnimationFrame(draw)
     }
 
+    function onMouseMove(e: MouseEvent) {
+      const rect = canvas!.getBoundingClientRect()
+      mouse.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    }
+    function onMouseLeave() {
+      mouse.current = { x: -9999, y: -9999 }
+    }
+
     resize()
     init()
     draw()
+    canvas.addEventListener("mousemove", onMouseMove)
+    canvas.addEventListener("mouseleave", onMouseLeave)
 
     const ro = new ResizeObserver(resize)
     ro.observe(canvas)
@@ -97,6 +131,8 @@ export default function ParticleCanvas() {
     return () => {
       cancelAnimationFrame(animId)
       ro.disconnect()
+      canvas.removeEventListener("mousemove", onMouseMove)
+      canvas.removeEventListener("mouseleave", onMouseLeave)
     }
   }, [])
 

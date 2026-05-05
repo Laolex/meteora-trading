@@ -64,6 +64,7 @@ export default function SafetyBlock() {
             variants={cardReveal}
             className="flex gap-4 p-6 rounded-2xl"
             style={{ background: "#111111", border: "1px solid #222222" }}
+            whileHover={{ borderColor: "rgba(20,241,149,0.2)", boxShadow: "0 0 20px rgba(20,241,149,0.05)" }}
           >
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">

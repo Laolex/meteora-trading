@@ -1,7 +1,6 @@
 "use client"
 
 import { motion } from "motion/react"
-import { buttonMotion } from "@/lib/motion"
 import Link from "next/link"
 
 interface ButtonProps {
@@ -12,44 +11,54 @@ interface ButtonProps {
   className?: string
 }
 
+const spring = { type: "spring" as const, stiffness: 400, damping: 17 }
+
+const styles: Record<string, React.CSSProperties> = {
+  primary: {
+    background: "#14f195",
+    color: "#0a0a0a",
+    boxShadow: "0 0 20px rgba(20,241,149,0.25), 0 0 40px rgba(20,241,149,0.08)",
+  },
+  secondary: {
+    background: "transparent",
+    color: "#f5f5f5",
+    border: "1px solid #333",
+  },
+  ghost: {
+    background: "transparent",
+    color: "#888888",
+  },
+}
+
+const base =
+  "inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-sm font-medium cursor-pointer border-0 outline-none"
+
 export default function Button({ children, href, onClick, variant = "primary", className = "" }: ButtonProps) {
-  const base =
-    "inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-colors cursor-pointer border-0 outline-none"
-
-  const styles: Record<string, React.CSSProperties> = {
-    primary: { background: "#14f195", color: "#0a0a0a" },
-    secondary: { background: "transparent", color: "#f5f5f5", border: "1px solid #333" },
-    ghost: { background: "transparent", color: "#888888" },
-  }
-
-  const content = (
-    <motion.span
-      {...buttonMotion}
-      style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
-    >
-      {children}
-    </motion.span>
-  )
-
   if (href) {
     return (
-      <Link
-        href={href}
-        className={`${base} ${className}`}
-        style={styles[variant]}
+      <motion.div
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.97 }}
+        transition={spring}
+        style={{ display: "inline-flex" }}
       >
-        {content}
-      </Link>
+        <Link href={href} className={`${base} ${className}`} style={styles[variant]}>
+          {children}
+        </Link>
+      </motion.div>
     )
   }
 
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.97 }}
+      transition={spring}
       onClick={onClick}
       className={`${base} ${className}`}
       style={styles[variant]}
     >
-      {content}
-    </button>
+      {children}
+    </motion.button>
   )
 }

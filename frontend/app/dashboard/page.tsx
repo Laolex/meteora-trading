@@ -41,28 +41,10 @@ export default async function DashboardPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <KpiCard
-          label="Open Positions"
-          value={String(kpi.openPositions)}
-          sub={`max ${kpi.maxPositionUsd > 0 ? kpi.openPositions : "—"} open`}
-          accent
-        />
-        <KpiCard
-          label="Daily Fees"
-          value={fmt(kpi.dailyFeesUsd)}
-          sub="fees collected today"
-        />
-        <KpiCard
-          label="Total Deployed"
-          value={fmt(kpi.totalDeployedUsd)}
-          sub={`limit ${fmt(kpi.maxTotalDeployedUsd)}`}
-        />
-        <KpiCard
-          label="PnL (today)"
-          value={`${pnlSign}${fmt(kpi.pnlDayUsd)}`}
-          sub={`week: ${pnlSign}${fmt(kpi.pnlWeekUsd)}`}
-          accent={kpi.pnlDayUsd >= 0}
-        />
+        <KpiCard label="Open Positions" value={String(kpi.openPositions)} sub={`max ${kpi.maxPositionUsd > 0 ? kpi.openPositions : "—"} open`} accent index={0} />
+        <KpiCard label="Daily Fees" value={fmt(kpi.dailyFeesUsd)} sub="fees collected today" index={1} />
+        <KpiCard label="Total Deployed" value={fmt(kpi.totalDeployedUsd)} sub={`limit ${fmt(kpi.maxTotalDeployedUsd)}`} index={2} />
+        <KpiCard label="PnL (today)" value={`${pnlSign}${fmt(kpi.pnlDayUsd)}`} sub={`week: ${pnlSign}${fmt(kpi.pnlWeekUsd)}`} accent={kpi.pnlDayUsd >= 0} index={3} />
       </div>
 
       {/* Activity + Risk side by side */}
