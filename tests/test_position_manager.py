@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock
+
+import pytest
 
 from src.position.manager import MeteoraPositionManager, PositionRange
 

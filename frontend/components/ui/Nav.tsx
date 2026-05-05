@@ -3,6 +3,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "motion/react"
+import dynamic from "next/dynamic"
+
+const WalletButton = dynamic(() => import("./WalletButton"), { ssr: false })
 
 const links = [
   { href: "/", label: "Home" },
@@ -51,13 +54,7 @@ export default function Nav() {
           )
         })}
       </ul>
-      <Link
-        href="/dashboard"
-        className="text-xs font-medium px-4 py-2 rounded-full border transition-colors"
-        style={{ borderColor: "#14f195", color: "#14f195" }}
-      >
-        Live Dashboard
-      </Link>
+      <WalletButton />
     </nav>
   )
 }

@@ -14,13 +14,12 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
 from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair  # type: ignore
-from solders.pubkey import Pubkey    # type: ignore
 
 from src.position.models import Position, PositionStatus
 
@@ -162,7 +161,7 @@ class MeteoraPositionManager:
             fees_earned_x=0.0,
             fees_earned_y=0.0,
             fees_earned_usd=0.0,
-            opened_at=datetime.now(timezone.utc),
+            opened_at=datetime.now(UTC),
             last_rebalanced_at=None,
             status=PositionStatus.OPEN,
             tx_signature_open=sig,

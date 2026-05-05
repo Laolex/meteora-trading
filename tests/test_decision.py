@@ -5,8 +5,6 @@ from __future__ import annotations
 
 from datetime import datetime
 
-import pytest
-
 from src.discovery.models import PoolSnapshot
 from src.position.models import Position, PositionStatus
 from src.rebalance.decision import ActionType, DecisionContext, decide
@@ -33,7 +31,12 @@ def _position(lower: int = -10, upper: int = 10) -> Position:
     )
 
 
-def _ctx(position: Position, pool: PoolSnapshot, vol_pct: float = 5.0, fees_usd: float = 1.0) -> DecisionContext:
+def _ctx(
+    position: Position,
+    pool: PoolSnapshot,
+    vol_pct: float = 5.0,
+    fees_usd: float = 1.0,
+) -> DecisionContext:
     return DecisionContext(
         position=position, pool=pool,
         volatility_24h_pct=vol_pct, sol_price_usd=150.0, current_fees_usd=fees_usd,

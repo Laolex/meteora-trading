@@ -5,10 +5,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 
-class PositionStatus(str, Enum):
+class PositionStatus(StrEnum):
     OPEN = "open"
     REBALANCING = "rebalancing"
     EXITING = "exiting"

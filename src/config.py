@@ -45,12 +45,16 @@ def _optional(key: str, default: str) -> str:
 
 def _optional_int(key: str, default: int) -> int:
     val = os.getenv(key)
-    return int(val) if val not in (None, "") else default
+    if val is None or val == "":
+        return default
+    return int(val)
 
 
 def _optional_float(key: str, default: float) -> float:
     val = os.getenv(key)
-    return float(val) if val not in (None, "") else default
+    if val is None or val == "":
+        return default
+    return float(val)
 
 
 @dataclass(frozen=True)
@@ -100,6 +104,10 @@ class Config:
     # Dashboard
     dashboard_port: int
     dashboard_host: str
+
+    # Auth
+    authorized_pubkey: str
+    jwt_secret: str
 
     # Logging
     log_level: str
@@ -171,6 +179,8 @@ def load_config() -> Config:
         dashboard_host=_required("DASHBOARD_HOST"),
         log_level=_required("LOG_LEVEL"),
         log_file=Path(_required("LOG_FILE")),
+        authorized_pubkey=_required("AUTHORIZED_PUBKEY"),
+        jwt_secret=_required("JWT_SECRET"),
     )
     cfg.validate()
     return cfg

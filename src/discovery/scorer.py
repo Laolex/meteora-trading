@@ -48,12 +48,12 @@ def _token_quality_score(pool: PoolSnapshot) -> float:
       - LP-locked %
     For v1: USDC/USDT/SOL pairs get 1.0, everything else 0.5.
     """
-    BLUE_CHIPS = {
+    blue_chips = {
         "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC
         "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",  # USDT
         "So11111111111111111111111111111111111111112",   # WSOL
     }
-    blue_chip_count = (pool.token_x_mint in BLUE_CHIPS) + (pool.token_y_mint in BLUE_CHIPS)
+    blue_chip_count = (pool.token_x_mint in blue_chips) + (pool.token_y_mint in blue_chips)
     if blue_chip_count == 2:
         return 1.0
     if blue_chip_count == 1:

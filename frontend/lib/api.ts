@@ -1,6 +1,5 @@
-// All functions return mock data now.
-// To connect real data: replace each mock return with fetch(`${API_BASE}/...`)
-// API_BASE = process.env.NEXT_PUBLIC_API_URL (FastAPI dashboard server)
+// Fetches real data from the FastAPI dashboard server when NEXT_PUBLIC_API_URL is set,
+// otherwise falls back to mock data for local UI development.
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
@@ -79,101 +78,102 @@ export interface MarketSnapshot {
   updatedAt: string
 }
 
-// --- Mock data ---
+async function apiFetch<T>(path: string, fallback: T): Promise<T> {
+  if (!process.env.NEXT_PUBLIC_API_URL) return fallback
+  const res = await fetch(`${API_BASE}${path}`, { cache: "no-store" })
+  if (!res.ok) throw new Error(`API ${path} → ${res.status}`)
+  return res.json() as Promise<T>
+}
+
+// --- Mock fallbacks (used when NEXT_PUBLIC_API_URL is not set) ---
+
+const MOCK_STATUS: AgentStatus = {
+  mode: "DRY_RUN",
+  network: "devnet",
+  walletPubkey: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+  serviceStatus: "active",
+  killSwitchPresent: false,
+  liveGatePass: true,
+  dryRun: true,
+}
+
+const MOCK_KPI: KpiSummary = {
+  openPositions: 1,
+  dailyFeesUsd: 3.42,
+  totalDeployedUsd: 100.0,
+  pnlDayUsd: 2.17,
+  pnlWeekUsd: 8.94,
+  maxPositionUsd: 200,
+  maxTotalDeployedUsd: 500,
+  dailyLossLimitPct: 5,
+  dailyLossCurrentPct: 0,
+}
+
+const MOCK_ACTIVITY: ActivityItem[] = [
+  {
+    id: 1,
+    positionId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    poolAddress: "EGZ7tiLeH62TPV1gL8WwbXGzEPa9zmcpVnnkPKtnMDFm",
+    poolName: "SOL-USDC",
+    actionType: "open",
+    reason: "top-scored pool, bins in range",
+    decidedAt: "2026-05-05T01:00:00Z",
+    executedAt: "2026-05-05T01:00:02Z",
+    txSignature: null,
+    success: true,
+  },
+  {
+    id: 2,
+    positionId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    poolAddress: "EGZ7tiLeH62TPV1gL8WwbXGzEPa9zmcpVnnkPKtnMDFm",
+    poolName: "SOL-USDC",
+    actionType: "claim",
+    reason: "fee accumulation threshold reached",
+    decidedAt: "2026-05-05T02:15:00Z",
+    executedAt: null,
+    txSignature: null,
+    success: null,
+  },
+]
+
+const MOCK_RISK: RiskUtilization = {
+  positionUtilPct: 50,
+  totalDeployedUtilPct: 20,
+  dailyLossGuardStatus: "ok",
+}
+
+const MOCK_SAFETY: SafetyConfig = {
+  dryRun: true,
+  killSwitchPresent: false,
+  killSwitchPath: "/opt/meteora-agent/var/kill",
+  liveGatePass: true,
+  maxPositionUsd: 200,
+  maxTotalDeployedUsd: 500,
+  dailyLossLimitPct: 5,
+  maxOpenPositions: 1,
+  network: "devnet",
+}
+
+// --- API functions ---
 
 export async function getAgentStatus(): Promise<AgentStatus> {
-  // TODO: replace with fetch(`${API_BASE}/status`)
-  return {
-    mode: "DRY_RUN",
-    network: "devnet",
-    walletPubkey: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
-    serviceStatus: "active",
-    killSwitchPresent: false,
-    liveGatePass: true,
-    dryRun: true,
-  }
+  return apiFetch("/status", MOCK_STATUS)
 }
 
 export async function getKpiSummary(): Promise<KpiSummary> {
-  // TODO: replace with fetch(`${API_BASE}/kpi`)
-  return {
-    openPositions: 1,
-    dailyFeesUsd: 3.42,
-    totalDeployedUsd: 100.0,
-    pnlDayUsd: 2.17,
-    pnlWeekUsd: 8.94,
-    maxPositionUsd: 200,
-    maxTotalDeployedUsd: 500,
-    dailyLossLimitPct: 5,
-    dailyLossCurrentPct: 0,
-  }
+  return apiFetch("/kpi", MOCK_KPI)
 }
 
 export async function getActivity(limit = 20): Promise<ActivityItem[]> {
-  // TODO: replace with fetch(`${API_BASE}/activity?limit=${limit}`)
-  const activity: ActivityItem[] = [
-    {
-      id: 1,
-      positionId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      poolAddress: "EGZ7tiLeH62TPV1gL8WwbXGzEPa9zmcpVnnkPKtnMDFm",
-      poolName: "SOL-USDC",
-      actionType: "open",
-      reason: "top-scored pool, bins in range",
-      decidedAt: "2026-05-05T01:00:00Z",
-      executedAt: "2026-05-05T01:00:02Z",
-      txSignature: null,
-      success: true,
-    },
-    {
-      id: 2,
-      positionId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      poolAddress: "EGZ7tiLeH62TPV1gL8WwbXGzEPa9zmcpVnnkPKtnMDFm",
-      poolName: "SOL-USDC",
-      actionType: "claim",
-      reason: "fee accumulation threshold reached",
-      decidedAt: "2026-05-05T02:15:00Z",
-      executedAt: null,
-      txSignature: null,
-      success: null,
-    },
-    {
-      id: 3,
-      positionId: null,
-      poolAddress: "EGZ7tiLeH62TPV1gL8WwbXGzEPa9zmcpVnnkPKtnMDFm",
-      poolName: "SOL-USDC",
-      actionType: "rebalance",
-      reason: "drift > 200 bps from entry",
-      decidedAt: "2026-05-05T03:30:00Z",
-      executedAt: null,
-      txSignature: null,
-      success: null,
-    },
-  ]
-  return activity.slice(0, limit)
+  return apiFetch(`/activity?limit=${limit}`, MOCK_ACTIVITY)
 }
 
 export async function getRiskUtilization(): Promise<RiskUtilization> {
-  // TODO: replace with fetch(`${API_BASE}/risk`)
-  return {
-    positionUtilPct: 50,
-    totalDeployedUtilPct: 20,
-    dailyLossGuardStatus: "ok",
-  }
+  return apiFetch("/risk", MOCK_RISK)
 }
 
 export async function getSafetyConfig(): Promise<SafetyConfig> {
-  // TODO: replace with fetch(`${API_BASE}/safety`)
-  return {
-    dryRun: true,
-    killSwitchPresent: false,
-    killSwitchPath: "/opt/meteora-agent/var/kill",
-    liveGatePass: true,
-    maxPositionUsd: 200,
-    maxTotalDeployedUsd: 500,
-    dailyLossLimitPct: 5,
-    maxOpenPositions: 1,
-    network: "devnet",
-  }
+  return apiFetch("/safety", MOCK_SAFETY)
 }
 
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {

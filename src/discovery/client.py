@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
+
 from src.discovery.models import PoolSnapshot
 
 
@@ -39,6 +40,8 @@ class MeteoraClient:
         resp.raise_for_status()
         payload = resp.json()
         raw = payload.get("data") if isinstance(payload, dict) and "data" in payload else payload
+        if not isinstance(raw, dict):
+            raise RuntimeError(f"Unexpected pool payload shape for address {address}")
         return self._parse(raw)
 
     @staticmethod

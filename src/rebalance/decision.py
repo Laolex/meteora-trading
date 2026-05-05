@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from src.discovery.models import PoolSnapshot
 from src.position.models import Position
@@ -15,7 +15,7 @@ from src.position.models import Position
 log = logging.getLogger(__name__)
 
 
-class ActionType(str, Enum):
+class ActionType(StrEnum):
     HOLD = "hold"
     REBALANCE = "rebalance"
     CLAIM = "claim"
@@ -59,7 +59,10 @@ def decide(ctx: DecisionContext) -> Action:
     if ctx.volatility_24h_pct >= ctx.exit_volatility_24h_pct:
         return Action(
             type=ActionType.EXIT,
-            reason=f"24h volatility {ctx.volatility_24h_pct:.1f}% >= exit threshold {ctx.exit_volatility_24h_pct}%",
+            reason=(
+                f"24h volatility {ctx.volatility_24h_pct:.1f}% "
+                f">= exit threshold {ctx.exit_volatility_24h_pct}%"
+            ),
         )
 
     in_range = p.is_in_range(ctx.pool.active_bin_id)
@@ -71,13 +74,21 @@ def decide(ctx: DecisionContext) -> Action:
             new_lower, new_upper = _recenter_range(ctx.pool.active_bin_id, p)
             return Action(
                 type=ActionType.REBALANCE,
-                reason=f"out of range (active={ctx.pool.active_bin_id}, range={p.lower_bin_id}..{p.upper_bin_id}); fees ${ctx.current_fees_usd:.2f} cover gas",
+                reason=(
+                    "out of range "
+                    f"(active={ctx.pool.active_bin_id}, "
+                    f"range={p.lower_bin_id}..{p.upper_bin_id}); "
+                    f"fees ${ctx.current_fees_usd:.2f} cover gas"
+                ),
                 new_lower_bin_id=new_lower,
                 new_upper_bin_id=new_upper,
             )
         return Action(
             type=ActionType.CLAIM,
-            reason=f"out of range but fees ${ctx.current_fees_usd:.2f} below min ${ctx.rebalance_min_fees_usd:.2f}",
+            reason=(
+                f"out of range but fees ${ctx.current_fees_usd:.2f} "
+                f"below min ${ctx.rebalance_min_fees_usd:.2f}"
+            ),
         )
 
     # 4. In range but drifted
