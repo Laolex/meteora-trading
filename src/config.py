@@ -105,6 +105,10 @@ class Config:
     dashboard_port: int
     dashboard_host: str
 
+    # Auth
+    authorized_pubkey: str
+    jwt_secret: str
+
     # Logging
     log_level: str
     log_file: Path
@@ -175,6 +179,8 @@ def load_config() -> Config:
         dashboard_host=_required("DASHBOARD_HOST"),
         log_level=_required("LOG_LEVEL"),
         log_file=Path(_required("LOG_FILE")),
+        authorized_pubkey=_required("AUTHORIZED_PUBKEY"),
+        jwt_secret=_required("JWT_SECRET"),
     )
     cfg.validate()
     return cfg
