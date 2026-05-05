@@ -310,9 +310,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--mode",
-        choices=["discovery", "run"],
+        choices=["discovery", "run", "dashboard"],
         required=True,
-        help="discovery: one-shot pool scan; run: autonomous loop",
+        help="discovery: one-shot pool scan; run: autonomous loop; dashboard: FastAPI server",
     )
     args = parser.parse_args()
 
@@ -321,6 +321,10 @@ def main() -> None:
 
     if args.mode == "discovery":
         asyncio.run(run_discovery())
+    elif args.mode == "dashboard":
+        import uvicorn
+        from src.dashboard.api import app
+        uvicorn.run(app, host=config.dashboard_host, port=config.dashboard_port, log_level=config.log_level.lower())
     else:
         asyncio.run(run_loop())
 

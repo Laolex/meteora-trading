@@ -22,7 +22,8 @@ function fmtTime(iso: string) {
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
-  })
+    timeZone: "UTC",
+  }) + " UTC"
 }
 
 export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
@@ -65,7 +66,7 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
                 viewport={viewportOnce}
                 transition={{ duration: 0.35, delay: i * 0.04, ease }}
                 whileHover={{ backgroundColor: "rgba(20,241,149,0.03)" }}
-                style={{ borderBottom: "1px solid #111111", background: "#0a0a0a" }}
+                style={{ borderBottom: "1px solid #111111", backgroundColor: "#0a0a0a" }}
               >
                 <td className="px-4 py-3 font-mono text-xs whitespace-nowrap" style={{ color: "#666666" }}>
                   {fmtTime(item.decidedAt)}

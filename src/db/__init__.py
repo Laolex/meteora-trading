@@ -243,6 +243,80 @@ class Database:
             row = await conn.fetchrow("SELECT starting_value_usd FROM pnl_daily WHERE day=$1", today)
         return float(row["starting_value_usd"]) if row else 0.0
 
+    # --- Dashboard queries ---
+
+    async def get_position_stats(self) -> dict:
+        """Aggregate stats for open positions."""
+        pool = self._require_pool()
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT
+                    COUNT(*) FILTER (WHERE status = 'open')                    AS open_count,
+                    COALESCE(SUM(deposited_value_usd) FILTER (WHERE status = 'open'), 0) AS total_deployed,
+                    COALESCE(SUM(fees_earned_usd) FILTER (WHERE status = 'open'), 0)     AS fees_earned
+                FROM positions
+                """
+            )
+            pnl_today = await conn.fetchrow(
+                "SELECT starting_value_usd FROM pnl_daily WHERE day = CURRENT_DATE"
+            )
+            pnl_week = await conn.fetchrow(
+                "SELECT starting_value_usd FROM pnl_daily WHERE day = CURRENT_DATE - INTERVAL '7 days'"
+            )
+        total_deployed = float(row["total_deployed"])
+        day_start = float(pnl_today["starting_value_usd"]) if pnl_today else total_deployed
+        week_start = float(pnl_week["starting_value_usd"]) if pnl_week else total_deployed
+        loss_pct = max(0.0, (day_start - total_deployed) / day_start * 100) if day_start > 0 else 0.0
+        return {
+            "open_count": int(row["open_count"]),
+            "total_deployed": total_deployed,
+            "fees_earned": float(row["fees_earned"]),
+            "pnl_day": total_deployed - day_start,
+            "pnl_week": total_deployed - week_start,
+            "daily_loss_pct": loss_pct,
+        }
+
+    async def get_activity(self, limit: int) -> list[dict]:
+        """Recent actions log entries, newest first."""
+        pool = self._require_pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT
+                    a.id,
+                    a.position_id::text    AS position_id,
+                    a.pool_address,
+                    COALESCE(p.name, a.pool_address) AS pool_name,
+                    a.action_type,
+                    a.reason,
+                    a.decided_at,
+                    a.executed_at,
+                    a.tx_signature,
+                    a.success
+                FROM actions_log a
+                LEFT JOIN pools p ON p.address = a.pool_address
+                ORDER BY a.decided_at DESC
+                LIMIT $1
+                """,
+                limit,
+            )
+        return [
+            {
+                "id": row["id"],
+                "positionId": row["position_id"],
+                "poolAddress": row["pool_address"],
+                "poolName": row["pool_name"],
+                "actionType": row["action_type"],
+                "reason": row["reason"],
+                "decidedAt": row["decided_at"].isoformat(),
+                "executedAt": row["executed_at"].isoformat() if row["executed_at"] else None,
+                "txSignature": row["tx_signature"],
+                "success": row["success"],
+            }
+            for row in rows
+        ]
+
     @staticmethod
     def _row_to_position(row: asyncpg.Record) -> Position:
         return Position(
