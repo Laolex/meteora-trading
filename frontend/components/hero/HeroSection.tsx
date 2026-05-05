@@ -37,7 +37,7 @@ export default function HeroSection() {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative min-h-screen pt-24 md:pt-28 pb-10 flex flex-col items-center justify-center px-6 overflow-hidden scroll-mt-24"
+      className="relative min-h-[calc(100svh-5rem)] pt-20 md:pt-24 pb-14 flex flex-col items-center justify-center px-6 overflow-hidden scroll-mt-24"
     >
       {/* background */}
       <div
@@ -62,7 +62,7 @@ export default function HeroSection() {
 
       {/* content with parallax */}
       <motion.div
-        className="relative z-10 text-center max-w-5xl mx-auto rounded-[32px] border border-[rgba(20,241,149,0.14)] bg-[linear-gradient(180deg,rgba(23,28,35,0.8)_0%,rgba(23,28,35,0.62)_100%)] backdrop-blur-[4px] px-6 md:px-10 py-10 md:py-14"
+        className="relative z-10 text-center max-w-6xl mx-auto rounded-[36px] border border-[rgba(20,241,149,0.1)] bg-[linear-gradient(180deg,rgba(23,28,35,0.76)_0%,rgba(23,28,35,0.58)_100%)] backdrop-blur-[4px] px-6 md:px-10 py-10 md:py-14"
         style={{ rotateX, rotateY, translateX, translateY, transformPerspective: 800 }}
       >
         <motion.div

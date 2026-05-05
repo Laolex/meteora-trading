@@ -35,7 +35,7 @@ export default function GlobalSidebar() {
       className="hidden lg:flex fixed left-0 top-20 h-[calc(100vh-80px)] z-40 items-center pl-3 pointer-events-none"
       style={{ width: `${collapsed ? collapsedWidth : expandedWidth}px` }}
     >
-      <div className="pointer-events-auto relative w-full rounded-3xl border border-[#3b46541f] bg-[rgba(23,28,35,0.18)] px-2.5 py-3 backdrop-blur-[2px] transition-all duration-300">
+      <div className="pointer-events-auto relative w-full rounded-3xl border border-[#3b465436] bg-[linear-gradient(180deg,rgba(22,27,34,0.52)_0%,rgba(22,27,34,0.38)_100%)] px-2.5 py-3 backdrop-blur-[3px] transition-all duration-300">
         <button
           type="button"
           onClick={() => setCollapsed((v) => !v)}
