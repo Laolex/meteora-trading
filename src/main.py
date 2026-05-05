@@ -10,12 +10,11 @@ import asyncio
 import json
 import logging
 import sys
-from datetime import datetime, timezone
 
 from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair  # type: ignore
 
-from src.config import CONFIG
+from src.config import CONFIG, Config
 from src.db import Database
 from src.discovery.client import MeteoraClient
 from src.discovery.scorer import ScoringWeights, score_pools
@@ -24,6 +23,12 @@ from src.rebalance.decision import Action, ActionType, DecisionContext, decide
 from src.rebalance.guards import SafetyGuard
 
 log = logging.getLogger(__name__)
+
+
+def _require_config() -> Config:
+    if CONFIG is None:
+        raise RuntimeError("CONFIG is not loaded. Set METEORA_SKIP_CONFIG_LOAD=0 for runtime commands.")
+    return CONFIG
 
 
 def setup_logging(level: str, log_file) -> None:
@@ -40,8 +45,9 @@ def setup_logging(level: str, log_file) -> None:
 async def run_discovery() -> None:
     """One-shot: fetch pools, score them, log top 10."""
     log.info("Starting discovery mode")
-    client = MeteoraClient(CONFIG.meteora_api_base)
-    db = Database(CONFIG.database_url)
+    config = _require_config()
+    client = MeteoraClient(config.meteora_api_base)
+    db = Database(config.database_url)
     try:
         await db.connect()
         pools = await client.list_all_pools()
@@ -50,10 +56,10 @@ async def run_discovery() -> None:
             await db.upsert_pool_snapshot(pool)
 
         weights = ScoringWeights(
-            fees_24h=CONFIG.score_weight_fees_24h,
-            volume_tvl=CONFIG.score_weight_volume_tvl,
-            token_quality=CONFIG.score_weight_token_quality,
-            bin_liquidity=CONFIG.score_weight_bin_liquidity,
+            fees_24h=config.score_weight_fees_24h,
+            volume_tvl=config.score_weight_volume_tvl,
+            token_quality=config.score_weight_token_quality,
+            bin_liquidity=config.score_weight_bin_liquidity,
         )
         ranked = score_pools(pools, weights)
         await db.store_pool_scores(ranked)
@@ -71,7 +77,7 @@ async def run_discovery() -> None:
 
 
 def _load_keypair_from_file(path: str) -> Keypair:
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         raw = json.load(f)
     if not isinstance(raw, list):
         raise RuntimeError(f"Invalid keypair file: {path}")
@@ -155,30 +161,31 @@ async def run_loop() -> None:
       4. Run safety guards before every write
       5. Log everything to actions_log
     """
-    log.info("Starting autonomous loop (DRY_RUN=%s, NETWORK=%s)", CONFIG.dry_run, CONFIG.network)
-    wallet = _load_keypair_from_file(str(CONFIG.hot_wallet_keypair_path))
-    rpc = AsyncClient(CONFIG.rpc_url)
+    config = _require_config()
+    log.info("Starting autonomous loop (DRY_RUN=%s, NETWORK=%s)", config.dry_run, config.network)
+    wallet = _load_keypair_from_file(str(config.hot_wallet_keypair_path))
+    rpc = AsyncClient(config.rpc_url)
     manager = MeteoraPositionManager(
         rpc_client=rpc,
         wallet=wallet,
-        node_helper_path=CONFIG.node_helper_path,
-        dry_run=CONFIG.dry_run,
+        node_helper_path=config.node_helper_path,
+        dry_run=config.dry_run,
     )
-    db = Database(CONFIG.database_url)
-    client = MeteoraClient(CONFIG.meteora_api_base)
+    db = Database(config.database_url)
+    client = MeteoraClient(config.meteora_api_base)
     await db.connect()
 
     guard = SafetyGuard(
-        max_position_usd=CONFIG.max_position_usd,
-        max_total_deployed_usd=CONFIG.max_total_deployed_usd,
-        daily_loss_limit_pct=CONFIG.daily_loss_limit_pct,
-        kill_switch_file=CONFIG.kill_switch_file,
+        max_position_usd=config.max_position_usd,
+        max_total_deployed_usd=config.max_total_deployed_usd,
+        daily_loss_limit_pct=config.daily_loss_limit_pct,
+        kill_switch_file=config.kill_switch_file,
     )
     weights = ScoringWeights(
-        fees_24h=CONFIG.score_weight_fees_24h,
-        volume_tvl=CONFIG.score_weight_volume_tvl,
-        token_quality=CONFIG.score_weight_token_quality,
-        bin_liquidity=CONFIG.score_weight_bin_liquidity,
+        fees_24h=config.score_weight_fees_24h,
+        volume_tvl=config.score_weight_volume_tvl,
+        token_quality=config.score_weight_token_quality,
+        bin_liquidity=config.score_weight_bin_liquidity,
     )
 
     try:
@@ -191,8 +198,8 @@ async def run_loop() -> None:
                     continue
 
                 pools = await client.list_all_pools()
-                for pool in pools:
-                    await db.upsert_pool_snapshot(pool)
+                for snapshot_pool in pools:
+                    await db.upsert_pool_snapshot(snapshot_pool)
                 ranked = score_pools(pools, weights)
                 await db.store_pool_scores(ranked)
                 pools_by_addr = {p.address: p for p in pools}
@@ -202,24 +209,24 @@ async def run_loop() -> None:
                 await db.ensure_daily_baseline(current_total)
                 day_start = await db.get_today_starting_value()
 
-                if not open_positions and ranked and CONFIG.max_open_positions > 0:
+                if not open_positions and ranked and config.max_open_positions > 0:
                     top = ranked[0].pool
                     guard_res = guard.all_clear(
-                        proposed_position_usd=CONFIG.default_position_size_usd,
+                        proposed_position_usd=config.default_position_size_usd,
                         current_total_usd=current_total,
                         day_start_value_usd=day_start,
                         current_value_usd=current_total,
                     )
                     if guard_res.allowed:
-                        r = _position_range(top.active_bin_id, CONFIG.target_position_width_bins)
+                        r = _position_range(top.active_bin_id, config.target_position_width_bins)
                         opened = await manager.open_position(
                             pool_address=top.address,
                             pool_name=top.name,
                             amount_x=0.0,
-                            amount_y=CONFIG.default_position_size_usd,
+                            amount_y=config.default_position_size_usd,
                             bin_range=r,
                         )
-                        opened.position.deposited_value_usd = CONFIG.default_position_size_usd
+                        opened.position.deposited_value_usd = config.default_position_size_usd
                         await db.upsert_position(opened.position)
                         await db.log_action(
                             top.address,
@@ -242,14 +249,18 @@ async def run_loop() -> None:
                 for position in open_positions:
                     pool = pools_by_addr.get(position.pool_address)
                     if pool is None:
-                        log.warning("Skipping position %s; pool %s missing in snapshot", position.id, position.pool_address)
+                        log.warning(
+                            "Skipping position %s; pool %s missing in snapshot",
+                            position.id,
+                            position.pool_address,
+                        )
                         continue
 
                     est_fees = max(
                         0.0,
                         position.deposited_value_usd
                         * (pool.fee_apr / 365.0)
-                        * (CONFIG.loop_interval_seconds / 86400.0),
+                        * (config.loop_interval_seconds / 86400.0),
                     )
                     ctx = DecisionContext(
                         position=position,
@@ -257,9 +268,9 @@ async def run_loop() -> None:
                         volatility_24h_pct=0.0,  # TODO: source from oracle/history
                         sol_price_usd=pool.current_price,
                         current_fees_usd=position.fees_earned_usd + est_fees,
-                        rebalance_drift_bps=CONFIG.rebalance_drift_bps,
-                        rebalance_min_fees_usd=CONFIG.rebalance_min_fees_usd,
-                        exit_volatility_24h_pct=CONFIG.exit_volatility_24h_pct,
+                        rebalance_drift_bps=config.rebalance_drift_bps,
+                        rebalance_min_fees_usd=config.rebalance_min_fees_usd,
+                        exit_volatility_24h_pct=config.exit_volatility_24h_pct,
                     )
                     action = decide(ctx)
                     try:
@@ -269,7 +280,7 @@ async def run_loop() -> None:
                             action=action,
                             position=position,
                             pool=pool,
-                            size_usd=max(position.deposited_value_usd, CONFIG.default_position_size_usd),
+                            size_usd=max(position.deposited_value_usd, config.default_position_size_usd),
                         )
                     except Exception as exc:
                         await db.log_action(
@@ -282,7 +293,7 @@ async def run_loop() -> None:
                         )
                         log.exception("Action execution failed for position %s", position.id)
 
-                await asyncio.sleep(CONFIG.loop_interval_seconds)
+                await asyncio.sleep(config.loop_interval_seconds)
             except KeyboardInterrupt:
                 log.info("Shutting down")
                 return
@@ -305,7 +316,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    setup_logging(CONFIG.log_level, CONFIG.log_file)
+    config = _require_config()
+    setup_logging(config.log_level, config.log_file)
 
     if args.mode == "discovery":
         asyncio.run(run_discovery())

@@ -34,7 +34,15 @@ class Database:
             async with conn.transaction():
                 await conn.execute(
                     """
-                    INSERT INTO pools(address, name, token_x_mint, token_y_mint, bin_step, base_fee_pct, last_seen_at)
+                    INSERT INTO pools(
+                        address,
+                        name,
+                        token_x_mint,
+                        token_y_mint,
+                        bin_step,
+                        base_fee_pct,
+                        last_seen_at
+                    )
                     VALUES($1, $2, $3, $4, $5, $6, NOW())
                     ON CONFLICT(address) DO UPDATE SET
                         name=EXCLUDED.name,
@@ -54,7 +62,13 @@ class Database:
                 await conn.execute(
                     """
                     INSERT INTO pool_snapshots(
-                        pool_address, tvl_usd, volume_24h_usd, fees_24h_usd, current_price, active_bin_id, fee_apr
+                        pool_address,
+                        tvl_usd,
+                        volume_24h_usd,
+                        fees_24h_usd,
+                        current_price,
+                        active_bin_id,
+                        fee_apr
                     )
                     VALUES($1, $2, $3, $4, $5, $6, $7)
                     """,
@@ -114,9 +128,21 @@ class Database:
             await conn.execute(
                 """
                 INSERT INTO positions(
-                    id, pool_address, pool_name, lower_bin_id, upper_bin_id,
-                    deposited_x, deposited_y, deposited_value_usd, fees_earned_x, fees_earned_y, fees_earned_usd,
-                    opened_at, last_rebalanced_at, status, tx_signature_open
+                    id,
+                    pool_address,
+                    pool_name,
+                    lower_bin_id,
+                    upper_bin_id,
+                    deposited_x,
+                    deposited_y,
+                    deposited_value_usd,
+                    fees_earned_x,
+                    fees_earned_y,
+                    fees_earned_usd,
+                    opened_at,
+                    last_rebalanced_at,
+                    status,
+                    tx_signature_open
                 )
                 VALUES(
                     $1::uuid, $2, $3, $4, $5,

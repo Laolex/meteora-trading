@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -47,9 +46,13 @@ class SafetyGuard:
 
     def check_total_deployed(self, current_total_usd: float, proposed_add_usd: float) -> GuardResult:
         if current_total_usd + proposed_add_usd > self._max_total:
+            projected_total = current_total_usd + proposed_add_usd
             return GuardResult(
                 False,
-                f"total ${current_total_usd + proposed_add_usd:.2f} exceeds MAX_TOTAL_DEPLOYED_USD ${self._max_total:.2f}",
+                (
+                    f"total ${projected_total:.2f} exceeds "
+                    f"MAX_TOTAL_DEPLOYED_USD ${self._max_total:.2f}"
+                ),
             )
         return GuardResult(True, "ok")
 

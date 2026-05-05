@@ -45,12 +45,16 @@ def _optional(key: str, default: str) -> str:
 
 def _optional_int(key: str, default: int) -> int:
     val = os.getenv(key)
-    return int(val) if val not in (None, "") else default
+    if val is None or val == "":
+        return default
+    return int(val)
 
 
 def _optional_float(key: str, default: float) -> float:
     val = os.getenv(key)
-    return float(val) if val not in (None, "") else default
+    if val is None or val == "":
+        return default
+    return float(val)
 
 
 @dataclass(frozen=True)

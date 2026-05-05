@@ -17,10 +17,8 @@ import re
 import shlex
 import stat
 import subprocess
-import sys
 from pathlib import Path
-from typing import Dict, List
-from urllib import request, error
+from urllib import error, request
 
 ROOT = Path("/opt/meteora-agent")
 ENV_PATH = ROOT / ".env"
@@ -34,8 +32,8 @@ REQUIRED_TABLES = [
 ]
 
 
-def parse_env_file(path: Path) -> Dict[str, str]:
-    env: Dict[str, str] = {}
+def parse_env_file(path: Path) -> dict[str, str]:
+    env: dict[str, str] = {}
     if not path.exists():
         raise RuntimeError(f"Missing env file: {path}")
 
@@ -122,8 +120,9 @@ def check_rpc_health(rpc_url: str) -> None:
 
 def check_db(database_url: str) -> None:
     run(f"psql {shlex.quote(database_url)} -At -c 'select 1'", timeout=20)
+    list_tables_sql = "select tablename from pg_tables where schemaname='public'"
     tables = run(
-        f"psql {shlex.quote(database_url)} -At -c \"select tablename from pg_tables where schemaname='public'\"",
+        f"psql {shlex.quote(database_url)} -At -c \"{list_tables_sql}\"",
         timeout=20,
     ).splitlines()
     missing = [t for t in REQUIRED_TABLES if t not in tables]
@@ -142,7 +141,11 @@ def check_file_secure(path: Path, max_mode: int = 0o600) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--force-live-check", action="store_true", help="Run strict checks even if DRY_RUN=true")
+    parser.add_argument(
+        "--force-live-check",
+        action="store_true",
+        help="Run strict checks even if DRY_RUN=true",
+    )
     args = parser.parse_args()
 
     env = parse_env_file(ENV_PATH)
@@ -150,8 +153,8 @@ def main() -> int:
     dry_run = env.get("DRY_RUN", "").lower() == "true"
     enforce = args.force_live_check or not dry_run
 
-    errors: List[str] = []
-    warnings: List[str] = []
+    errors: list[str] = []
+    warnings: list[str] = []
 
     # Always-valid baseline checks
     try:
@@ -214,7 +217,8 @@ def main() -> int:
         kill_switch_file = Path(env.get("KILL_SWITCH_FILE", "/tmp/meteora-killswitch"))
         if kill_switch_file.exists():
             warnings.append(
-                f"Kill switch is present at {kill_switch_file}. This is safe, but live entries will stay blocked until you remove it."
+                f"Kill switch is present at {kill_switch_file}. "
+                "This is safe, but live entries will stay blocked until you remove it."
             )
 
         try:
@@ -241,8 +245,8 @@ def main() -> int:
 
     if errors:
         print("[live-gate] FAILED:")
-        for e in errors:
-            print(f"  - {e}")
+        for err in errors:
+            print(f"  - {err}")
         return 1
 
     print("[live-gate] PASS")
