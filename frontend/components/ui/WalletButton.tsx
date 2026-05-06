@@ -10,8 +10,13 @@ type AuthState = "idle" | "signing" | "verified" | "unauthorized" | "error"
 export default function WalletButton() {
   const { connected, publicKey, disconnect, signMessage } = useWallet()
   const [state, setState] = useState<AuthState>("idle")
+  const authEnabled = Boolean(process.env.NEXT_PUBLIC_API_URL)
 
   const attemptVerify = useCallback(async () => {
+    if (!authEnabled) {
+      setState("verified")
+      return
+    }
     if (!publicKey || !signMessage) return
     setState("signing")
     try {
@@ -25,7 +30,7 @@ export default function WalletButton() {
         setState("error")
       }
     }
-  }, [publicKey, signMessage])
+  }, [authEnabled, publicKey, signMessage])
 
   useEffect(() => {
     if (connected && publicKey) {
@@ -36,8 +41,7 @@ export default function WalletButton() {
     } else {
       clearToken()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connected, publicKey?.toBase58()])
+  }, [attemptVerify, connected, publicKey])
 
   const handleDisconnect = async () => {
     try {
@@ -129,11 +133,11 @@ export default function WalletButton() {
           Sign failed — retry
         </span>
         <button
-          onClick={attemptVerify}
+          onClick={() => void attemptVerify()}
           className="text-xs px-3 py-1.5 rounded-full border transition-colors"
           style={{ borderColor: "#14f195", color: "#14f195", background: "transparent" }}
         >
-          Retry
+          Retry after wallet connect
         </button>
       </div>
     )
