@@ -13,10 +13,14 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from solana.rpc.async_api import AsyncClient
+from solders.keypair import Keypair  # type: ignore
+
 from src.config import CONFIG
 from src.db import Database
 from src.dashboard.auth import router as auth_router
 from src.dashboard.admin import router as admin_router
+from src.dashboard.wallet import get_balance
 
 
 # --- Response models matching lib/api.ts interfaces ---
@@ -74,20 +78,23 @@ class SafetyConfig(BaseModel):
     network: str
 
 
+class WalletBalance(BaseModel):
+    address: str
+    solBalance: float
+    usdcBalance: float
+    usdcMint: str
+
+
 # --- Startup / shutdown ---
 
 _db: Database
 _wallet_pubkey: str
 
 
-def _load_pubkey(path: Path) -> str:
-    try:
-        from solders.keypair import Keypair  # type: ignore
-        with open(path, encoding="utf-8") as f:
-            raw = json.load(f)
-        return str(Keypair.from_bytes(bytes(raw)).pubkey())
-    except Exception:
-        return "unknown"
+def _load_keypair(path: Path) -> Keypair:
+    with open(path, encoding="utf-8") as f:
+        raw = json.load(f)
+    return Keypair.from_bytes(bytes(raw))
 
 
 @asynccontextmanager
@@ -97,9 +104,13 @@ async def lifespan(app: FastAPI):
     assert cfg is not None, "CONFIG must be loaded to run the dashboard"
     _db = Database(cfg.database_url)
     await _db.connect()
-    _wallet_pubkey = _load_pubkey(cfg.hot_wallet_keypair_path)
+    keypair = _load_keypair(cfg.hot_wallet_keypair_path)
+    _wallet_pubkey = str(keypair.pubkey())
+    app.state.wallet_keypair = keypair
+    app.state.rpc = AsyncClient(cfg.rpc_url)
     yield
     await _db.close()
+    await app.state.rpc.close()
 
 
 app = FastAPI(title="Meteora Agent Dashboard API", version="1.0.0", lifespan=lifespan)
@@ -198,3 +209,11 @@ async def get_safety() -> SafetyConfig:
         maxOpenPositions=cfg.max_open_positions,
         network=cfg.network,
     )
+
+
+@app.get("/wallet/balance", response_model=WalletBalance)
+async def get_wallet_balance() -> WalletBalance:
+    cfg = CONFIG
+    assert cfg is not None
+    balance = await get_balance(app.state.rpc, app.state.wallet_keypair.pubkey(), cfg.network)
+    return WalletBalance(**balance)
