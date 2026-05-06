@@ -154,11 +154,11 @@ export default function WalletBalancePanel() {
 
   return (
     <div
-      className="rounded-2xl p-4 space-y-3 text-sm"
+      className="rounded-2xl p-5 space-y-4 text-sm"
       style={{ border: "1px solid #222222", background: "#0d0d0d" }}
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-wider" style={{ color: "#555555" }}>
+        <span className="text-xs uppercase tracking-wider font-medium" style={{ color: "#555555" }}>
           Hot Wallet
         </span>
         <div className="flex items-center gap-2">
@@ -188,14 +188,20 @@ export default function WalletBalancePanel() {
         </div>
       )}
 
-      <div className="space-y-1">
-        <div className="flex justify-between font-mono text-xs">
-          <span style={{ color: "#555555" }}>SOL</span>
-          <span style={{ color: "#f5f5f5" }}>{balance?.solBalance.toFixed(4) ?? "—"}</span>
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="flex items-center gap-1.5 text-xs" style={{ color: "#888888" }}>
+            <span style={{ color: "#14f195", fontSize: "15px", lineHeight: 1 }}>◎</span>
+            SOL
+          </span>
+          <span className="font-mono text-sm font-medium" style={{ color: "#f5f5f5" }}>{balance?.solBalance.toFixed(4) ?? "—"}</span>
         </div>
-        <div className="flex justify-between font-mono text-xs">
-          <span style={{ color: "#555555" }}>USDC</span>
-          <span style={{ color: "#f5f5f5" }}>{balance?.usdcBalance.toFixed(2) ?? "—"}</span>
+        <div className="flex justify-between items-center">
+          <span className="flex items-center gap-1.5 text-xs" style={{ color: "#888888" }}>
+            <span style={{ color: "#2775ca", fontSize: "13px", lineHeight: 1, fontWeight: 700 }}>$</span>
+            USDC
+          </span>
+          <span className="font-mono text-sm font-medium" style={{ color: "#f5f5f5" }}>{balance?.usdcBalance.toFixed(2) ?? "—"}</span>
         </div>
       </div>
 

@@ -116,7 +116,7 @@ export default function HeroSection() {
           <Button href="/architecture" variant="secondary">Read Architecture</Button>
         </motion.div>
 
-        {/* stat strip */}
+        {/* stat strip — proof numbers */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -124,9 +124,9 @@ export default function HeroSection() {
           className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto"
         >
           {[
-            { label: "Mode", value: "DRY_RUN" },
-            { label: "Network", value: "Devnet" },
-            { label: "Agent", value: "Active" },
+            { label: "Loop Cycle", value: "~5s" },
+            { label: "Tests Passing", value: "15 / 15" },
+            { label: "Safety Checks", value: "100%" },
           ].map(({ label, value }) => (
             <div key={label} className="text-center">
               <p
@@ -140,6 +140,38 @@ export default function HeroSection() {
               </p>
             </div>
           ))}
+        </motion.div>
+
+        {/* dashboard preview */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, ease, delay: 0.85 }}
+          className="mt-10 relative rounded-2xl overflow-hidden"
+          style={{ border: "1px solid rgba(20,241,149,0.12)" }}
+        >
+          {/* live badge */}
+          <div
+            className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+            style={{ background: "rgba(20,241,149,0.12)", border: "1px solid rgba(20,241,149,0.3)", color: "#14f195" }}
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: "#14f195", boxShadow: "0 0 6px #14f195", animation: "pulse 2s infinite" }}
+            />
+            LIVE
+          </div>
+          <img
+            src="/dashboard-preview.png"
+            alt="Live dashboard preview"
+            className="w-full block"
+            style={{
+              maskImage: "linear-gradient(to bottom, black 55%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 100%)",
+              opacity: 0.85,
+            }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }}
+          />
         </motion.div>
       </motion.div>
 

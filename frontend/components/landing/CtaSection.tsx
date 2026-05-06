@@ -6,13 +6,24 @@ import Button from "@/components/ui/Button"
 
 export default function CtaSection() {
   return (
-    <section id="cta" className="py-20 md:py-24 px-6 text-center scroll-mt-24">
+    <section
+      id="cta"
+      className="py-24 md:py-32 px-6 text-center scroll-mt-24 relative overflow-hidden"
+      style={{ background: "linear-gradient(180deg, #0a0f0d 0%, #0d1a10 50%, #0a0f0d 100%)" }}
+    >
+      {/* subtle green glow */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(20,241,149,0.07) 0%, transparent 70%)",
+        }}
+      />
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={viewportOnce}
         transition={{ duration: 0.8, ease }}
-        className="max-w-6xl mx-auto rounded-[36px] border border-[rgba(20,241,149,0.1)] bg-[linear-gradient(180deg,rgba(23,28,35,0.58)_0%,rgba(23,28,35,0.46)_100%)] backdrop-blur-[4px] px-6 md:px-10 py-12 md:py-14 md:min-h-[60vh] flex flex-col justify-center"
+        className="relative z-10 max-w-2xl mx-auto"
       >
         <h2 className="text-3xl md:text-5xl font-bold mb-6" style={{ color: "#f5f5f5" }}>
           See it running.
