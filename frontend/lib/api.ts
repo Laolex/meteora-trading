@@ -78,6 +78,13 @@ export interface MarketSnapshot {
   updatedAt: string
 }
 
+export interface WalletBalance {
+  address: string
+  solBalance: number
+  usdcBalance: number
+  usdcMint: string
+}
+
 async function apiFetch<T>(path: string, fallback: T): Promise<T> {
   if (!process.env.NEXT_PUBLIC_API_URL) return fallback
   const res = await fetch(`${API_BASE}${path}`, { cache: "no-store" })
@@ -154,6 +161,13 @@ const MOCK_SAFETY: SafetyConfig = {
   network: "devnet",
 }
 
+const MOCK_WALLET_BALANCE: WalletBalance = {
+  address: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+  solBalance: 0.42,
+  usdcBalance: 87.5,
+  usdcMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+}
+
 // --- API functions ---
 
 export async function getAgentStatus(): Promise<AgentStatus> {
@@ -174,6 +188,10 @@ export async function getRiskUtilization(): Promise<RiskUtilization> {
 
 export async function getSafetyConfig(): Promise<SafetyConfig> {
   return apiFetch("/safety", MOCK_SAFETY)
+}
+
+export async function getWalletBalance(): Promise<WalletBalance> {
+  return apiFetch("/wallet/balance", MOCK_WALLET_BALANCE)
 }
 
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {

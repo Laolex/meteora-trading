@@ -75,3 +75,25 @@ export async function adminKillSwitch(arm: boolean): Promise<{ ok: boolean; arme
   if (!res.ok) throw new Error(`adminKillSwitch failed: ${res.status}`)
   return res.json() as Promise<{ ok: boolean; armed: boolean }>
 }
+
+export async function adminWithdraw(
+  amountSol: number,
+  amountUsdc: number,
+): Promise<{ ok: boolean; txSignature: string }> {
+  const token = getToken()
+  if (!token) throw new Error("Not authenticated")
+
+  const res = await fetch(`${API_BASE}/admin/withdraw`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ amountSol, amountUsdc }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Unknown error" }))
+    throw new Error((err as { detail?: string }).detail ?? `withdraw failed: ${res.status}`)
+  }
+  return res.json() as Promise<{ ok: boolean; txSignature: string }>
+}
