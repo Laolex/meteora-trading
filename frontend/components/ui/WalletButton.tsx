@@ -39,10 +39,14 @@ export default function WalletButton() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, publicKey?.toBase58()])
 
-  const handleDisconnect = () => {
-    clearToken()
-    setState("idle")
-    disconnect().catch(() => {})
+  const handleDisconnect = async () => {
+    try {
+      await disconnect()
+      clearToken()
+      setState("idle")
+    } catch {
+      setState("error")
+    }
   }
 
   // Not connected — show wallet picker button styled to match nav
@@ -81,7 +85,7 @@ export default function WalletButton() {
   if (state === "verified") {
     return (
       <button
-        onClick={handleDisconnect}
+        onClick={() => void handleDisconnect()}
         className="flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full border transition-colors"
         style={{ borderColor: "#14f195", color: "#14f195", background: "transparent" }}
         title="Click to disconnect"
@@ -105,7 +109,7 @@ export default function WalletButton() {
           Unauthorized
         </span>
         <button
-          onClick={handleDisconnect}
+          onClick={() => void handleDisconnect()}
           className="text-xs px-3 py-1.5 rounded-full border transition-colors"
           style={{ borderColor: "#555", color: "#888", background: "transparent" }}
         >
