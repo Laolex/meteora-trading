@@ -5,6 +5,7 @@ import ActivityFeed from "@/components/dashboard/ActivityFeed"
 import RiskGauge from "@/components/dashboard/RiskGauge"
 import DashboardSidebar from "@/components/dashboard/Sidebar"
 import AdminPanel from "@/components/dashboard/AdminPanel"
+import WalletBalancePanel from "@/components/dashboard/WalletBalance"
 
 export const dynamic = "force-dynamic"
 
@@ -48,8 +49,9 @@ export default async function DashboardPage() {
       <AdminPanel initialArmed={status.killSwitchPresent} />
 
       <div className="grid gap-6 lg:grid-cols-[280px,1fr] items-start">
-        <div className="lg:sticky lg:top-24">
+        <div className="lg:sticky lg:top-24 space-y-4">
           <DashboardSidebar status={status} kpi={kpi} risk={risk} safety={safety} />
+          <WalletBalancePanel />
         </div>
 
         <div>
