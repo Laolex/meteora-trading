@@ -40,12 +40,8 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-bold mb-1" style={{ color: "#f5f5f5" }}>
             Live Dashboard
           </h1>
-          <p className="text-sm" style={{ color: "#888888" }}>
-            Mock data — connect{" "}
-            <code className="font-mono text-xs px-1 py-0.5 rounded" style={{ background: "#1a1a1a", color: "#14f195" }}>
-              NEXT_PUBLIC_API_URL
-            </code>{" "}
-            to fetch real agent data.
+          <p className="text-xs font-mono" style={{ color: "#444444" }}>
+            {process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL : "mock data"}
           </p>
         </div>
         <div className="flex items-center gap-1.5 text-xs font-mono" style={{ color: "#555555" }}>

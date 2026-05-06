@@ -148,7 +148,7 @@ export default function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease, delay: 0.85 }}
           className="mt-10 relative rounded-2xl overflow-hidden"
-          style={{ border: "1px solid rgba(20,241,149,0.12)" }}
+          style={{ border: "1px solid rgba(20,241,149,0.12)", maxHeight: "220px" }}
         >
           {/* live badge */}
           <div
@@ -166,11 +166,13 @@ export default function HeroSection() {
             alt="Live dashboard preview"
             className="w-full block"
             style={{
-              maskImage: "linear-gradient(to bottom, black 55%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 100%)",
-              opacity: 0.85,
+              objectFit: "cover",
+              objectPosition: "top",
+              maskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
+              opacity: 0.9,
             }}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }}
+            onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none" }}
           />
         </motion.div>
       </motion.div>
