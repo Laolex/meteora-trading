@@ -1,0 +1,73 @@
+<svg viewBox="0 0 900 380" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blurred" />
+      <feFlood flood-color="#14f195" flood-opacity="1" result="color" />
+      <feComposite in="color" in2="blurred" operator="in" result="glow" />
+      <feMerge>
+        <feMergeNode in="glow" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  <radialGradient id="centerGlow" cx="450" cy="200" r="200" gradientUnits="userSpaceOnUse">
+    <stop offset="0%" stop-color="rgba(20,241,149,0.08)" />
+    <stop offset="100%" stop-color="rgba(20,241,149,0)" />
+  </radialGradient>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="380" fill="#0a0f0d" />
+
+  <!-- LEFT SIDE: Bell curve histogram -->
+  <g transform="translate(30,0)">
+    <rect x="0" y="322" width="20" height="18" fill="#14f195" opacity="0.18" rx="3" />
+    <rect x="26" y="312" width="20" height="28" fill="#14f195" opacity="0.18" rx="3" />
+    <rect x="52" y="296" width="20" height="44" fill="#14f195" opacity="0.35" rx="3" />
+    <rect x="78" y="276" width="20" height="64" fill="#14f195" opacity="0.35" rx="3" />
+    <rect x="104" y="252" width="20" height="88" fill="#14f195" opacity="0.55" rx="3" />
+    <rect x="130" y="232" width="20" height="108" fill="#14f195" opacity="0.75" rx="3" />
+    <rect x="156" y="216" width="20" height="124" fill="#14f195" rx="3" />
+    <rect x="182" y="232" width="20" height="108" fill="#14f195" opacity="0.75" rx="3" />
+    <rect x="208" y="252" width="20" height="88" fill="#14f195" opacity="0.55" rx="3" />
+    <rect x="234" y="276" width="20" height="64" fill="#14f195" opacity="0.35" rx="3" />
+    <rect x="260" y="296" width="20" height="44" fill="#14f195" opacity="0.35" rx="3" />
+    <rect x="286" y="312" width="20" height="28" fill="#14f195" opacity="0.18" rx="3" />
+    <rect x="312" y="322" width="20" height="18" fill="#14f195" opacity="0.18" rx="3" />
+    <line x1="0" y1="341" x2="332" y2="341" stroke="#14f195" opacity="0.2" stroke-width="1" />
+  </g>
+
+  <!-- RIGHT SIDE: Glowing circles and paths -->
+  <g>
+    <path d="M580,120 Q630,60 680,80 T760,160 Q790,140 820,100 M680,80 Q650,150 630,200" fill="none" stroke="#14f195" opacity="0.25" stroke-width="1" />
+    <circle cx="580" cy="120" r="6" fill="#14f195" filter="url(#glow)" />
+    <circle cx="680" cy="80" r="5" fill="#14f195" filter="url(#glow)" />
+    <circle cx="760" cy="160" r="7" fill="#14f195" filter="url(#glow)" />
+    <circle cx="820" cy="100" r="4" fill="#14f195" filter="url(#glow)" />
+    <circle cx="630" cy="200" r="5" fill="#14f195" filter="url(#glow)" />
+
+    <!-- Scattered small circles -->
+    <circle cx="510" cy="180" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="550" cy="80" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="600" cy="250" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="650" cy="40" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="700" cy="220" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="750" cy="60" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="800" cy="200" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="850" cy="90" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="530" cy="230" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="620" cy="150" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="720" cy="10" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="780" cy="240" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="590" cy="10" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="690" cy="280" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="840" cy="170" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="500" cy="100" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="660" cy="260" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="740" cy="200" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="810" cy="50" r="1.5" fill="#14f195" opacity="0.15" />
+    <circle cx="560" cy="300" r="1.5" fill="#14f195" opacity="0.15" />
+  </g>
+
+  <!-- CENTER: Radial gradient glow -->
+
+  <circle cx="450" cy="200" r="200" fill="url(#centerGlow)" />
+</svg>

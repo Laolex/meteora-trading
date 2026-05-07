@@ -47,6 +47,16 @@ export default function HeroSection() {
         style={{ background: "linear-gradient(180deg, #171c23 0%, #141920 56%, #11161d 100%)" }}
       >
         <ParticleCanvas />
+        {/* AI-generated hero illustration */}
+        <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.45 }}>
+          <img
+            src="/hero-illustration.svg"
+            alt=""
+            aria-hidden
+            className="w-full h-full"
+            style={{ objectFit: "cover", objectPosition: "center" }}
+          />
+        </div>
         {/* radial glow */}
         <div
           className="absolute inset-0 pointer-events-none"
