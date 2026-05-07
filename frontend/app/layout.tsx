@@ -6,9 +6,18 @@ import FootnoteTicker from "@/components/ui/FootnoteTicker"
 import SolanaWalletProvider from "@/components/ui/WalletProvider"
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://meteora-agent.vercel.app"),
   title: "Meteora Agent — Autonomous DLMM Liquidity",
   description:
     "A safety-first autonomous agent for Meteora DLMM liquidity positions on Solana. Colosseum Solana Frontier Hackathon 2026.",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
+  openGraph: {
+    title: "Meteora Agent — Autonomous DLMM Liquidity",
+    description: "Safety-first autonomous agent for Meteora DLMM on Solana. Colosseum 2026.",
+    images: [{ url: "/dashboard-preview.png", width: 1440, height: 761 }],
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -4,8 +4,10 @@ import { useRef } from "react"
 import { motion, useMotionValue, useTransform, useSpring } from "motion/react"
 import { ease } from "@/lib/motion"
 import ParticleCanvas from "./ParticleCanvas"
+import PoolVisual from "./PoolVisual"
 import Button from "@/components/ui/Button"
 import Badge from "@/components/ui/Badge"
+import Logo from "@/components/ui/Logo"
 
 export default function HeroSection() {
   const containerRef = useRef<HTMLElement>(null)
@@ -116,23 +118,20 @@ export default function HeroSection() {
           <Button href="/architecture" variant="secondary">Read Architecture</Button>
         </motion.div>
 
-        {/* stat strip — proof numbers */}
+        {/* stat strip */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease, delay: 0.65 }}
-          className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto"
+          className="mt-14 grid grid-cols-3 gap-8 max-w-lg mx-auto"
         >
           {[
-            { label: "Loop Cycle", value: "~5s" },
+            { label: "Loop Cycle", value: "~60s" },
             { label: "Tests Passing", value: "15 / 15" },
-            { label: "Safety Checks", value: "100%" },
+            { label: "Safety Guards", value: "4 layers" },
           ].map(({ label, value }) => (
             <div key={label} className="text-center">
-              <p
-                className="text-2xl font-semibold"
-                style={{ color: "#14f195", textShadow: "0 0 20px rgba(20,241,149,0.3)" }}
-              >
+              <p className="text-2xl font-semibold" style={{ color: "#14f195", textShadow: "0 0 20px rgba(20,241,149,0.3)" }}>
                 {value}
               </p>
               <p className="text-xs mt-1 uppercase tracking-wider" style={{ color: "#555555" }}>
@@ -142,38 +141,22 @@ export default function HeroSection() {
           ))}
         </motion.div>
 
-        {/* dashboard preview */}
+        {/* pool visualization */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease, delay: 0.85 }}
-          className="mt-10 relative rounded-2xl overflow-hidden"
-          style={{ border: "1px solid rgba(20,241,149,0.12)", maxHeight: "220px" }}
+          className="mt-10 rounded-2xl px-6 pt-5 pb-4"
+          style={{ border: "1px solid rgba(20,241,149,0.1)", background: "rgba(10,15,13,0.6)" }}
         >
-          {/* live badge */}
-          <div
-            className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-            style={{ background: "rgba(20,241,149,0.12)", border: "1px solid rgba(20,241,149,0.3)", color: "#14f195" }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ background: "#14f195", boxShadow: "0 0 6px #14f195", animation: "pulse 2s infinite" }}
-            />
-            LIVE
+          <div className="flex items-center justify-between mb-4">
+            <Logo size={22} />
+            <span className="flex items-center gap-1.5 text-xs font-mono" style={{ color: "#14f195" }}>
+              <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: "#14f195", boxShadow: "0 0 5px #14f195" }}/>
+              DLMM position · devnet
+            </span>
           </div>
-          <img
-            src="/dashboard-preview.png"
-            alt="Live dashboard preview"
-            className="w-full block"
-            style={{
-              objectFit: "cover",
-              objectPosition: "top",
-              maskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
-              opacity: 0.9,
-            }}
-            onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none" }}
-          />
+          <PoolVisual />
         </motion.div>
       </motion.div>
 

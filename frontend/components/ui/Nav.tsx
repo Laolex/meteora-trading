@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "motion/react"
 import dynamic from "next/dynamic"
+import Logo from "./Logo"
 
 const WalletButton = dynamic(() => import("./WalletButton"), { ssr: false })
 
@@ -27,8 +28,8 @@ export default function Nav() {
         borderBottom: "1px solid #1a1a1a",
       }}
     >
-      <Link href="/" className="text-sm font-semibold tracking-widest uppercase text-[#14f195]">
-        Meteora Agent
+      <Link href="/" aria-label="Meteora Agent home">
+        <Logo size={28} />
       </Link>
       <ul className="hidden md:flex items-center gap-6">
         {links.map(({ href, label }) => {
