@@ -5,7 +5,10 @@ import { useWallet } from "@solana/wallet-adapter-react"
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui"
 import { verifyWallet, clearToken } from "@/lib/auth"
 
-type AuthState = "idle" | "signing" | "verified" | "unauthorized" | "error"
+// Only the operator wallet goes through JWT auth. Everyone else connects as investor.
+const OPERATOR_PUBKEY = process.env.NEXT_PUBLIC_AUTHORIZED_PUBKEY ?? ""
+
+type AuthState = "idle" | "signing" | "verified" | "investor" | "error"
 
 export default function WalletButton() {
   const { connected, publicKey, disconnect, signMessage } = useWallet()
@@ -13,12 +16,17 @@ export default function WalletButton() {
   const [errorMsg, setErrorMsg] = useState<string>("")
   const authEnabled = Boolean(process.env.NEXT_PUBLIC_API_URL)
 
+  const isOperator = publicKey?.toBase58() === OPERATOR_PUBKEY
+
   const attemptVerify = useCallback(async () => {
-    if (!authEnabled) {
-      setState("verified")
+    if (!publicKey || !signMessage) return
+
+    // Non-operator wallets: just mark as investor, no auth needed
+    if (!isOperator || !authEnabled) {
+      setState("investor")
       return
     }
-    if (!publicKey || !signMessage) return
+
     setState("signing")
     setErrorMsg("")
     try {
@@ -27,22 +35,17 @@ export default function WalletButton() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       setErrorMsg(msg)
-      if (msg.includes("401") || msg.includes("403") || msg.includes("Unauthorized")) {
-        setState("unauthorized")
-      } else {
-        setState("error")
-      }
+      setState("error")
     }
-  }, [authEnabled, publicKey, signMessage])
+  }, [authEnabled, isOperator, publicKey, signMessage])
 
   useEffect(() => {
     if (connected && publicKey) {
-      const timer = setTimeout(() => {
-        void attemptVerify()
-      }, 0)
+      const timer = setTimeout(() => { void attemptVerify() }, 0)
       return () => clearTimeout(timer)
     } else {
       clearToken()
+      setState("idle")
     }
   }, [attemptVerify, connected, publicKey])
 
@@ -106,23 +109,18 @@ export default function WalletButton() {
     )
   }
 
-  if (state === "unauthorized") {
+  // investor — connected, can use vault, no admin access
+  if (state === "investor") {
     return (
-      <div className="flex items-center gap-2">
-        <span
-          className="text-xs font-medium px-3 py-1.5 rounded-full border"
-          style={{ borderColor: "#ef4444", color: "#ef4444", background: "transparent" }}
-        >
-          Unauthorized
-        </span>
-        <button
-          onClick={() => void handleDisconnect()}
-          className="text-xs px-3 py-1.5 rounded-full border transition-colors"
-          style={{ borderColor: "#555", color: "#888", background: "transparent" }}
-        >
-          Disconnect
-        </button>
-      </div>
+      <button
+        onClick={() => void handleDisconnect()}
+        className="flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full border transition-colors"
+        style={{ borderColor: "#14f195", color: "#14f195", background: "transparent" }}
+        title="Connected as investor — click to disconnect"
+      >
+        <span className="inline-block w-2 h-2 rounded-full" style={{ background: "#14f195", flexShrink: 0 }} />
+        {shortPub}
+      </button>
     )
   }
 
