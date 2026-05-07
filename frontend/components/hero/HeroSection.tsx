@@ -137,7 +137,7 @@ export default function HeroSection() {
         >
           {[
             { label: "Loop Cycle", value: "~60s" },
-            { label: "Tests Passing", value: "15 / 15" },
+            { label: "Tests Passing", value: "35 / 35" },
             { label: "Safety Guards", value: "4 layers" },
           ].map(({ label, value }) => (
             <div key={label} className="text-center">

@@ -4,7 +4,7 @@ const limitations = [
   "node-helper/index.js is not yet wired to @meteora-ag/dlmm — transactions are simulated only",
   "src/executor/ is a stub — the full tx broadcast → confirmation → retry loop is not implemented",
   "DB writes in DRY_RUN mode are real (actions_log, positions), but tx_signature is always null",
-  "Dashboard API (src/dashboard/) is a stub — this frontend currently uses mock data",
+  "Dashboard API is live on devnet — production upgrade requires a persistent host (not ngrok)",
   "No mainnet deployment has occurred — all testing on devnet with $0 at risk",
 ]
 
