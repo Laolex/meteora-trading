@@ -13,6 +13,18 @@ export default function ArchitecturePage() {
         </p>
       </div>
 
+      {/* AI-generated architecture diagram */}
+      <section className="mb-10">
+        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(20,241,149,0.1)" }}>
+          <img
+            src="/arch-diagram.svg"
+            alt="System architecture diagram"
+            className="w-full block"
+            style={{ background: "#0c1117" }}
+          />
+        </div>
+      </section>
+
       <section className="mb-16">
         <h2 className="text-sm font-semibold uppercase tracking-wider mb-8 text-center" style={{ color: "#888888" }}>
           System layers

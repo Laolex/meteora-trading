@@ -1,0 +1,95 @@
+<svg viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Dot Grid Pattern -->
+    <pattern id="dotGrid" patternUnits="userSpaceOnUse" width="30" height="30">
+      <circle cx="1" cy="1" r="1" fill="#1e2a38" />
+    </pattern>
+
+    <!-- Arrowhead Marker -->
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L10,3.5 L0,7 z" fill="#14f195" />
+    </marker>
+  </defs>
+
+  <!-- Dark Background -->
+  <rect fill="#0c1117" width="800" height="420" />
+
+  <!-- Faint Dots Grid Background -->
+  <rect x="0" y="0" width="800" height="420" fill="url(#dotGrid)" />
+
+  <!-- Box 1: Discovery -->
+  <rect x="40" y="60" rx="12" width="120" height="52" stroke="#14f195" stroke-opacity="0.25" fill="#161c24" />
+  <g transform="translate(100, 75)">
+    <!-- Magnifier icon (centered around 0,0) -->
+    <path d="M -5 -5 a 6 6 0 1 0 12 0 a 6 6 0 1 0 -12 0 M 4 4 L 9 9" fill="#e8edf2" />
+  </g>
+  <text x="100" y="96" fill="#e8edf2" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">Discovery</text>
+
+  <!-- Box 2: Scorer -->
+  <rect x="40" y="180" rx="12" width="120" height="52" stroke="#14f195" stroke-opacity="0.25" fill="#161c24" />
+  <g transform="translate(100, 195)">
+    <!-- Bars icon (centered around 0,0) -->
+    <path d="M -5 -5 v 10 h 3 v -10 h -3 z M 0 -8 v 15 h 3 v -15 h -3 z M 5 -2 v 7 h 3 v -7 h -3 z" fill="#e8edf2" />
+  </g>
+  <text x="100" y="216" fill="#e8edf2" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">Scorer</text>
+
+  <!-- Box 3: Risk Guard -->
+  <rect x="220" y="60" rx="12" width="120" height="52" stroke="#14f195" stroke-opacity="0.25" fill="#161c24" />
+  <g transform="translate(280, 75)">
+    <!-- Shield icon (centered around 0,0) -->
+    <path d="M -8 0 Q -10 -5 -8 -10 L 8 -10 Q 10 -5 8 0 L 0 8 L -8 0 Z" fill="#e8edf2" />
+  </g>
+  <text x="280" y="96" fill="#e8edf2" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">Risk Guard</text>
+
+  <!-- Box 4: Decision Engine -->
+  <rect x="220" y="180" rx="12" width="120" height="52" stroke="#14f195" stroke-opacity="0.25" fill="#161c24" />
+  <g transform="translate(280, 195)">
+    <!-- Fork icon (centered around 0,0) -->
+    <path d="M 0 -5 L 0 0 M 0 0 L -8 5 M 0 0 L 8 5" stroke="#e8edf2" stroke-width="1.5" fill="none" />
+  </g>
+  <text x="280" y="216" fill="#e8edf2" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">Decision Engine</text>
+
+  <!-- Box 5: Executor -->
+  <rect x="400" y="60" rx="12" width="120" height="52" stroke="#14f195" stroke-opacity="0.25" fill="#161c24" />
+  <g transform="translate(460, 75)">
+    <!-- Bolt icon (centered around 0,0) -->
+    <path d="M 0 -5 L -5 5 L 0 5 L -3 10 L 5 0 L 0 0 L 0 -5 Z" fill="#e8edf2" />
+  </g>
+  <text x="460" y="96" fill="#e8edf2" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">Executor</text>
+
+  <!-- Box 6: Vault -->
+  <rect x="400" y="180" rx="12" width="120" height="52" stroke="#14f195" stroke-opacity="0.25" fill="#161c24" />
+  <g transform="translate(460, 195)">
+    <!-- Lock icon (centered around 0,0) -->
+    <path d="M -5 5 V -2 A 5 5 0 0 1 5 -2 V 5 H -5 Z M -5 5 H 5 V 10 H -5 Z" fill="#e8edf2" />
+  </g>
+  <text x="460" y="216" fill="#e8edf2" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">Vault</text>
+
+  <!-- Box 7: Postgres DB -->
+  <rect x="320" y="320" rx="12" width="120" height="52" stroke="#14f195" stroke-opacity="0.25" fill="#161c24" />
+  <g transform="translate(380, 335)">
+    <!-- Cylinder icon (centered around 0,0) -->
+    <path d="M -10 -5 A 10 3 0 0 1 10 -5 A 10 3 0 0 1 -10 -5 Z M -10 -5 V 5 A 10 3 0 0 0 10 5 V -5 Z" fill="#e8edf2" />
+  </g>
+  <text x="380" y="356" fill="#e8edf2" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">Postgres DB</text>
+
+  <!-- Connectors -->
+  <!-- Discovery -> Scorer -->
+  <path d="M 100 112 L 100 180" stroke="#14f195" stroke-opacity="0.4" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+
+  <!-- Scorer -> Risk Guard -->
+  <path d="M 160 206 H 190 V 86 H 220" stroke="#14f195" stroke-opacity="0.4" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+
+  <!-- Risk Guard -> Decision Engine -->
+  <path d="M 280 112 L 280 180" stroke="#14f195" stroke-opacity="0.4" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+
+  <!-- Decision Engine -> Executor -->
+  <path d="M 340 206 H 370 V 86 H 400" stroke="#14f195" stroke-opacity="0.4" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+
+  <!-- Executor -> Vault -->
+  <path d="M 460 112 L 460 180" stroke="#14f195" stroke-opacity="0.4" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+
+  <!-- Decision Engine -> Postgres DB -->
+  <path d="M 280 232 V 270 H 380 V 320" stroke="#14f195" stroke-opacity="0.4" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+
+</svg>
