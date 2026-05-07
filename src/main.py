@@ -21,6 +21,7 @@ from src.discovery.scorer import ScoringWeights, score_pools
 from src.position.manager import MeteoraPositionManager, PositionRange
 from src.rebalance.decision import Action, ActionType, DecisionContext, decide
 from src.rebalance.guards import SafetyGuard
+from src.vault.capital import sweep_to_vault, top_up_if_needed
 
 log = logging.getLogger(__name__)
 
@@ -209,6 +210,14 @@ async def run_loop() -> None:
                 await db.ensure_daily_baseline(current_total)
                 day_start = await db.get_today_starting_value()
 
+                await top_up_if_needed(
+                    rpc=rpc,
+                    wallet_pubkey=wallet.pubkey(),
+                    network=config.network,
+                    required_usdc=config.default_position_size_usd,
+                    dry_run=config.dry_run,
+                )
+
                 if not open_positions and ranked and config.max_open_positions > 0:
                     top = ranked[0].pool
                     guard_res = guard.all_clear(
@@ -292,6 +301,14 @@ async def run_loop() -> None:
                             error_message=str(exc),
                         )
                         log.exception("Action execution failed for position %s", position.id)
+
+                await sweep_to_vault(
+                    rpc=rpc,
+                    wallet_pubkey=wallet.pubkey(),
+                    network=config.network,
+                    keep_usdc=config.default_position_size_usd,
+                    dry_run=config.dry_run,
+                )
 
                 await asyncio.sleep(config.loop_interval_seconds)
             except KeyboardInterrupt:
