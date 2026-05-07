@@ -105,3 +105,23 @@ class TestManagerReturn:
             resp = client.post("/vault/manager-return", json={"amountUsdc": 1.0})
         assert resp.status_code == 500
         assert "insufficient funds" in resp.json()["detail"]
+
+
+# ---------------------------------------------------------------------------
+# Unauthenticated requests — no dependency override applied
+# ---------------------------------------------------------------------------
+
+# Separate app and client with NO auth override to test real auth rejection.
+_unauthed_app = FastAPI()
+_unauthed_app.include_router(router)
+_unauthed_client = TestClient(_unauthed_app, raise_server_exceptions=False)
+
+
+class TestUnauthenticated:
+    def test_manager_withdraw_rejects_missing_token(self):
+        resp = _unauthed_client.post("/vault/manager-withdraw", json={"amountUsdc": 10.0})
+        assert resp.status_code == 401
+
+    def test_manager_return_rejects_missing_token(self):
+        resp = _unauthed_client.post("/vault/manager-return", json={"amountUsdc": 10.0})
+        assert resp.status_code == 401
