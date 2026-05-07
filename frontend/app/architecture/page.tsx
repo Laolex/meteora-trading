@@ -53,9 +53,9 @@ export default function ArchitecturePage() {
                 ["src/discovery/", "Pull pools, score, rank via Meteora API"],
                 ["src/rebalance/", "Decision logic + safety guards"],
                 ["src/position/", "Read position state, open/close via node-helper"],
-                ["src/executor/", "Reserved — tx executor integration (stub)"],
-                ["src/db/", "Reserved — Postgres persistence (stub)"],
-                ["src/dashboard/", "Reserved — FastAPI for this frontend (stub)"],
+                ["src/executor/", "Reserved — tx broadcast + confirmation loop (stub)"],
+                ["src/db/", "Postgres persistence — asyncpg pool, full CRUD"],
+                ["src/dashboard/", "FastAPI — live on devnet, positions + actions + vault"],
                 ["node-helper/", "Signs and broadcasts Meteora SDK transactions"],
                 ["sql/", "Schema migrations"],
               ].map(([path, desc]) => (
