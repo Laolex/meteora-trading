@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { motion } from "motion/react"
 import dynamic from "next/dynamic"
 import Logo from "./Logo"
+import MobileMenu from "./MobileMenu"
 
 const WalletButton = dynamic(() => import("./WalletButton"), { ssr: false })
 
@@ -55,7 +56,10 @@ export default function Nav() {
           )
         })}
       </ul>
-      <WalletButton />
+      <div className="flex items-center gap-3">
+        <WalletButton />
+        <MobileMenu />
+      </div>
     </nav>
   )
 }
