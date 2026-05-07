@@ -1,7 +1,12 @@
 import ReceiptsPanel from "@/components/proof/ReceiptsPanel"
 import LimitationsBox from "@/components/proof/LimitationsBox"
+import { getProofSnapshot } from "@/lib/api"
 
-export default function ProofPage() {
+export const dynamic = "force-dynamic"
+
+export default async function ProofPage() {
+  const proof = await getProofSnapshot()
+
   return (
     <div className="min-h-screen pt-24 pb-16 px-4 md:px-6 max-w-4xl mx-auto">
       <div className="mb-12">
@@ -14,7 +19,7 @@ export default function ProofPage() {
       </div>
 
       <div className="space-y-10">
-        <ReceiptsPanel />
+        <ReceiptsPanel proof={proof} />
         <LimitationsBox />
       </div>
     </div>

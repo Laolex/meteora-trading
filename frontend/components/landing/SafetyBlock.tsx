@@ -4,37 +4,41 @@ import { motion } from "motion/react"
 import { staggerContainer, cardReveal, viewportOnce } from "@/lib/motion"
 import Badge from "@/components/ui/Badge"
 import ParticleCanvas from "@/components/hero/ParticleCanvas"
+import type { SafetyConfig } from "@/lib/api"
 
-const rails = [
-  {
-    label: "DRY_RUN Mode",
-    status: "active" as const,
-    description: "Agent runs the full loop — discovery, scoring, decisions — but no transactions are sent. Safe by default.",
-  },
-  {
-    label: "Kill Switch",
-    status: "armed" as const,
-    description: "Touch /var/kill and the agent stops within one loop iteration. No code changes, no restarts.",
-  },
-  {
-    label: "Position Caps",
-    status: "enforced" as const,
-    description: "Hard limits on max position size and total deployed capital. Checked before every open.",
-  },
-  {
-    label: "Live Gate",
-    status: "pass" as const,
-    description: "Checklist of preconditions must all pass before DRY_RUN can be disabled: wallet, DB, RPC, node-helper.",
-  },
-]
+interface Props {
+  safety: SafetyConfig
+}
 
 const badgeVariant = (status: string) => {
-  if (status === "active" || status === "pass") return "green" as const
-  if (status === "armed") return "amber" as const
+  if (status === "active" || status === "pass" || status === "enforced" || status === "clear") return "green" as const
+  if (status === "armed" || status === "off") return "amber" as const
   return "neutral" as const
 }
 
-export default function SafetyBlock() {
+export default function SafetyBlock({ safety }: Props) {
+  const rails = [
+    {
+      label: "DRY_RUN Mode",
+      status: safety.dryRun ? "active" : "off",
+      description: "Agent runs the full loop — discovery, scoring, decisions — but no transactions are sent. Safe by default.",
+    },
+    {
+      label: "Kill Switch",
+      status: safety.killSwitchPresent ? "armed" : "clear",
+      description: "Touch /var/kill and the agent stops within one loop iteration. No code changes, no restarts.",
+    },
+    {
+      label: "Position Caps",
+      status: "enforced",
+      description: `Max $${safety.maxPositionUsd} per position · $${safety.maxTotalDeployedUsd} total deployed. Checked before every open.`,
+    },
+    {
+      label: "Live Gate",
+      status: safety.liveGatePass ? "pass" : "blocked",
+      description: "Checklist of preconditions must all pass before DRY_RUN can be disabled: wallet, DB, RPC, node-helper.",
+    },
+  ]
   return (
     <section id="safety" className="relative py-20 md:py-24 px-6 scroll-mt-24 overflow-hidden" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
       <div className="absolute inset-0 pointer-events-none opacity-35">

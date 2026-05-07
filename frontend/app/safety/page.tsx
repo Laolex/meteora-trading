@@ -1,4 +1,4 @@
-import { getSafetyConfig } from "@/lib/api"
+import { getSafetyConfig, getWalletBalance, getProofSnapshot } from "@/lib/api"
 import ControlsPanel from "@/components/safety/ControlsPanel"
 import Checklist from "@/components/safety/Checklist"
 import RollbackBlock from "@/components/safety/RollbackBlock"
@@ -6,7 +6,11 @@ import RollbackBlock from "@/components/safety/RollbackBlock"
 export const dynamic = "force-dynamic"
 
 export default async function SafetyPage() {
-  const config = await getSafetyConfig()
+  const [config, wallet, proof] = await Promise.all([
+    getSafetyConfig(),
+    getWalletBalance(),
+    getProofSnapshot(),
+  ])
 
   return (
     <div className="min-h-screen pt-24 pb-16 px-4 md:px-6 max-w-5xl mx-auto">
@@ -24,7 +28,7 @@ export default async function SafetyPage() {
           <ControlsPanel config={config} />
         </div>
         <div className="space-y-6">
-          <Checklist />
+          <Checklist safety={config} wallet={wallet} dbReachable={proof.dbReachable} />
           <RollbackBlock />
         </div>
       </div>

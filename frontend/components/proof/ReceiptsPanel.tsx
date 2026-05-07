@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react"
 import { viewportOnce, ease } from "@/lib/motion"
+import type { ProofSnapshot } from "@/lib/api"
 
 interface TerminalBlockProps {
   title: string
@@ -43,56 +44,51 @@ function TerminalBlock({ title, lines, delay = 0 }: TerminalBlockProps) {
   )
 }
 
-export default function ReceiptsPanel() {
+interface Props {
+  proof: ProofSnapshot
+}
+
+export default function ReceiptsPanel({ proof }: Props) {
+  const gitLines = proof.gitLog.length > 0
+    ? [
+        { label: "$", value: "git log --oneline -4", color: "#888888" },
+        ...proof.gitLog.map((line) => ({ value: line })),
+      ]
+    : [
+        { label: "$", value: "git log --oneline -4", color: "#888888" },
+        { value: "no commits found", color: "#444444" },
+      ]
+
+  const agentLines = [
+    { label: "$", value: "systemctl --user status meteora-agent", color: "#888888" },
+    { value: "● meteora-agent.service — Meteora DLMM Autonomous Agent" },
+    { value: `   Mode: ${proof.agentMode}, network=${proof.agentNetwork}`, color: "#f59e0b" },
+    { value: `   DB: ${proof.dbReachable ? "connected" : "unreachable"}`, color: proof.dbReachable ? "#14f195" : "#ef4444" },
+  ]
+
+  const actionLines: { label?: string; value: string; color?: string }[] = [
+    { label: "$", value: "SELECT action_type, pool_name, reason FROM actions_log ORDER BY id DESC LIMIT 3", color: "#888888" },
+    { value: " action_type │ pool_name    │ reason", color: "#444444" },
+    { value: "─────────────┼──────────────┼───────────────────────────────", color: "#333333" },
+  ]
+
+  if (proof.recentActions.length === 0) {
+    actionLines.push({ value: " (no actions logged yet)", color: "#555555" })
+  } else {
+    for (const a of proof.recentActions) {
+      const type = a.actionType.padEnd(12)
+      const pool = (a.poolName ?? "unknown").substring(0, 12).padEnd(12)
+      const reason = (a.reason ?? "").substring(0, 35)
+      actionLines.push({ value: ` ${type} │ ${pool} │ ${reason}` })
+    }
+    actionLines.push({ value: `(${proof.recentActions.length} rows)`, color: "#888888" })
+  }
+
   return (
     <div className="space-y-6">
-      <TerminalBlock
-        title="git log --oneline -3"
-        delay={0}
-        lines={[
-          { label: "$", value: "git log --oneline -3", color: "#888888" },
-          { value: "a3f91bc feat: discovery scorer with weighted composite score" },
-          { value: "82d0e14 feat: risk guard — position cap + daily loss limit" },
-          { value: "c19a2f7 feat: node-helper stdio bridge for Meteora SDK calls" },
-        ]}
-      />
-
-      <TerminalBlock
-        title="systemctl status meteora-agent"
-        delay={0.08}
-        lines={[
-          { label: "$", value: "systemctl --user status meteora-agent", color: "#888888" },
-          { value: "● meteora-agent.service — Meteora DLMM Autonomous Agent" },
-          { value: "   Loaded: loaded (/etc/systemd/user/meteora-agent.service)" },
-          { value: "   Active: active (running) since Tue 2026-05-05 00:00:01 UTC", color: "#14f195" },
-          { value: "   Main PID: 12847 (python)" },
-          { value: "   Loop: DRY_RUN=true, network=devnet", color: "#f59e0b" },
-        ]}
-      />
-
-      <TerminalBlock
-        title="pytest -q"
-        delay={0.16}
-        lines={[
-          { label: "$", value: "pytest -q", color: "#888888" },
-          { value: "...............                                              [100%]" },
-          { value: "15 passed in 1.34s", color: "#14f195" },
-        ]}
-      />
-
-      <TerminalBlock
-        title="actions_log (recent)"
-        delay={0.24}
-        lines={[
-          { label: "$", value: "psql -c 'SELECT action_type,reason,decided_at FROM actions_log ORDER BY id DESC LIMIT 3'", color: "#888888" },
-          { value: " action_type │ reason                          │ decided_at", color: "#444444" },
-          { value: "─────────────┼─────────────────────────────────┼────────────────────────" , color: "#333333" },
-          { value: " open        │ top-scored pool, bins in range  │ 2026-05-05 01:00:00+00" },
-          { value: " claim       │ fee threshold reached            │ 2026-05-05 02:15:00+00" },
-          { value: " rebalance   │ drift > 200 bps from entry      │ 2026-05-05 03:30:00+00" },
-          { value: "(3 rows)", color: "#888888" },
-        ]}
-      />
+      <TerminalBlock title="git log --oneline -4" delay={0} lines={gitLines} />
+      <TerminalBlock title="systemctl status meteora-agent" delay={0.08} lines={agentLines} />
+      <TerminalBlock title="actions_log (recent)" delay={0.16} lines={actionLines} />
     </div>
   )
 }
