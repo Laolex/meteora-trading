@@ -71,7 +71,7 @@ function ActionForm({ label, buttonText, onSubmit }: ActionFormProps) {
         />
         <button
           type="submit"
-          disabled={loading || !amount}
+          disabled={loading || !amount || parseFloat(amount) <= 0}
           className="text-xs font-medium px-3 py-1.5 rounded border transition-colors whitespace-nowrap disabled:opacity-50"
           style={{
             borderColor: "#14f195",
