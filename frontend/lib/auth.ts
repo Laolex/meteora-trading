@@ -105,3 +105,47 @@ export async function adminWithdraw(
   }
   return res.json() as Promise<{ ok: boolean; txSignature: string }>
 }
+
+export async function vaultManagerWithdraw(
+  amountUsdc: number,
+): Promise<{ ok: boolean; signature: string }> {
+  const token = getToken()
+  if (!token) throw new Error("Not authenticated")
+
+  const res = await fetch(`${API_BASE}/vault/manager-withdraw`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...NGROK_HEADERS,
+    },
+    body: JSON.stringify({ amountUsdc }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Unknown error" }))
+    throw new Error((err as { detail?: string }).detail ?? `withdraw failed: ${res.status}`)
+  }
+  return res.json() as Promise<{ ok: boolean; signature: string }>
+}
+
+export async function vaultManagerReturn(
+  amountUsdc: number,
+): Promise<{ ok: boolean; signature: string }> {
+  const token = getToken()
+  if (!token) throw new Error("Not authenticated")
+
+  const res = await fetch(`${API_BASE}/vault/manager-return`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...NGROK_HEADERS,
+    },
+    body: JSON.stringify({ amountUsdc }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Unknown error" }))
+    throw new Error((err as { detail?: string }).detail ?? `return failed: ${res.status}`)
+  }
+  return res.json() as Promise<{ ok: boolean; signature: string }>
+}
