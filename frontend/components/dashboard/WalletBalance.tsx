@@ -30,7 +30,6 @@ export default function WalletBalancePanel() {
 
   const [balance, setBalance] = useState<WalletBalance | null>(null)
   const [stale, setStale] = useState(false)
-  const [authed, setAuthed] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const [uiState, setUiState] = useState<UIState>("idle")
@@ -55,14 +54,17 @@ export default function WalletBalancePanel() {
   }, [])
 
   useEffect(() => {
-    void fetchBalance()
+    const initial = setTimeout(() => {
+      void fetchBalance()
+    }, 0)
     const id = setInterval(() => void fetchBalance(), POLL_INTERVAL_MS)
-    return () => clearInterval(id)
+    return () => {
+      clearTimeout(initial)
+      clearInterval(id)
+    }
   }, [fetchBalance])
 
-  useEffect(() => {
-    setAuthed(isAuthenticated())
-  }, [])
+  const authed = isAuthenticated()
 
   function copyAddress() {
     if (!balance) return

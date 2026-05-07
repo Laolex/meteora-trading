@@ -13,10 +13,11 @@ const links = [
   { href: "/proof", label: "Proof" },
 ]
 
+const EXPANDED_WIDTH = 176
+const COLLAPSED_WIDTH = 68
+
 export default function GlobalSidebar() {
   const pathname = usePathname()
-  const expandedWidth = 176
-  const collapsedWidth = 68
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") return false
     return localStorage.getItem("sidebar-collapsed") === "true"
@@ -26,14 +27,14 @@ export default function GlobalSidebar() {
     localStorage.setItem("sidebar-collapsed", String(collapsed))
     document.documentElement.style.setProperty(
       "--sidebar-width",
-      `${collapsed ? collapsedWidth : expandedWidth}px`,
+      `${collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH}px`,
     )
   }, [collapsed])
 
   return (
     <aside
       className="hidden lg:flex fixed left-0 top-20 h-[calc(100vh-80px)] z-40 items-center pl-3 pointer-events-none"
-      style={{ width: `${collapsed ? collapsedWidth : expandedWidth}px` }}
+      style={{ width: `${collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH}px` }}
     >
       <div className="pointer-events-auto relative w-full rounded-3xl border border-[#3b465436] bg-[linear-gradient(180deg,rgba(22,27,34,0.52)_0%,rgba(22,27,34,0.38)_100%)] px-2.5 py-3 backdrop-blur-[3px] transition-all duration-300">
         <button
