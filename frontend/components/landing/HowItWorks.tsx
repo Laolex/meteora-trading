@@ -32,6 +32,7 @@ export default function HowItWorks() {
     <section
       id="flow"
       className="relative py-20 md:py-24 px-6 scroll-mt-24 overflow-hidden"
+      style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
     >
       <div className="absolute inset-0 pointer-events-none opacity-30">
         <ParticleCanvas />

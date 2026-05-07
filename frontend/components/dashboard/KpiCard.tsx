@@ -9,9 +9,11 @@ interface KpiCardProps {
   sub?: string
   accent?: boolean
   index?: number
+  delta?: string
+  deltaPositive?: boolean
 }
 
-export default function KpiCard({ label, value, sub, accent = false, index = 0 }: KpiCardProps) {
+export default function KpiCard({ label, value, sub, accent = false, index = 0, delta, deltaPositive }: KpiCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -37,8 +39,13 @@ export default function KpiCard({ label, value, sub, accent = false, index = 0 }
       >
         {value}
       </p>
+      {delta && (
+        <p className="text-xs mt-2 font-mono font-medium" style={{ color: deltaPositive ? "#14f195" : "#ef4444" }}>
+          {deltaPositive ? "↑" : "↓"} {delta}
+        </p>
+      )}
       {sub && (
-        <p className="text-xs mt-2 font-mono" style={{ color: "#555555" }}>
+        <p className="text-xs mt-1 font-mono" style={{ color: "#555555" }}>
           {sub}
         </p>
       )}

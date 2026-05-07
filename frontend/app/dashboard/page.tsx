@@ -6,6 +6,7 @@ import RiskGauge from "@/components/dashboard/RiskGauge"
 import DashboardSidebar from "@/components/dashboard/Sidebar"
 import AdminPanel from "@/components/dashboard/AdminPanel"
 import WalletBalancePanel from "@/components/dashboard/WalletBalance"
+import VaultPanel from "@/components/ui/VaultPanel"
 
 export const dynamic = "force-dynamic"
 
@@ -25,19 +26,32 @@ export default async function DashboardPage() {
 
   const fmtPnl = (n: number) => `${n >= 0 ? "+" : "-"}${fmt(n)}`
 
+  const dailyAvgFromWeek = kpi.pnlWeekUsd / 7
+  const pnlDelta = dailyAvgFromWeek !== 0
+    ? `${Math.abs(((kpi.pnlDayUsd - dailyAvgFromWeek) / Math.abs(dailyAvgFromWeek)) * 100).toFixed(1)}% vs 7-day avg`
+    : undefined
+  const pnlDeltaPositive = kpi.pnlDayUsd >= dailyAvgFromWeek
+
+  const fetchedAt = new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })
+
   return (
     <div className="min-h-screen pt-24 pb-16 px-4 md:px-6 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "#f5f5f5" }}>
-          Live Dashboard
-        </h1>
-        <p className="text-sm" style={{ color: "#888888" }}>
-          Mock data — connect{" "}
-          <code className="font-mono text-xs px-1 py-0.5 rounded" style={{ background: "#1a1a1a", color: "#14f195" }}>
-            NEXT_PUBLIC_API_URL
-          </code>{" "}
-          to fetch real agent data.
-        </p>
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: "#f5f5f5" }}>
+            Live Dashboard
+          </h1>
+          <p className="text-xs font-mono" style={{ color: "#444444" }}>
+            {process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL : "mock data"}
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs font-mono" style={{ color: "#555555" }}>
+          <span
+            className="w-1.5 h-1.5 rounded-full inline-block"
+            style={{ background: "#14f195", boxShadow: "0 0 4px #14f195" }}
+          />
+          Updated {fetchedAt}
+        </div>
       </div>
 
       {/* Status bar */}
@@ -52,6 +66,7 @@ export default async function DashboardPage() {
         <div className="lg:sticky lg:top-24 space-y-4">
           <DashboardSidebar status={status} kpi={kpi} risk={risk} safety={safety} />
           <WalletBalancePanel />
+          <VaultPanel />
         </div>
 
         <div>
@@ -60,7 +75,7 @@ export default async function DashboardPage() {
             <KpiCard label="Open Positions" value={String(kpi.openPositions)} sub={`max ${safety.maxOpenPositions} open`} accent index={0} />
             <KpiCard label="Daily Fees" value={fmt(kpi.dailyFeesUsd)} sub="fees collected today" index={1} />
             <KpiCard label="Total Deployed" value={fmt(kpi.totalDeployedUsd)} sub={`limit ${fmt(kpi.maxTotalDeployedUsd)}`} index={2} />
-            <KpiCard label="PnL (today)" value={fmtPnl(kpi.pnlDayUsd)} sub={`week: ${fmtPnl(kpi.pnlWeekUsd)}`} accent={kpi.pnlDayUsd >= 0} index={3} />
+            <KpiCard label="PnL (today)" value={fmtPnl(kpi.pnlDayUsd)} sub={`week: ${fmtPnl(kpi.pnlWeekUsd)}`} accent={kpi.pnlDayUsd >= 0} index={3} delta={pnlDelta} deltaPositive={pnlDeltaPositive} />
           </div>
 
           {/* Activity + Risk side by side */}

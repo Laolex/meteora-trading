@@ -26,8 +26,9 @@ export default function ProofBlock() {
     <section
       id="proof"
       className="py-20 md:py-24 px-6 scroll-mt-24"
+      style={{ background: "#0a0f0d" }}
     >
-      <div className="max-w-6xl mx-auto rounded-[36px] border border-[rgba(20,241,149,0.1)] bg-[linear-gradient(180deg,rgba(23,28,35,0.58)_0%,rgba(23,28,35,0.46)_100%)] backdrop-blur-[4px] px-6 md:px-10 py-12 md:py-14 md:min-h-[68vh] flex flex-col justify-center">
+      <div className="max-w-6xl mx-auto flex flex-col justify-center">
         <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
