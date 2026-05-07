@@ -20,6 +20,7 @@ from src.config import CONFIG
 from src.db import Database
 from src.dashboard.auth import router as auth_router
 from src.dashboard.admin import router as admin_router
+from src.dashboard.vault_api import router as vault_router
 from src.dashboard.wallet import get_balance
 
 
@@ -125,6 +126,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(admin_router)
+app.include_router(vault_router)
 
 
 # --- Endpoints ---

@@ -10,15 +10,18 @@ type AuthState = "idle" | "signing" | "verified" | "unauthorized" | "error"
 export default function WalletButton() {
   const { connected, publicKey, disconnect, signMessage } = useWallet()
   const [state, setState] = useState<AuthState>("idle")
+  const [errorMsg, setErrorMsg] = useState<string>("")
 
   const attemptVerify = useCallback(async () => {
     if (!publicKey || !signMessage) return
     setState("signing")
+    setErrorMsg("")
     try {
       await verifyWallet(publicKey.toBase58(), signMessage)
       setState("verified")
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
+      setErrorMsg(msg)
       if (msg.includes("401") || msg.includes("403") || msg.includes("Unauthorized")) {
         setState("unauthorized")
       } else {
@@ -117,20 +120,27 @@ export default function WalletButton() {
 
   if (state === "error") {
     return (
-      <div className="flex items-center gap-2">
-        <span
-          className="text-xs font-medium px-3 py-1.5 rounded-full border"
-          style={{ borderColor: "#f59e0b", color: "#f59e0b", background: "transparent" }}
-        >
-          Sign failed — retry
-        </span>
-        <button
-          onClick={attemptVerify}
-          className="text-xs px-3 py-1.5 rounded-full border transition-colors"
-          style={{ borderColor: "#14f195", color: "#14f195", background: "transparent" }}
-        >
-          Retry
-        </button>
+      <div className="flex flex-col items-end gap-1">
+        <div className="flex items-center gap-2">
+          <span
+            className="text-xs font-medium px-3 py-1.5 rounded-full border"
+            style={{ borderColor: "#f59e0b", color: "#f59e0b", background: "transparent" }}
+          >
+            Sign failed — retry
+          </span>
+          <button
+            onClick={attemptVerify}
+            className="text-xs px-3 py-1.5 rounded-full border transition-colors"
+            style={{ borderColor: "#14f195", color: "#14f195", background: "transparent" }}
+          >
+            Retry
+          </button>
+        </div>
+        {errorMsg && (
+          <span className="text-xs max-w-xs truncate" style={{ color: "#888" }} title={errorMsg}>
+            {errorMsg}
+          </span>
+        )}
       </div>
     )
   }

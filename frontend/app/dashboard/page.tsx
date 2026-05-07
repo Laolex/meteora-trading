@@ -6,6 +6,7 @@ import RiskGauge from "@/components/dashboard/RiskGauge"
 import DashboardSidebar from "@/components/dashboard/Sidebar"
 import AdminPanel from "@/components/dashboard/AdminPanel"
 import WalletBalancePanel from "@/components/dashboard/WalletBalance"
+import VaultPanel from "@/components/ui/VaultPanel"
 
 export const dynamic = "force-dynamic"
 
@@ -65,6 +66,7 @@ export default async function DashboardPage() {
         <div className="lg:sticky lg:top-24 space-y-4">
           <DashboardSidebar status={status} kpi={kpi} risk={risk} safety={safety} />
           <WalletBalancePanel />
+          <VaultPanel />
         </div>
 
         <div>

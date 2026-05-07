@@ -3,8 +3,14 @@ import bs58 from "bs58"
 
 export { API_BASE }
 
+const NGROK_HEADERS: Record<string, string> = API_BASE.includes("ngrok")
+  ? { "ngrok-skip-browser-warning": "true" }
+  : {}
+
 export async function fetchNonce(pubkey: string): Promise<string> {
-  const res = await fetch(`${API_BASE}/auth/nonce?pubkey=${encodeURIComponent(pubkey)}`)
+  const res = await fetch(`${API_BASE}/auth/nonce?pubkey=${encodeURIComponent(pubkey)}`, {
+    headers: NGROK_HEADERS,
+  })
   if (!res.ok) throw new Error(`fetchNonce failed: ${res.status}`)
   const data = await res.json()
   return data.nonce as string
@@ -21,7 +27,7 @@ export async function verifyWallet(
 
   const res = await fetch(`${API_BASE}/auth/verify`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...NGROK_HEADERS },
     body: JSON.stringify({ pubkey, signature, nonce }),
   })
   if (!res.ok) throw new Error(`verifyWallet failed: ${res.status}`)
@@ -69,6 +75,7 @@ export async function adminKillSwitch(arm: boolean): Promise<{ ok: boolean; arme
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
+      ...NGROK_HEADERS,
     },
     body: JSON.stringify({ arm }),
   })
@@ -88,6 +95,7 @@ export async function adminWithdraw(
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
+      ...NGROK_HEADERS,
     },
     body: JSON.stringify({ amountSol, amountUsdc }),
   })

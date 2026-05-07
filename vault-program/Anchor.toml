@@ -1,0 +1,18 @@
+[toolchain]
+package_manager = "yarn"
+
+[features]
+resolution = true
+skip-lint = true
+
+[programs.localnet]
+vault_program = "986ARRxoPAkVTAP4YcKyGMyyLm5736s3g2ZXp9aNqxFs"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test"
+
+[hooks]

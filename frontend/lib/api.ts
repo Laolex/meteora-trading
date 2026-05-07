@@ -85,9 +85,34 @@ export interface WalletBalance {
   usdcMint: string
 }
 
+export interface VaultState {
+  initialized: boolean
+  vault?: string
+  shareMint?: string
+  vaultUsdc?: string
+  manager?: string
+  usdcMint?: string
+  totalShares?: string
+  navPerShare?: string
+  navPerShareUsd?: number
+  depositCap?: string
+  depositCapUsd?: number
+  managerWithdrawn?: string
+  vaultBalanceMicro?: string
+  totalAumUsd?: number
+  error?: string
+}
+
+const NGROK_HEADERS: Record<string, string> = process.env.NEXT_PUBLIC_API_URL?.includes("ngrok")
+  ? { "ngrok-skip-browser-warning": "true" }
+  : {}
+
 async function apiFetch<T>(path: string, fallback: T): Promise<T> {
   if (!process.env.NEXT_PUBLIC_API_URL) return fallback
-  const res = await fetch(`${API_BASE}${path}`, { cache: "no-store" })
+  const res = await fetch(`${API_BASE}${path}`, {
+    cache: "no-store",
+    headers: NGROK_HEADERS,
+  })
   if (!res.ok) throw new Error(`API ${path} → ${res.status}`)
   return res.json() as Promise<T>
 }
@@ -192,6 +217,12 @@ export async function getSafetyConfig(): Promise<SafetyConfig> {
 
 export async function getWalletBalance(): Promise<WalletBalance> {
   return apiFetch("/wallet/balance", MOCK_WALLET_BALANCE)
+}
+
+const MOCK_VAULT_STATE: VaultState = { initialized: false }
+
+export async function getVaultState(): Promise<VaultState> {
+  return apiFetch("/vault/state", MOCK_VAULT_STATE)
 }
 
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
