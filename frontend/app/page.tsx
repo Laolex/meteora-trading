@@ -4,15 +4,20 @@ import HowItWorks from "@/components/landing/HowItWorks"
 import SafetyBlock from "@/components/landing/SafetyBlock"
 import ProofBlock from "@/components/landing/ProofBlock"
 import CtaSection from "@/components/landing/CtaSection"
+import { getSafetyConfig, getProofSnapshot } from "@/lib/api"
 
-export default function Home() {
+export const revalidate = 60
+
+export default async function Home() {
+  const [safety, proof] = await Promise.all([getSafetyConfig(), getProofSnapshot()])
+
   return (
     <>
       <HeroSection />
       <ValuePillars />
       <HowItWorks />
-      <ProofBlock />
-      <SafetyBlock />
+      <ProofBlock proof={proof} />
+      <SafetyBlock safety={safety} />
       <CtaSection />
     </>
   )

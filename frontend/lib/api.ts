@@ -225,6 +225,26 @@ export async function getVaultState(): Promise<VaultState> {
   return apiFetch("/vault/state", MOCK_VAULT_STATE)
 }
 
+export interface ProofSnapshot {
+  gitLog: string[]
+  agentMode: string
+  agentNetwork: string
+  dbReachable: boolean
+  recentActions: ActivityItem[]
+}
+
+const MOCK_PROOF_SNAPSHOT: ProofSnapshot = {
+  gitLog: [],
+  agentMode: "DRY_RUN",
+  agentNetwork: "devnet",
+  dbReachable: false,
+  recentActions: [],
+}
+
+export async function getProofSnapshot(): Promise<ProofSnapshot> {
+  return apiFetch("/proof", MOCK_PROOF_SNAPSHOT)
+}
+
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
   const response = await fetch(
     "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",

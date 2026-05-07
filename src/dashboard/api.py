@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -219,3 +220,44 @@ async def get_wallet_balance() -> WalletBalance:
     assert cfg is not None
     balance = await get_balance(app.state.rpc, app.state.wallet_keypair.pubkey(), cfg.network)
     return WalletBalance(**balance)
+
+
+class ProofSnapshot(BaseModel):
+    gitLog: list[str]
+    agentMode: str
+    agentNetwork: str
+    dbReachable: bool
+    recentActions: list[dict]
+
+
+@app.get("/proof", response_model=ProofSnapshot)
+async def get_proof() -> ProofSnapshot:
+    cfg = CONFIG
+    assert cfg is not None
+
+    repo_root = Path(__file__).parent.parent.parent
+    try:
+        result = subprocess.run(
+            ["git", "log", "--oneline", "-4"],
+            capture_output=True, text=True, timeout=5, cwd=repo_root,
+        )
+        git_log = result.stdout.strip().splitlines()
+    except Exception:
+        git_log = []
+
+    db_reachable = False
+    recent_actions: list[dict] = []
+    try:
+        rows = await _db.get_activity(3)
+        recent_actions = rows
+        db_reachable = True
+    except Exception:
+        pass
+
+    return ProofSnapshot(
+        gitLog=git_log,
+        agentMode="DRY_RUN" if cfg.dry_run else "LIVE",
+        agentNetwork=cfg.network,
+        dbReachable=db_reachable,
+        recentActions=recent_actions,
+    )

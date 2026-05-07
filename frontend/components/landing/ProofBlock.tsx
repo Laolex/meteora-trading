@@ -2,26 +2,28 @@
 
 import { motion } from "motion/react"
 import { viewportOnce, ease } from "@/lib/motion"
+import type { ProofSnapshot } from "@/lib/api"
 
-const receipts = [
-  {
-    label: "systemd status",
-    value: "active (running)",
-    color: "#14f195",
-  },
-  {
-    label: "dry-run DB writes",
-    value: "actions_log populated",
-    color: "#14f195",
-  },
-  {
-    label: "pytest",
-    value: "15 passed, 0 failed",
-    color: "#14f195",
-  },
-]
+interface Props {
+  proof: ProofSnapshot
+}
 
-export default function ProofBlock() {
+export default function ProofBlock({ proof }: Props) {
+  const latestAction = proof.recentActions[0]
+  const actionSummary = latestAction
+    ? `${latestAction.actionType} on ${latestAction.poolName} — ${latestAction.reason}`
+    : "no actions yet"
+  const dbStatus = proof.recentActions.length > 0
+    ? `actions_log populated (${proof.recentActions.length} recent)`
+    : "no DB writes yet"
+  const gitHead = proof.gitLog[0] ?? "unavailable"
+
+  const receipts = [
+    { label: "agent status", value: `${proof.agentMode} on ${proof.agentNetwork}`, color: "#14f195" },
+    { label: "dry-run DB writes", value: dbStatus, color: proof.recentActions.length > 0 ? "#14f195" : "#f59e0b" },
+    { label: "latest decision", value: actionSummary, color: "#14f195" },
+    { label: "git HEAD", value: gitHead, color: "#888888" },
+  ]
   return (
     <section
       id="proof"
