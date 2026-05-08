@@ -1,11 +1,10 @@
 import Card from "@/components/ui/Card"
 
 const limitations = [
-  "node-helper/index.js is not yet wired to @meteora-ag/dlmm — transactions are simulated only",
-  "src/executor/ is a stub — the full tx broadcast → confirmation → retry loop is not implemented",
-  "DB writes in DRY_RUN mode are real (actions_log, positions), but tx_signature is always null",
-  "Dashboard API is live on devnet — production upgrade requires a persistent host (not ngrok)",
-  "No mainnet deployment has occurred — all testing on devnet with $0 at risk",
+  "src/executor/ tx confirmation + retry loop is not yet complete — decisions route through node-helper → @meteora-ag/dlmm but broadcast hardening is in progress",
+  "DB writes in DRY_RUN mode are real (actions_log, positions), but tx_signature is always null in dry-run",
+  "Dashboard API requires a persistent host — ngrok works for demos but restarts on process restart",
+  "On-chain vault is deployed and live on devnet — no mainnet deployment has occurred; all capital at risk is $0",
 ]
 
 export default function LimitationsBox() {
@@ -29,7 +28,7 @@ export default function LimitationsBox() {
         ))}
       </ul>
       <p className="text-xs mt-4" style={{ color: "#444444" }}>
-        These are the next implementation steps, not unknown risks. The safety and scoring layers are complete.
+        The safety rails, scoring engine, discovery loop, node-helper DLMM integration, and on-chain vault are all complete. The remaining work is tx confirmation hardening and a persistent production host.
       </p>
     </Card>
   )

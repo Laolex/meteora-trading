@@ -1,7 +1,5 @@
 import Link from "next/link"
 import type { AgentStatus, KpiSummary, RiskUtilization, SafetyConfig } from "@/lib/api"
-import Badge from "@/components/ui/Badge"
-import Card from "@/components/ui/Card"
 
 interface DashboardSidebarProps {
   status: AgentStatus
@@ -10,48 +8,59 @@ interface DashboardSidebarProps {
   safety: SafetyConfig
 }
 
-function statusVariant(ok: boolean) {
-  return ok ? "green" : "red"
+function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="flex justify-between items-baseline py-2" style={{ borderBottom: "1px solid #111" }}>
+      <span className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#333", textTransform: "uppercase" }}>
+        {label}
+      </span>
+      <span className="font-mono" style={{ fontSize: "10px", color: accent ? "#14f195" : "#555" }}>
+        {value}
+      </span>
+    </div>
+  )
 }
 
 export default function DashboardSidebar({ status, kpi, risk, safety }: DashboardSidebarProps) {
   return (
-    <aside className="space-y-4">
-      <Card className="space-y-4">
-        <p className="text-xs uppercase tracking-wider" style={{ color: "#555555" }}>
-          Session
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Badge variant={status.mode === "DRY_RUN" ? "amber" : "green"} dot>{status.mode}</Badge>
-          <Badge variant="neutral">{status.network}</Badge>
-          <Badge variant={statusVariant(status.serviceStatus === "active")} dot>service</Badge>
+    <aside>
+      {/* Session block */}
+      <div style={{ border: "1px solid #1e1e1e", background: "#0d0d0d" }}>
+        <div className="px-4 py-2" style={{ borderBottom: "1px solid #141414" }}>
+          <span className="term-label">[ SESSION ]</span>
         </div>
-        <div className="text-xs space-y-2 font-mono" style={{ color: "#666666" }}>
-          <p>open positions: {kpi.openPositions} / {safety.maxOpenPositions}</p>
-          <p>daily loss cap: {safety.dailyLossLimitPct}%</p>
-          <p>position utilization: {risk.positionUtilPct.toFixed(0)}%</p>
+        <div className="px-4 py-3">
+          <Row label="MODE" value={status.mode} accent={status.mode !== "DRY_RUN"} />
+          <Row label="NETWORK" value={status.network.toUpperCase()} />
+          <Row label="POSITIONS" value={`${kpi.openPositions} / ${safety.maxOpenPositions}`} />
+          <Row label="LOSS CAP" value={`${safety.dailyLossLimitPct}%`} />
+          <Row label="POS UTIL" value={`${risk.positionUtilPct.toFixed(0)}%`} />
         </div>
-      </Card>
+      </div>
 
-      <Card className="space-y-3" elevated>
-        <p className="text-xs uppercase tracking-wider" style={{ color: "#555555" }}>
-          Navigate
-        </p>
-        <nav className="flex flex-col gap-2 text-sm">
-          <Link href="/dashboard" className="hover:text-[#14f195] transition-colors" style={{ color: "#f5f5f5" }}>
-            Overview
-          </Link>
-          <Link href="/safety" className="hover:text-[#14f195] transition-colors" style={{ color: "#888888" }}>
-            Safety controls
-          </Link>
-          <Link href="/architecture" className="hover:text-[#14f195] transition-colors" style={{ color: "#888888" }}>
-            Architecture
-          </Link>
-          <Link href="/proof" className="hover:text-[#14f195] transition-colors" style={{ color: "#888888" }}>
-            Proof of operation
-          </Link>
+      {/* Nav block */}
+      <div style={{ border: "1px solid #1e1e1e", borderTop: "none", background: "#0d0d0d" }}>
+        <div className="px-4 py-2" style={{ borderBottom: "1px solid #141414" }}>
+          <span className="term-label">[ NAVIGATE ]</span>
+        </div>
+        <nav className="py-1">
+          {[
+            { href: "/dashboard", label: "OVERVIEW" },
+            { href: "/safety", label: "SAFETY CONTROLS" },
+            { href: "/architecture", label: "ARCHITECTURE" },
+            { href: "/proof", label: "PROOF OF OPERATION" },
+          ].map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="block px-4 py-2 font-mono transition-colors hover:text-[#14f195]"
+              style={{ fontSize: "9px", letterSpacing: "0.12em", color: "#444", textTransform: "uppercase" }}
+            >
+              &gt;&gt; {label}
+            </Link>
+          ))}
         </nav>
-      </Card>
+      </div>
     </aside>
   )
 }

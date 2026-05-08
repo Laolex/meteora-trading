@@ -22,43 +22,62 @@ export default function Nav() {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4"
-      style={{
-        background: "rgba(10,10,10,0.85)",
-        backdropFilter: "blur(12px)",
-        borderBottom: "1px solid #1a1a1a",
-      }}
+      aria-label="Main navigation"
+      className="fixed top-6 left-0 right-0 z-50 flex justify-center pointer-events-none px-4"
     >
-      <Link href="/" aria-label="Meteora Agent home">
-        <Logo size={28} />
-      </Link>
-      <ul className="hidden md:flex items-center gap-6">
-        {links.map(({ href, label }) => {
-          const active = pathname === href
-          return (
-            <li key={href}>
-              <Link
-                href={href}
-                className="relative text-sm transition-colors"
-                style={{ color: active ? "#f5f5f5" : "#888888" }}
-              >
-                {label}
-                {active && (
-                  <motion.span
-                    layoutId="nav-indicator"
-                    className="absolute -bottom-1 left-0 right-0 h-px"
-                    style={{ background: "#14f195" }}
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-              </Link>
-            </li>
-          )
-        })}
-      </ul>
-      <div className="flex items-center gap-3">
-        <WalletButton />
-        <MobileMenu />
+      {/* outer shell — bezel ring */}
+      <div
+        className="pointer-events-auto p-[5px] rounded-full"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          boxShadow: "0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.8)",
+        }}
+      >
+        {/* inner core */}
+        <div
+          className="flex items-center gap-1 pl-3 pr-2 py-2 rounded-full"
+          style={{
+            background: "#07090d",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            boxShadow: "inset 0 1px 1px rgba(255,255,255,0.05)",
+          }}
+        >
+          <Link href="/" aria-label="Meteora Agent home" className="mr-3 flex-shrink-0">
+            <Logo size={26} />
+          </Link>
+
+          <ul className="hidden md:flex items-center">
+            {links.map(({ href, label }) => {
+              const active = pathname === href
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="relative px-3.5 py-1.5 text-[13px] font-medium rounded-full transition-colors duration-200 block"
+                    style={{ color: active ? "#f5f5f5" : "#666" }}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="nav-pill"
+                        className="absolute inset-0 rounded-full"
+                        style={{ background: "rgba(255,255,255,0.07)" }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10">{label}</span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+
+          <div className="flex items-center gap-2 ml-2">
+            <WalletButton />
+            <MobileMenu />
+          </div>
+        </div>
       </div>
     </nav>
   )

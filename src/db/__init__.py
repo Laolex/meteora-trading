@@ -243,6 +243,58 @@ class Database:
             row = await conn.fetchrow("SELECT starting_value_usd FROM pnl_daily WHERE day=$1", today)
         return float(row["starting_value_usd"]) if row else 0.0
 
+    async def get_price_24h_ago(self, pool_address: str) -> float | None:
+        """Return the oldest price captured in the last 24 h for a pool, or None."""
+        pool = self._require_pool()
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT current_price
+                FROM pool_snapshots
+                WHERE pool_address = $1
+                  AND captured_at >= NOW() - INTERVAL '24 hours'
+                ORDER BY captured_at ASC
+                LIMIT 1
+                """,
+                pool_address,
+            )
+        return float(row["current_price"]) if row else None
+
+    async def count_rebalances_today(self, pool_address: str) -> int:
+        pool = self._require_pool()
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT COUNT(*) AS n FROM actions_log
+                WHERE pool_address = $1
+                  AND action_type = 'rebalance'
+                  AND decided_at >= CURRENT_DATE
+                """,
+                pool_address,
+            )
+        return int(row["n"]) if row else 0
+
+    async def accumulate_position_fees(
+        self,
+        position_id: str,
+        add_fees_usd: float,
+        current_value_usd: float,
+    ) -> None:
+        """Add estimated fees to fees_earned_usd and update mark-to-market value."""
+        pool = self._require_pool()
+        async with pool.acquire() as conn:
+            await conn.execute(
+                """
+                UPDATE positions
+                SET fees_earned_usd    = fees_earned_usd + $2,
+                    deposited_value_usd = $3
+                WHERE id = $1::uuid AND status = 'open'
+                """,
+                position_id,
+                add_fees_usd,
+                current_value_usd,
+            )
+
     # --- Dashboard queries ---
 
     async def get_position_stats(self) -> dict:

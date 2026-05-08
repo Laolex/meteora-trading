@@ -222,6 +222,43 @@ async def get_wallet_balance() -> WalletBalance:
     return WalletBalance(**balance)
 
 
+class AgentState(BaseModel):
+    llmEnabled: bool
+    llmDisabledByOperator: bool
+    anthropicKeyConfigured: bool
+    tunedAt: str | None
+    rebalanceDriftBps: int
+    exitVolatilityPct: float
+    reasoning: str | None
+    baseRangeBins: int
+
+
+_STATE_FILE = Path("/opt/meteora-agent/var/agent-state.json")
+
+
+@app.get("/agent/state", response_model=AgentState)
+async def get_agent_state() -> AgentState:
+    cfg = CONFIG
+    assert cfg is not None
+    if _STATE_FILE.exists():
+        try:
+            with open(_STATE_FILE) as f:
+                data = json.load(f)
+            return AgentState(**data, baseRangeBins=cfg.target_position_width_bins)
+        except Exception:
+            pass
+    return AgentState(
+        llmEnabled=bool(cfg.anthropic_api_key) and not cfg.llm_disabled_file.exists(),
+        llmDisabledByOperator=cfg.llm_disabled_file.exists(),
+        anthropicKeyConfigured=bool(cfg.anthropic_api_key),
+        tunedAt=None,
+        rebalanceDriftBps=cfg.rebalance_drift_bps,
+        exitVolatilityPct=cfg.exit_volatility_24h_pct,
+        reasoning=None,
+        baseRangeBins=cfg.target_position_width_bins,
+    )
+
+
 class ProofSnapshot(BaseModel):
     gitLog: list[str]
     agentMode: str

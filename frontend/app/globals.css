@@ -15,8 +15,8 @@
   --color-amber: #f59e0b;
   --color-danger: #ef4444;
 
-  --font-sans: "Ubuntu Sans", "Ubuntu", "DejaVu Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "Ubuntu Sans Mono", "Ubuntu Mono", "DejaVu Sans Mono", "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: var(--font-grotesk), "Space Grotesk", "Segoe UI", sans-serif;
+  --font-mono: var(--font-mono), "Space Mono", "JetBrains Mono", ui-monospace, monospace;
 }
 
 * {
@@ -34,7 +34,7 @@ body {
   font-size: 15.5px;
   line-height: 1.62;
   letter-spacing: 0.002em;
-  font-weight: 430;
+  font-weight: 400;
   text-rendering: optimizeLegibility;
   font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1, "ss01" 1;
   -webkit-font-smoothing: antialiased;
@@ -125,6 +125,38 @@ pre {
 }
 .glow-green-sm {
   box-shadow: 0 0 12px rgba(20, 241, 149, 0.2);
+}
+
+/* CRT scanline overlay — applied to dashboard pages */
+.crt-scanlines::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.07) 3px,
+    rgba(0, 0, 0, 0.07) 4px
+  );
+}
+
+/* Terminal label — monospace uppercase small caps */
+.term-label {
+  font-family: var(--font-mono), "Space Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #444;
+}
+
+/* Terminal divider */
+.term-divider {
+  border: none;
+  border-top: 1px solid #1a1a1a;
+  margin: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

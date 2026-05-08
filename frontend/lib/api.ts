@@ -245,6 +245,32 @@ export async function getProofSnapshot(): Promise<ProofSnapshot> {
   return apiFetch("/proof", MOCK_PROOF_SNAPSHOT)
 }
 
+export interface AgentState {
+  llmEnabled: boolean
+  llmDisabledByOperator: boolean
+  anthropicKeyConfigured: boolean
+  tunedAt: string | null
+  rebalanceDriftBps: number
+  exitVolatilityPct: number
+  reasoning: string | null
+  baseRangeBins: number
+}
+
+const MOCK_AGENT_STATE: AgentState = {
+  llmEnabled: false,
+  llmDisabledByOperator: false,
+  anthropicKeyConfigured: false,
+  tunedAt: null,
+  rebalanceDriftBps: 50,
+  exitVolatilityPct: 30.0,
+  reasoning: null,
+  baseRangeBins: 40,
+}
+
+export async function getAgentState(): Promise<AgentState> {
+  return apiFetch("/agent/state", MOCK_AGENT_STATE).catch(() => MOCK_AGENT_STATE)
+}
+
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
   const response = await fetch(
     "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",

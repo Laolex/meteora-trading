@@ -89,6 +89,7 @@ class Config:
     max_total_deployed_usd: float
     daily_loss_limit_pct: float
     kill_switch_file: Path
+    llm_disabled_file: Path
 
     # Scoring
     score_weight_fees_24h: float
@@ -100,6 +101,15 @@ class Config:
     rebalance_drift_bps: int
     rebalance_min_fees_usd: float
     exit_volatility_24h_pct: float
+
+    # LLM tuner
+    anthropic_api_key: str | None
+    llm_tune_interval_seconds: int
+
+    # Adaptive range
+    adaptive_range_reference_vol_pct: float
+    adaptive_range_min_bins: int
+    adaptive_range_max_bins: int
 
     # Dashboard
     dashboard_port: int
@@ -168,6 +178,7 @@ def load_config() -> Config:
         max_total_deployed_usd=_required_float("MAX_TOTAL_DEPLOYED_USD"),
         daily_loss_limit_pct=_required_float("DAILY_LOSS_LIMIT_PCT"),
         kill_switch_file=Path(_required("KILL_SWITCH_FILE")),
+        llm_disabled_file=Path(_optional("LLM_DISABLED_FILE", "/tmp/meteora-llm-disabled")),
         score_weight_fees_24h=_required_float("SCORE_WEIGHT_FEES_24H"),
         score_weight_volume_tvl=_required_float("SCORE_WEIGHT_VOLUME_TVL"),
         score_weight_token_quality=_required_float("SCORE_WEIGHT_TOKEN_QUALITY"),
@@ -175,6 +186,11 @@ def load_config() -> Config:
         rebalance_drift_bps=_required_int("REBALANCE_DRIFT_BPS"),
         rebalance_min_fees_usd=_required_float("REBALANCE_MIN_FEES_USD"),
         exit_volatility_24h_pct=_required_float("EXIT_VOLATILITY_24H_PCT"),
+        anthropic_api_key=os.getenv("ANTHROPIC_API_KEY") or None,
+        llm_tune_interval_seconds=_optional_int("LLM_TUNE_INTERVAL_SECONDS", 3600),
+        adaptive_range_reference_vol_pct=_optional_float("ADAPTIVE_RANGE_REFERENCE_VOL_PCT", 5.0),
+        adaptive_range_min_bins=_optional_int("ADAPTIVE_RANGE_MIN_BINS", 10),
+        adaptive_range_max_bins=_optional_int("ADAPTIVE_RANGE_MAX_BINS", 120),
         dashboard_port=_required_int("DASHBOARD_PORT"),
         dashboard_host=_required("DASHBOARD_HOST"),
         log_level=_required("LOG_LEVEL"),

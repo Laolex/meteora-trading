@@ -3,17 +3,13 @@
 import { motion } from "motion/react"
 import { viewportOnce, ease } from "@/lib/motion"
 import type { ActivityItem } from "@/lib/api"
-import Badge from "@/components/ui/Badge"
 
-function actionColor(type: string): "green" | "amber" | "red" | "neutral" | "blue" {
-  const map: Record<string, "green" | "amber" | "red" | "neutral" | "blue"> = {
-    open: "green",
-    close: "neutral",
-    rebalance: "blue",
-    claim: "amber",
-    exit: "red",
-  }
-  return map[type] ?? "neutral"
+const ACTION_COLOR: Record<string, string> = {
+  open: "#14f195",
+  close: "#555",
+  rebalance: "#60a5fa",
+  claim: "#f59e0b",
+  exit: "#e61919",
 }
 
 function fmtTime(iso: string) {
@@ -26,33 +22,51 @@ function fmtTime(iso: string) {
   }) + " UTC"
 }
 
+function ResultToken({ success }: { success: boolean | null }) {
+  if (success === true)  return <span style={{ color: "#14f195", letterSpacing: "0.08em" }}>[ OK ]</span>
+  if (success === false) return <span style={{ color: "#e61919", letterSpacing: "0.08em" }}>[ FAIL ]</span>
+  return <span style={{ color: "#444", letterSpacing: "0.08em" }}>[ ··· ]</span>
+}
+
 export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={viewportOnce}
-      transition={{ duration: 0.6, ease }}
-      className="rounded-2xl overflow-hidden"
-      style={{ border: "1px solid #222222" }}
+      transition={{ duration: 0.5, ease }}
+      style={{ border: "1px solid #1e1e1e", background: "#0d0d0d" }}
     >
+      {/* Header */}
       <div
-        className="px-4 py-3 text-xs font-medium uppercase tracking-wider"
-        style={{ borderBottom: "1px solid #222222", color: "#555555", background: "#111111" }}
+        className="px-4 py-2 flex items-center justify-between"
+        style={{ borderBottom: "1px solid #1a1a1a" }}
       >
-        Recent Activity
+        <span className="term-label">[ RECENT ACTIVITY ]</span>
+        <span className="font-mono" style={{ fontSize: "9px", color: "#333", letterSpacing: "0.08em" }}>
+          {items.length} RECORDS
+        </span>
       </div>
+
+      {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[700px] text-sm">
+        <table className="w-full min-w-[680px] font-mono" style={{ fontSize: "10px", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid #1a1a1a" }}>
-              {["Time", "Pool", "Action", "Reason", "Result", "Tx"].map((h) => (
+            <tr style={{ borderBottom: "1px solid #141414" }}>
+              {[
+                { label: "TIME_UTC", w: "130px" },
+                { label: "POOL", w: "90px" },
+                { label: "ACTION", w: "80px" },
+                { label: "REASON", w: "auto" },
+                { label: "RESULT", w: "70px" },
+                { label: "TX", w: "80px" },
+              ].map(({ label, w }) => (
                 <th
-                  key={h}
-                  className="px-4 py-3 text-left text-xs uppercase tracking-wider font-medium"
-                  style={{ color: "#444444", background: "#111111" }}
+                  key={label}
+                  className="px-4 py-2 text-left"
+                  style={{ color: "#333", letterSpacing: "0.12em", fontWeight: 500, width: w, background: "#0d0d0d" }}
                 >
-                  {h}
+                  {label}
                 </th>
               ))}
             </tr>
@@ -61,36 +75,32 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
             {items.map((item, i) => (
               <motion.tr
                 key={item.id}
-                initial={{ opacity: 0, x: -8 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
                 viewport={viewportOnce}
-                transition={{ duration: 0.35, delay: i * 0.04, ease }}
-                whileHover={{ backgroundColor: "rgba(20,241,149,0.03)" }}
-                style={{ borderBottom: "1px solid #1a1a1a", backgroundColor: "#111111" }}
+                transition={{ duration: 0.25, delay: i * 0.03, ease }}
+                style={{ borderBottom: "1px solid #111" }}
               >
-                <td className="px-4 py-3 font-mono text-xs whitespace-nowrap" style={{ color: "#666666" }}>
+                <td className="px-4 py-2" style={{ color: "#444", whiteSpace: "nowrap" }}>
                   {fmtTime(item.decidedAt)}
                 </td>
-                <td className="px-4 py-3 font-mono text-xs whitespace-nowrap" style={{ color: "#f5f5f5" }}>
+                <td className="px-4 py-2" style={{ color: "#eaeaea", whiteSpace: "nowrap" }}>
                   {item.poolName}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <Badge variant={actionColor(item.actionType)}>{item.actionType}</Badge>
+                <td className="px-4 py-2" style={{ color: ACTION_COLOR[item.actionType] ?? "#555", whiteSpace: "nowrap", letterSpacing: "0.06em" }}>
+                  {item.actionType.toUpperCase()}
                 </td>
-                <td className="px-4 py-3 text-xs max-w-xs" style={{ color: "#666666" }}>
+                <td className="px-4 py-2" style={{ color: "#444", maxWidth: "260px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {item.reason}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {item.success === true && <Badge variant="green">ok</Badge>}
-                  {item.success === false && <Badge variant="red">failed</Badge>}
-                  {item.success === null && <Badge variant="amber">pending</Badge>}
+                <td className="px-4 py-2">
+                  <ResultToken success={item.success} />
                 </td>
-                <td className="px-4 py-3 font-mono text-xs" style={{ color: "#444444" }}>
-                  {item.txSignature ? (
-                    <span style={{ color: "#14f195" }}>{item.txSignature.slice(0, 8)}…</span>
-                  ) : (
-                    <span>—</span>
-                  )}
+                <td className="px-4 py-2" style={{ color: "#333" }}>
+                  {item.txSignature
+                    ? <span style={{ color: "#14f195" }}>{item.txSignature.slice(0, 8)}…</span>
+                    : <span>—</span>
+                  }
                 </td>
               </motion.tr>
             ))}

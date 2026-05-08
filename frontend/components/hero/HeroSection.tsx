@@ -4,10 +4,14 @@ import { useRef } from "react"
 import { motion, useMotionValue, useTransform, useSpring } from "motion/react"
 import { ease } from "@/lib/motion"
 import ParticleCanvas from "./ParticleCanvas"
-import PoolVisual from "./PoolVisual"
 import Button from "@/components/ui/Button"
 import Badge from "@/components/ui/Badge"
-import Logo from "@/components/ui/Logo"
+
+const stats = [
+  { label: "Loop cycle", value: "~60s" },
+  { label: "Tests passing", value: "35 / 35" },
+  { label: "Safety layers", value: "4" },
+]
 
 export default function HeroSection() {
   const containerRef = useRef<HTMLElement>(null)
@@ -39,16 +43,15 @@ export default function HeroSection() {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative min-h-[calc(100svh-5rem)] pt-20 md:pt-24 pb-14 flex flex-col items-center justify-center px-6 overflow-hidden scroll-mt-24"
+      className="relative min-h-[100dvh] pt-28 md:pt-36 pb-16 flex flex-col items-center justify-center px-4 overflow-hidden scroll-mt-24"
     >
       {/* background */}
       <div
         className="absolute inset-0"
-        style={{ background: "linear-gradient(180deg, #171c23 0%, #141920 56%, #11161d 100%)" }}
+        style={{ background: "linear-gradient(180deg, #0d1117 0%, #101520 56%, #0d1116 100%)" }}
       >
         <ParticleCanvas />
-        {/* AI-generated hero illustration */}
-        <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.45 }}>
+        <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.35 }}>
           <img
             src="/hero-illustration.svg"
             alt=""
@@ -57,132 +60,164 @@ export default function HeroSection() {
             style={{ objectFit: "cover", objectPosition: "center" }}
           />
         </div>
-        {/* radial glow */}
+        {/* radial glow — more refined */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse 72% 56% at 50% 65%, rgba(20,241,149,0.11) 0%, rgba(20,241,149,0.04) 42%, transparent 72%)",
+              "radial-gradient(ellipse 60% 50% at 50% 60%, rgba(20,241,149,0.09) 0%, rgba(20,241,149,0.03) 50%, transparent 75%)",
           }}
         />
-        {/* bottom fade */}
         <div
-          className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-          style={{ background: "linear-gradient(to bottom, transparent, #11161d)" }}
+          className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
+          style={{ background: "linear-gradient(to bottom, transparent, #0d1116)" }}
         />
       </div>
 
-      {/* content with parallax */}
+      {/* content card with parallax + double-bezel */}
       <motion.div
-        className="relative z-10 text-center max-w-6xl mx-auto rounded-[36px] border border-[rgba(20,241,149,0.1)] bg-[linear-gradient(180deg,rgba(23,28,35,0.76)_0%,rgba(23,28,35,0.58)_100%)] backdrop-blur-[4px] px-6 md:px-10 py-10 md:py-14"
-        style={{ rotateX, rotateY, translateX, translateY, transformPerspective: 800 }}
+        style={{ rotateX, rotateY, translateX, translateY, transformPerspective: 900 }}
+        className="relative z-10 w-full max-w-5xl mx-auto"
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease }}
-          className="mb-6"
+        {/* outer shell */}
+        <div
+          style={{
+            padding: "6px",
+            borderRadius: "2.5rem",
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            boxShadow: "0 32px 80px rgba(0,0,0,0.5)",
+          }}
         >
-          <Badge variant="green" dot>
-            Colosseum Solana Frontier Hackathon 2026
-          </Badge>
-        </motion.div>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease, delay: 0.1 }}
-          className="text-5xl md:text-7xl font-bold leading-tight tracking-tight"
-          style={{ color: "#f5f5f5" }}
-        >
-          Autonomous Liquidity,{" "}
-          <span
+          {/* inner core */}
+          <div
+            className="text-center px-6 md:px-12 py-10 md:py-16"
             style={{
-              color: "#14f195",
-              textShadow: "0 0 40px rgba(20,241,149,0.4)",
+              borderRadius: "calc(2.5rem - 6px)",
+              background: "linear-gradient(180deg, rgba(16,20,28,0.88) 0%, rgba(13,17,24,0.82) 100%)",
+              backdropFilter: "blur(8px)",
+              boxShadow: "inset 0 1px 1px rgba(255,255,255,0.06)",
+              border: "1px solid rgba(20,241,149,0.08)",
             }}
           >
-            Human Risk Controls.
-          </span>
-        </motion.h1>
+            <motion.div
+              initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.6, ease }}
+              className="mb-7"
+            >
+              <Badge variant="green" dot>
+                Colosseum Solana Frontier Hackathon 2026
+              </Badge>
+            </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease, delay: 0.25 }}
-          className="mt-6 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
-          style={{ color: "#a3a3a3" }}
-        >
-          A safety-first Meteora DLMM agent for Solana. Scores the pool universe,
-          opens optimal positions, rebalances on drift, exits on volatility —
-          with explicit guards at every step.
-        </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.9, ease, delay: 0.1 }}
+              className="text-5xl sm:text-6xl md:text-[5.5rem] font-bold leading-[1.05] tracking-tight"
+              style={{ color: "#f0f0f0", letterSpacing: "-0.03em" }}
+            >
+              Autonomous Liquidity,{" "}
+              <span
+                style={{
+                  color: "#14f195",
+                  textShadow: "0 0 60px rgba(20,241,149,0.35)",
+                }}
+              >
+                Human Risk Controls.
+              </span>
+            </motion.h1>
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease, delay: 0.4 }}
-          className="mt-10 flex flex-wrap items-center justify-center gap-4"
-        >
-          <Button href="/dashboard" variant="primary">View Live Dashboard</Button>
-          <Button href="/architecture" variant="secondary">Read Architecture</Button>
-        </motion.div>
+            <motion.p
+              initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.85, ease, delay: 0.25 }}
+              className="mt-7 text-base md:text-lg max-w-2xl mx-auto"
+              style={{ color: "#7a7a7a", lineHeight: 1.72, letterSpacing: "0.003em" }}
+            >
+              A safety-first Meteora DLMM agent for Solana. Scores the pool universe,
+              opens optimal positions, rebalances on drift, exits on volatility —
+              with explicit guards at every step.
+            </motion.p>
 
-        {/* stat strip */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease, delay: 0.65 }}
-          className="mt-14 grid grid-cols-3 gap-8 max-w-lg mx-auto"
-        >
-          {[
-            { label: "Loop Cycle", value: "~60s" },
-            { label: "Tests Passing", value: "35 / 35" },
-            { label: "Safety Guards", value: "4 layers" },
-          ].map(({ label, value }) => (
-            <div key={label} className="text-center">
-              <p className="text-2xl font-semibold" style={{ color: "#14f195", textShadow: "0 0 20px rgba(20,241,149,0.3)" }}>
-                {value}
-              </p>
-              <p className="text-xs mt-1 uppercase tracking-wider" style={{ color: "#555555" }}>
-                {label}
-              </p>
-            </div>
-          ))}
-        </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.85, ease, delay: 0.4 }}
+              className="mt-10 flex flex-wrap items-center justify-center gap-3"
+            >
+              <Button href="/dashboard" variant="primary">View Live Dashboard</Button>
+              <Button href="/architecture" variant="secondary">Read Architecture</Button>
+            </motion.div>
 
-        {/* pool visualization */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease, delay: 0.85 }}
-          className="mt-10 rounded-2xl px-6 pt-5 pb-4"
-          style={{ border: "1px solid rgba(20,241,149,0.1)", background: "rgba(10,15,13,0.6)" }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <Logo size={22} />
-            <span className="flex items-center gap-1.5 text-xs font-mono" style={{ color: "#14f195" }}>
-              <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: "#14f195", boxShadow: "0 0 5px #14f195" }}/>
-              DLMM position · devnet
-            </span>
+            {/* stat strip — double-bezel treatment */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.85, ease, delay: 0.6 }}
+              className="mt-12"
+            >
+              <div
+                style={{
+                  padding: "4px",
+                  borderRadius: "1.25rem",
+                  background: "rgba(255,255,255,0.025)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  display: "inline-flex",
+                  gap: 0,
+                }}
+              >
+                <div
+                  className="flex items-center"
+                  style={{
+                    borderRadius: "calc(1.25rem - 4px)",
+                    background: "rgba(8,11,16,0.7)",
+                    overflow: "hidden",
+                  }}
+                >
+                  {stats.map(({ label, value }, i) => (
+                    <div
+                      key={label}
+                      className="px-7 py-4 text-center"
+                      style={{
+                        borderRight: i < stats.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                      }}
+                    >
+                      <p
+                        className="text-xl font-semibold font-mono"
+                        style={{ color: "#14f195", textShadow: "0 0 20px rgba(20,241,149,0.35)", letterSpacing: "-0.01em" }}
+                      >
+                        {value}
+                      </p>
+                      <p
+                        className="text-[10px] mt-1.5 uppercase tracking-[0.12em]"
+                        style={{ color: "#444" }}
+                      >
+                        {label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
           </div>
-          <PoolVisual />
-        </motion.div>
+        </div>
       </motion.div>
 
       {/* scroll indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 1.2 }}
+        transition={{ duration: 1.2, delay: 1.4 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-        style={{ color: "#333333" }}
+        style={{ color: "#2a2a2a" }}
         aria-hidden
       >
-        <span className="text-xs uppercase tracking-widest font-mono">scroll</span>
+        <span className="text-[10px] uppercase tracking-[0.18em] font-mono">scroll</span>
         <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+          animate={{ y: [0, 7, 0] }}
+          transition={{ repeat: Infinity, duration: 2, ease: [0.22, 1, 0.36, 1] }}
           className="w-px h-8"
           style={{ background: "linear-gradient(to bottom, #14f195, transparent)" }}
         />

@@ -13,14 +13,14 @@ const links = [
   { href: "/proof", label: "Proof" },
 ]
 
+const ease = [0.22, 1, 0.36, 1] as const
+
 export default function MobileMenu() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
-  // close on route change
   useEffect(() => { setOpen(false) }, [pathname])
 
-  // lock body scroll when open
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : ""
     return () => { document.body.style.overflow = "" }
@@ -28,97 +28,124 @@ export default function MobileMenu() {
 
   return (
     <>
-      {/* hamburger button — md:hidden so only shows on mobile */}
+      {/* hamburger — morphs to X */}
       <button
         type="button"
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="md:hidden flex flex-col justify-center items-center w-9 h-9 gap-[5px] rounded-lg transition-colors"
-        style={{ color: "#888" }}
+        className="md:hidden relative flex items-center justify-center w-8 h-8 rounded-full"
+        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
       >
-        <motion.span
-          animate={open ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
-          transition={{ duration: 0.22 }}
-          className="block w-5 h-px rounded-full"
-          style={{ background: "currentColor" }}
-        />
-        <motion.span
-          animate={open ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
-          transition={{ duration: 0.18 }}
-          className="block w-5 h-px rounded-full"
-          style={{ background: "currentColor" }}
-        />
-        <motion.span
-          animate={open ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
-          transition={{ duration: 0.22 }}
-          className="block w-5 h-px rounded-full"
-          style={{ background: "currentColor" }}
-        />
+        <span className="relative w-4 h-3 flex flex-col justify-between">
+          <motion.span
+            animate={open ? { rotate: 45, y: 5.5 } : { rotate: 0, y: 0 }}
+            transition={{ duration: 0.28, ease }}
+            className="block h-px w-full rounded-full"
+            style={{ background: open ? "#f5f5f5" : "#888" }}
+          />
+          <motion.span
+            animate={open ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
+            transition={{ duration: 0.2, ease }}
+            className="block h-px w-full rounded-full"
+            style={{ background: "#888" }}
+          />
+          <motion.span
+            animate={open ? { rotate: -45, y: -5.5 } : { rotate: 0, y: 0 }}
+            transition={{ duration: 0.28, ease }}
+            className="block h-px w-full rounded-full"
+            style={{ background: open ? "#f5f5f5" : "#888" }}
+          />
+        </span>
       </button>
 
-      {/* overlay + drawer */}
+      {/* full-screen overlay */}
       <AnimatePresence>
         {open && (
-          <>
-            {/* backdrop */}
-            <motion.div
-              key="backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 md:hidden"
-              style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
-              onClick={() => setOpen(false)}
+          <motion.div
+            key="overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.32, ease }}
+            className="fixed inset-0 z-[60] md:hidden flex flex-col"
+            style={{ background: "#06080c" }}
+            onClick={() => setOpen(false)}
+          >
+            {/* inner border frame */}
+            <div
+              className="absolute inset-3 rounded-3xl pointer-events-none"
+              style={{ border: "1px solid rgba(255,255,255,0.06)" }}
             />
 
-            {/* drawer sliding down from nav */}
-            <motion.nav
-              key="drawer"
-              initial={{ opacity: 0, y: -16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed top-[60px] left-3 right-3 z-50 md:hidden rounded-2xl overflow-hidden"
-              style={{
-                background: "rgba(14,18,24,0.97)",
-                border: "1px solid rgba(20,241,149,0.12)",
-                backdropFilter: "blur(16px)",
-              }}
-            >
-              <ul className="py-3">
-                {links.map(({ href, label }, i) => {
-                  const active = pathname === href
-                  return (
-                    <motion.li
-                      key={href}
-                      initial={{ opacity: 0, x: -12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.045, duration: 0.2 }}
+            {/* close button */}
+            <div className="flex justify-end p-8">
+              <motion.button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setOpen(false)}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1, duration: 0.24, ease }}
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "#888" }}
+              >
+                ✕
+              </motion.button>
+            </div>
+
+            {/* nav links — staggered mask reveal from bottom */}
+            <nav className="flex-1 flex flex-col justify-center px-10 gap-1" onClick={(e) => e.stopPropagation()}>
+              {links.map(({ href, label }, i) => {
+                const active = pathname === href
+                return (
+                  <div key={href} style={{ overflow: "hidden" }}>
+                    <motion.div
+                      initial={{ y: 48, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 24, opacity: 0 }}
+                      transition={{ delay: 0.08 + i * 0.07, duration: 0.5, ease }}
                     >
                       <Link
                         href={href}
-                        className="flex items-center justify-between px-5 py-3.5 text-sm font-medium transition-colors"
-                        style={{ color: active ? "#f5f5f5" : "#888888" }}
+                        className="block py-4 text-4xl font-semibold tracking-tight transition-colors duration-150"
+                        style={{
+                          color: active ? "#f5f5f5" : "#333",
+                          letterSpacing: "-0.02em",
+                        }}
+                        onClick={() => setOpen(false)}
                       >
-                        <span>{label}</span>
-                        {active && (
-                          <span
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ background: "#14f195", boxShadow: "0 0 6px #14f195" }}
-                          />
-                        )}
+                        <motion.span
+                          whileHover={{ color: "#f5f5f5", x: 6 }}
+                          transition={{ duration: 0.2, ease }}
+                          style={{ display: "block" }}
+                        >
+                          {label}
+                          {active && (
+                            <span
+                              className="ml-3 inline-block w-1.5 h-1.5 rounded-full align-middle"
+                              style={{ background: "#14f195", boxShadow: "0 0 8px #14f195" }}
+                            />
+                          )}
+                        </motion.span>
                       </Link>
-                      {i < links.length - 1 && (
-                        <div className="mx-5 h-px" style={{ background: "#1a2230" }} />
-                      )}
-                    </motion.li>
-                  )
-                })}
-              </ul>
-            </motion.nav>
-          </>
+                    </motion.div>
+                  </div>
+                )
+              })}
+            </nav>
+
+            {/* bottom label */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+              className="p-10 text-xs font-mono tracking-widest uppercase"
+              style={{ color: "#333" }}
+            >
+              Meteora Agent · Colosseum 2026
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </>

@@ -45,19 +45,29 @@ export default function ArchitecturePage() {
           className="rounded-2xl p-6"
           style={{ background: "#111111", border: "1px solid #222222" }}
         >
-          <h2 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "#888888" }}>
+          <h2 className="text-sm font-semibold uppercase tracking-wider mb-2" style={{ color: "#888888" }}>
             Module map
           </h2>
+          <p className="text-xs mb-5" style={{ color: "#555555" }}>
+            Two AI layers differentiate this agent:{" "}
+            <span style={{ color: "#14f195" }}>adaptive range sizing</span> scales bin width from realized
+            volatility on every open, and the{" "}
+            <span style={{ color: "#14f195" }}>LLM tuner</span> calls Claude Haiku hourly to recalibrate
+            drift and exit thresholds based on the current market regime.
+          </p>
           <table className="w-full text-sm font-mono">
             <tbody>
               {[
-                ["src/discovery/", "Pull pools, score, rank via Meteora API"],
-                ["src/rebalance/", "Decision logic + safety guards"],
+                ["src/discovery/", "Pull pools from Meteora API, score and rank by fee yield"],
+                ["src/rebalance/decision.py", "Core decision tree: HOLD / CLAIM / REBALANCE / EXIT"],
+                ["src/rebalance/adaptive.py", "Volatility-driven bin-width — tight in low vol, wide in high vol"],
+                ["src/rebalance/tuner.py", "LLM parameter tuner — Claude Haiku adjusts thresholds hourly"],
+                ["src/rebalance/memo.py", "On-chain receipts via SPL Memo — every action verifiable on explorer"],
+                ["src/rebalance/guards.py", "Safety rails — size, deployed, daily loss, kill switch"],
                 ["src/position/", "Read position state, open/close via node-helper"],
-                ["src/executor/", "Reserved — tx broadcast + confirmation loop (stub)"],
-                ["src/db/", "Postgres persistence — asyncpg pool, full CRUD"],
-                ["src/dashboard/", "FastAPI — live on devnet, positions + actions + vault"],
-                ["node-helper/", "Signs and broadcasts Meteora SDK transactions"],
+                ["src/db/", "Postgres persistence — asyncpg pool, full CRUD + fee accumulation"],
+                ["src/dashboard/", "FastAPI — positions, actions, vault, LLM tuner state"],
+                ["node-helper/", "Signs and broadcasts Meteora DLMM SDK transactions on Solana"],
                 ["sql/", "Schema migrations"],
               ].map(([path, desc]) => (
                 <tr key={path} style={{ borderBottom: "1px solid #1a1a1a" }}>

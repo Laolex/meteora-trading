@@ -108,6 +108,13 @@ def decide(ctx: DecisionContext) -> Action:
     )
 
 
+def compute_volatility_pct(price_now: float, price_24h_ago: float | None) -> float:
+    """24h price change magnitude as a percentage. Returns 0.0 if no baseline."""
+    if price_24h_ago is None or price_24h_ago <= 0:
+        return 0.0
+    return abs((price_now - price_24h_ago) / price_24h_ago) * 100.0
+
+
 def _recenter_range(active_bin_id: int, position: Position) -> tuple[int, int]:
     """Preserve the same bin width, recentered on active bin."""
     half_width = (position.upper_bin_id - position.lower_bin_id) // 2

@@ -83,6 +83,22 @@ export async function adminKillSwitch(arm: boolean): Promise<{ ok: boolean; arme
   return res.json() as Promise<{ ok: boolean; armed: boolean }>
 }
 
+export async function adminToggleLlm(enable: boolean): Promise<{ ok: boolean; enabled: boolean }> {
+  const token = getToken()
+  if (!token) throw new Error("Not authenticated")
+  const res = await fetch(`${API_BASE}/admin/llm-toggle`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...NGROK_HEADERS,
+    },
+    body: JSON.stringify({ enable }),
+  })
+  if (!res.ok) throw new Error(`llm-toggle failed: ${res.status}`)
+  return res.json() as Promise<{ ok: boolean; enabled: boolean }>
+}
+
 export async function adminWithdraw(
   amountSol: number,
   amountUsdc: number,

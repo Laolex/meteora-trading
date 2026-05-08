@@ -30,7 +30,7 @@ export default function HowItWorks() {
   return (
     <section
       id="flow"
-      className="py-20 md:py-24 px-6 scroll-mt-24"
+      className="min-h-svh flex flex-col justify-center py-20 md:py-24 px-6 scroll-mt-24"
       style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
     >
       <div className="max-w-6xl mx-auto">

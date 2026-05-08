@@ -51,6 +51,31 @@ def set_kill_switch(
     return KillSwitchResponse(ok=True, armed=ks_path.exists())
 
 
+class LlmToggleRequest(BaseModel):
+    enable: bool
+
+
+class LlmToggleResponse(BaseModel):
+    ok: bool
+    enabled: bool
+
+
+@router.post("/llm-toggle", response_model=LlmToggleResponse)
+def set_llm_toggle(
+    body: LlmToggleRequest,
+    _auth: Annotated[dict, Depends(require_auth)],
+) -> LlmToggleResponse:
+    cfg = CONFIG
+    assert cfg is not None
+    disabled_path = cfg.llm_disabled_file
+    if body.enable:
+        if disabled_path.exists():
+            disabled_path.unlink()
+    else:
+        disabled_path.touch(exist_ok=True)
+    return LlmToggleResponse(ok=True, enabled=not disabled_path.exists())
+
+
 @router.post("/withdraw", response_model=WithdrawResponse)
 async def withdraw(
     body: WithdrawRequest,

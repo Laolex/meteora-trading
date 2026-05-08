@@ -22,6 +22,8 @@ export default function GlobalSidebar() {
     if (typeof window === "undefined") return false
     return localStorage.getItem("sidebar-collapsed") === "true"
   })
+  const [hovering, setHovering] = useState(false)
+  const isExpanded = !collapsed || hovering
 
   useEffect(() => {
     localStorage.setItem("sidebar-collapsed", String(collapsed))
@@ -33,10 +35,14 @@ export default function GlobalSidebar() {
 
   return (
     <aside
-      className="hidden lg:flex fixed left-0 top-20 h-[calc(100vh-80px)] z-40 items-center pl-3 pointer-events-none"
-      style={{ width: `${collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH}px` }}
+      className="hidden lg:flex fixed left-0 top-24 h-[calc(100vh-96px)] z-40 items-center pl-3 pointer-events-none"
+      style={{ width: `${isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH}px`, transition: "width 0.28s cubic-bezier(0.22,1,0.36,1)" }}
     >
-      <div className="pointer-events-auto relative w-full rounded-3xl border border-[#3b465436] bg-[linear-gradient(180deg,rgba(22,27,34,0.52)_0%,rgba(22,27,34,0.38)_100%)] px-2.5 py-3 backdrop-blur-[3px] transition-all duration-300">
+      <div
+        className="pointer-events-auto relative w-full rounded-3xl border border-[#2e3740] bg-[linear-gradient(180deg,rgba(12,16,22,0.97)_0%,rgba(10,14,20,0.95)_100%)] px-2.5 py-3 backdrop-blur-[16px] transition-all duration-300"
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
+      >
         <button
           type="button"
           onClick={() => setCollapsed((v) => !v)}
@@ -47,14 +53,14 @@ export default function GlobalSidebar() {
           {collapsed ? "›" : "‹"}
         </button>
         <div className="h-44 w-px rounded-full bg-gradient-to-b from-[#14f19526] via-[#3a434f] to-transparent absolute left-2.5 top-1/2 -translate-y-1/2" />
-        <nav className={`w-full flex flex-col gap-1.5 ${collapsed ? "pl-2 pr-1 pt-8" : "pl-3 pt-8"}`}>
+        <nav className={`w-full flex flex-col gap-1.5 ${isExpanded ? "pl-3 pt-8" : "pl-2 pr-1 pt-8"}`}>
         {links.map(({ href, label }) => {
           const active = pathname === href
           return (
             <motion.div key={href} whileHover={{ x: -2 }} transition={{ type: "spring", stiffness: 260, damping: 24 }}>
               <Link
                 href={href}
-                className={`group block w-full py-1.5 text-[12px] tracking-wide transition-all ${collapsed ? "px-0 text-center" : "px-1"}`}
+                className={`group block w-full py-1.5 text-[12px] tracking-wide transition-all ${isExpanded ? "px-1" : "px-0 text-center"}`}
                 style={{
                   color: active ? "#ececec" : "#8f96a0",
                 }}
@@ -63,12 +69,12 @@ export default function GlobalSidebar() {
                   className="inline-block transition-all group-hover:text-[#dcdcdc]"
                   style={{ textShadow: active ? "0 0 14px rgba(20,241,149,0.18)" : "none" }}
                 >
-                  {collapsed ? label.charAt(0) : label}
+                  {isExpanded ? label : label.charAt(0)}
                 </span>
                 <span
-                  className={`block mt-1 h-px transition-all ${collapsed ? "mx-auto" : ""}`}
+                  className={`block mt-1 h-px transition-all ${isExpanded ? "" : "mx-auto"}`}
                   style={{
-                    width: collapsed ? (active ? "18px" : "12px") : active ? "40px" : "25px",
+                    width: isExpanded ? (active ? "40px" : "25px") : active ? "18px" : "12px",
                     background: active ? "rgba(20,241,149,0.36)" : "rgba(255,255,255,0.12)",
                   }}
                 />
