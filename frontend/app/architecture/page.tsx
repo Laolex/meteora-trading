@@ -1,3 +1,4 @@
+import DiagramFlow from "@/components/architecture/DiagramFlow"
 import DiagramSection from "@/components/architecture/DiagramSection"
 import BoundaryExplainer from "@/components/architecture/BoundaryExplainer"
 
@@ -22,25 +23,10 @@ export default function ArchitecturePage() {
         </div>
       </div>
 
-      {/* Architecture diagram */}
+      {/* Motion architecture diagram */}
       <section className="mb-10">
         <div className="term-label mb-3">[ SYSTEM DIAGRAM ]</div>
-        <div
-          style={{
-            border: "1px solid #1e1e1e",
-            background: "#0c1117",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "32px 24px",
-          }}
-        >
-          <img
-            src="/arch-diagram.svg"
-            alt="System architecture diagram"
-            style={{ maxWidth: "100%", display: "block" }}
-          />
-        </div>
+        <DiagramFlow />
       </section>
 
       <section className="mb-10">
