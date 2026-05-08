@@ -12,7 +12,7 @@ function Bar({ label, pct }: { label: string; pct: number }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#444", textTransform: "uppercase" }}>
+        <span className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#555", textTransform: "uppercase" }}>
           {label}
         </span>
         <span className="font-mono" style={{ fontSize: "10px", color, letterSpacing: "0.06em", fontWeight: 700 }}>
@@ -60,7 +60,7 @@ export default function RiskGauge({ risk }: { risk: RiskUtilization }) {
 
         {/* Daily loss guard */}
         <div className="flex items-center justify-between">
-          <span className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#444", textTransform: "uppercase" }}>
+          <span className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#555", textTransform: "uppercase" }}>
             DAILY LOSS GUARD
           </span>
           <span className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.1em", color: gc, textTransform: "uppercase" }}>

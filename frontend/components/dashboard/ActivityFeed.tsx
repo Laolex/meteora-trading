@@ -81,7 +81,7 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
                 transition={{ duration: 0.25, delay: i * 0.03, ease }}
                 style={{ borderBottom: "1px solid #111" }}
               >
-                <td className="px-4 py-2" style={{ color: "#444", whiteSpace: "nowrap" }}>
+                <td className="px-4 py-2" style={{ color: "#555", whiteSpace: "nowrap" }}>
                   {fmtTime(item.decidedAt)}
                 </td>
                 <td className="px-4 py-2" style={{ color: "#eaeaea", whiteSpace: "nowrap" }}>
@@ -90,7 +90,7 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
                 <td className="px-4 py-2" style={{ color: ACTION_COLOR[item.actionType] ?? "#555", whiteSpace: "nowrap", letterSpacing: "0.06em" }}>
                   {item.actionType.toUpperCase()}
                 </td>
-                <td className="px-4 py-2" style={{ color: "#444", maxWidth: "260px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <td className="px-4 py-2" style={{ color: "#666", maxWidth: "260px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {item.reason}
                 </td>
                 <td className="px-4 py-2">

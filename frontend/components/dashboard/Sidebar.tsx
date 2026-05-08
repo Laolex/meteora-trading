@@ -11,7 +11,7 @@ interface DashboardSidebarProps {
 function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="flex justify-between items-baseline py-2" style={{ borderBottom: "1px solid #111" }}>
-      <span className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#333", textTransform: "uppercase" }}>
+      <span className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#555", textTransform: "uppercase" }}>
         {label}
       </span>
       <span className="font-mono" style={{ fontSize: "10px", color: accent ? "#14f195" : "#555" }}>

@@ -57,7 +57,7 @@ export default function KpiCard({ label, value, sub, accent = false, index = 0, 
         {sub && (
           <p
             className="font-mono"
-            style={{ fontSize: "9px", letterSpacing: "0.06em", color: "#333", margin: "4px 0 0" }}
+            style={{ fontSize: "9px", letterSpacing: "0.06em", color: "#555", margin: "4px 0 0" }}
           >
             {sub}
           </p>
