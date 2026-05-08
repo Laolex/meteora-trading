@@ -50,7 +50,7 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
                 <th
                   key={h}
                   className="px-4 py-3 text-left text-xs uppercase tracking-wider font-medium"
-                  style={{ color: "#444444", background: "#0d0d0d" }}
+                  style={{ color: "#444444", background: "#111111" }}
                 >
                   {h}
                 </th>
@@ -66,7 +66,7 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
                 viewport={viewportOnce}
                 transition={{ duration: 0.35, delay: i * 0.04, ease }}
                 whileHover={{ backgroundColor: "rgba(20,241,149,0.03)" }}
-                style={{ borderBottom: "1px solid #111111", backgroundColor: "#0a0a0a" }}
+                style={{ borderBottom: "1px solid #1a1a1a", backgroundColor: "#111111" }}
               >
                 <td className="px-4 py-3 font-mono text-xs whitespace-nowrap" style={{ color: "#666666" }}>
                   {fmtTime(item.decidedAt)}

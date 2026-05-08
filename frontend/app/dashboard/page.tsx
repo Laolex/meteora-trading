@@ -41,6 +41,7 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-bold mb-1" style={{ color: "#f5f5f5" }}>
             Live Dashboard
           </h1>
+          <div className="w-8 h-px mb-2" style={{ background: "#14f195" }} />
           <p className="text-xs font-mono" style={{ color: "#444444" }}>
             {process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL : "mock data"}
           </p>

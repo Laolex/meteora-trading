@@ -13,6 +13,7 @@ export default async function ProofPage() {
         <h1 className="text-2xl font-bold mb-2" style={{ color: "#f5f5f5" }}>
           Proof of Operation
         </h1>
+        <div className="w-8 h-px mb-3" style={{ background: "#14f195" }} />
         <p className="text-sm" style={{ color: "#888888" }}>
           Receipts. The agent runs. Here&apos;s the evidence.
         </p>

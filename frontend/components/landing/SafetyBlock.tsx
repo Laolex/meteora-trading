@@ -3,7 +3,6 @@
 import { motion } from "motion/react"
 import { staggerContainer, cardReveal, viewportOnce } from "@/lib/motion"
 import Badge from "@/components/ui/Badge"
-import ParticleCanvas from "@/components/hero/ParticleCanvas"
 import type { SafetyConfig } from "@/lib/api"
 
 interface Props {
@@ -39,19 +38,14 @@ export default function SafetyBlock({ safety }: Props) {
       description: "Checklist of preconditions must all pass before DRY_RUN can be disabled: wallet, DB, RPC, node-helper.",
     },
   ]
+
   return (
-    <section id="safety" className="relative py-20 md:py-24 px-6 scroll-mt-24 overflow-hidden" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-      <div className="absolute inset-0 pointer-events-none opacity-35">
-        <ParticleCanvas />
-      </div>
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 58% 50% at 50% 12%, rgba(20,241,149,0.08) 0%, rgba(20,241,149,0.03) 42%, transparent 70%)",
-        }}
-      />
-      <div className="relative z-10 max-w-6xl mx-auto rounded-[36px] border border-[rgba(20,241,149,0.1)] bg-[linear-gradient(180deg,rgba(23,28,35,0.58)_0%,rgba(23,28,35,0.46)_100%)] backdrop-blur-[4px] px-6 md:px-10 py-12 md:py-14 md:min-h-[68vh] flex flex-col justify-center">
+    <section
+      id="safety"
+      className="py-20 md:py-24 px-6 scroll-mt-24"
+      style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
+    >
+      <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -72,18 +66,18 @@ export default function SafetyBlock({ safety }: Props) {
           initial="hidden"
           whileInView="visible"
           viewport={viewportOnce}
-           className="grid md:grid-cols-2 gap-5"
+          className="grid md:grid-cols-2 gap-5"
         >
           {rails.map(({ label, status, description }) => (
             <motion.div
               key={label}
               variants={cardReveal}
-               className="flex gap-4 p-5 rounded-3xl"
-               style={{
-                 background: "linear-gradient(180deg, rgba(23,28,35,0.78) 0%, rgba(23,28,35,0.62) 100%)",
-                 border: "1px solid rgba(20,241,149,0.1)",
-                 backdropFilter: "blur(6px)",
-               }}
+              className="flex gap-4 p-5 rounded-3xl"
+              style={{
+                background: "linear-gradient(180deg, rgba(23,28,35,0.78) 0%, rgba(23,28,35,0.62) 100%)",
+                border: "1px solid rgba(20,241,149,0.1)",
+                backdropFilter: "blur(6px)",
+              }}
               whileHover={{ borderColor: "rgba(20,241,149,0.2)", boxShadow: "0 0 20px rgba(20,241,149,0.05)" }}
             >
               <div className="flex-1">

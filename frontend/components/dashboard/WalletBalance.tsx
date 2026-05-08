@@ -157,7 +157,7 @@ export default function WalletBalancePanel() {
   return (
     <div
       className="rounded-2xl p-5 space-y-4 text-sm"
-      style={{ border: "1px solid #222222", background: "#0d0d0d" }}
+      style={{ border: "1px solid #222222", background: "#111111" }}
     >
       <div className="flex items-center justify-between">
         <span className="text-xs uppercase tracking-wider font-medium" style={{ color: "#555555" }}>

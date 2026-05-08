@@ -28,7 +28,7 @@ export default function ProofBlock({ proof }: Props) {
     <section
       id="proof"
       className="py-20 md:py-24 px-6 scroll-mt-24"
-      style={{ background: "#0a0f0d" }}
+      style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
     >
       <div className="max-w-6xl mx-auto flex flex-col justify-center">
         <motion.h2

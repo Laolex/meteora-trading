@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react"
 import { viewportOnce, ease } from "@/lib/motion"
-import ParticleCanvas from "@/components/hero/ParticleCanvas"
 
 const steps = [
   {
@@ -31,20 +30,10 @@ export default function HowItWorks() {
   return (
     <section
       id="flow"
-      className="relative py-20 md:py-24 px-6 scroll-mt-24 overflow-hidden"
-      style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
+      className="py-20 md:py-24 px-6 scroll-mt-24"
+      style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
     >
-      <div className="absolute inset-0 pointer-events-none opacity-30">
-        <ParticleCanvas />
-      </div>
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 56% 50% at 50% 15%, rgba(20,241,149,0.07) 0%, rgba(20,241,149,0.025) 42%, transparent 70%)",
-        }}
-      />
-      <div className="relative z-10 max-w-6xl mx-auto rounded-[36px] border border-[rgba(20,241,149,0.1)] bg-[linear-gradient(180deg,rgba(23,28,35,0.58)_0%,rgba(23,28,35,0.46)_100%)] backdrop-blur-[4px] px-6 md:px-10 py-12 md:py-14 md:min-h-[68vh] flex flex-col justify-center">
+      <div className="max-w-6xl mx-auto">
         <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}

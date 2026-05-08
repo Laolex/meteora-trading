@@ -8,6 +8,7 @@ export default function ArchitecturePage() {
         <h1 className="text-2xl font-bold mb-2" style={{ color: "#f5f5f5" }}>
           Architecture
         </h1>
+        <div className="w-8 h-px mb-3" style={{ background: "#14f195" }} />
         <p className="text-sm" style={{ color: "#888888" }}>
           How the agent is structured, what talks to what, and where each safety boundary lives.
         </p>
