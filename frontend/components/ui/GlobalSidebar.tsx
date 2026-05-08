@@ -17,74 +17,68 @@ const COLLAPSED_WIDTH = 44
 
 export default function GlobalSidebar() {
   const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false
-    return localStorage.getItem("sidebar-collapsed") === "true"
-  })
+  // Always start collapsed — expands on hover only, or toggle click to pin open
+  const [pinned, setPinned] = useState(false)
   const [hovering, setHovering] = useState(false)
-  const isExpanded = !collapsed || hovering
+  const isExpanded = pinned || hovering
 
   useEffect(() => {
-    localStorage.setItem("sidebar-collapsed", String(collapsed))
     document.documentElement.style.setProperty(
       "--sidebar-width",
-      `${collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH}px`,
+      `${pinned ? EXPANDED_WIDTH : COLLAPSED_WIDTH}px`,
     )
-  }, [collapsed])
+  }, [pinned])
 
   return (
     <aside
-      className="hidden lg:block fixed left-0 top-0 h-screen z-40"
+      className="hidden lg:flex fixed left-0 top-0 h-screen z-40 flex-col"
       style={{
         width: `${isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH}px`,
         transition: "width 0.22s cubic-bezier(0.22,1,0.36,1)",
         borderRight: "1px solid #1a1a1a",
-        background: "#080808",
+        background: "transparent",
       }}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
-      {/* Top edge — green accent bar */}
-      <div style={{ height: "2px", background: "#14f195", width: "100%" }} />
+      {/* Top accent bar */}
+      <div style={{ height: "2px", background: "#14f195", width: "100%", flexShrink: 0 }} />
 
-      {/* Logo area */}
+      {/* Toggle pin button — top-right */}
       <div
-        className="flex items-center justify-between px-3 py-4"
-        style={{ borderBottom: "1px solid #141414", height: "64px" }}
+        className="flex items-center px-3"
+        style={{ height: "52px", flexShrink: 0, justifyContent: isExpanded ? "space-between" : "center" }}
       >
         {isExpanded && (
           <span
             className="font-mono font-black"
-            style={{ fontSize: "11px", letterSpacing: "0.12em", color: "#14f195", textTransform: "uppercase" }}
+            style={{ fontSize: "10px", letterSpacing: "0.14em", color: "#14f195", textTransform: "uppercase" }}
           >
             METEORA
           </span>
         )}
         <button
           type="button"
-          onClick={() => setCollapsed((v) => !v)}
+          onClick={() => setPinned((v) => !v)}
           className="font-mono"
           style={{
-            fontSize: "10px",
+            fontSize: "9px",
             letterSpacing: "0.06em",
-            color: "#333",
+            color: "#2a2a2a",
             background: "transparent",
             border: "1px solid #1e1e1e",
             padding: "2px 5px",
             cursor: "pointer",
             flexShrink: 0,
-            marginLeft: isExpanded ? 0 : "auto",
-            marginRight: isExpanded ? 0 : "auto",
-            display: "block",
           }}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={pinned ? "Unpin sidebar" : "Pin sidebar open"}
         >
-          {collapsed ? "›" : "‹"}
+          {pinned ? "‹" : "›"}
         </button>
       </div>
 
-      {/* Nav links */}
-      <nav className="py-3">
+      {/* Nav — vertically centered */}
+      <nav className="flex-1 flex flex-col justify-center">
         {links.map(({ href, label }) => {
           const active = pathname === href
           return (
@@ -96,9 +90,9 @@ export default function GlobalSidebar() {
                 fontSize: "9px",
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
-                padding: isExpanded ? "8px 14px" : "8px 0",
+                padding: isExpanded ? "9px 14px" : "9px 0",
                 justifyContent: isExpanded ? "flex-start" : "center",
-                color: active ? "#eaeaea" : "#333",
+                color: active ? "#eaeaea" : "#2a2a2a",
                 borderLeft: active ? "2px solid #14f195" : "2px solid transparent",
                 background: active ? "#14f1950a" : "transparent",
               }}
@@ -116,23 +110,20 @@ export default function GlobalSidebar() {
         })}
       </nav>
 
-      {/* Bottom rule */}
+      {/* Footer */}
       <div
-        className="absolute bottom-0 left-0 right-0 px-3 py-3"
-        style={{ borderTop: "1px solid #141414" }}
+        className="px-3 py-3 font-mono"
+        style={{
+          borderTop: "1px solid #141414",
+          fontSize: "7px",
+          letterSpacing: "0.1em",
+          color: "#1a1a1a",
+          textTransform: "uppercase",
+          textAlign: isExpanded ? "left" : "center",
+          flexShrink: 0,
+        }}
       >
-        <div
-          className="font-mono"
-          style={{
-            fontSize: "7px",
-            letterSpacing: "0.1em",
-            color: "#1e1e1e",
-            textTransform: "uppercase",
-            textAlign: isExpanded ? "left" : "center",
-          }}
-        >
-          {isExpanded ? "REV 2.6  //  D-01" : "2.6"}
-        </div>
+        {isExpanded ? "REV 2.6  //  D-01" : "2.6"}
       </div>
     </aside>
   )
