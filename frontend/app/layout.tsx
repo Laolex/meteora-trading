@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import "./globals.css"
 import Nav from "@/components/ui/Nav"
 import GlobalSidebar from "@/components/ui/GlobalSidebar"
+import GlobalParticles from "@/components/ui/GlobalParticles"
 import FootnoteTicker from "@/components/ui/FootnoteTicker"
 import SolanaWalletProvider from "@/components/ui/WalletProvider"
 
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen antialiased relative">
         <div aria-hidden className="pointer-events-none fixed inset-0 z-0 app-bg" />
         <div aria-hidden className="pointer-events-none fixed inset-0 z-0 app-grain" />
+        <GlobalParticles />
         <SolanaWalletProvider>
           <Nav />
           <GlobalSidebar />
