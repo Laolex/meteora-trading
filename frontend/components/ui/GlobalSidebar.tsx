@@ -36,7 +36,7 @@ export default function GlobalSidebar() {
         width: `${isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH}px`,
         transition: "width 0.22s cubic-bezier(0.22,1,0.36,1)",
         borderRight: "1px solid #1a1a1a",
-        background: "transparent",
+        background: "#101214",
       }}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
