@@ -1,5 +1,4 @@
 import HeroSection from "@/components/hero/HeroSection"
-import PoolVisualSection from "@/components/landing/PoolVisualSection"
 import ValuePillars from "@/components/landing/ValuePillars"
 import HowItWorks from "@/components/landing/HowItWorks"
 import SafetyBlock from "@/components/landing/SafetyBlock"
@@ -15,7 +14,6 @@ export default async function Home() {
   return (
     <>
       <HeroSection />
-      <PoolVisualSection />
       <ValuePillars />
       <HowItWorks />
       <ProofBlock proof={proof} />
