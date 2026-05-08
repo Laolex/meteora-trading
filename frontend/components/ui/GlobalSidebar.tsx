@@ -92,7 +92,7 @@ export default function GlobalSidebar() {
                 textTransform: "uppercase",
                 padding: isExpanded ? "9px 14px" : "9px 0",
                 justifyContent: isExpanded ? "flex-start" : "center",
-                color: active ? "#eaeaea" : "#2a2a2a",
+                color: active ? "#eaeaea" : "#555",
                 borderLeft: active ? "2px solid #14f195" : "2px solid transparent",
                 background: active ? "#14f1950a" : "transparent",
               }}
