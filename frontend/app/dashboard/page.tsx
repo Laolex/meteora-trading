@@ -61,19 +61,22 @@ export default async function DashboardPage() {
               AUTONOMOUS DLMM LIQUIDITY  //  {process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL : "MOCK DATA"}
             </div>
           </div>
-          <div className="font-mono flex items-center gap-2" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#333" }}>
-            <span
-              className="inline-block w-1.5 h-1.5"
-              style={{ background: "#14f195", boxShadow: "0 0 4px #14f195" }}
-            />
-            UPDATED {fetchedAt}
+          <div className="flex flex-col items-end gap-2">
+            <span className="ops-badge">OPS CONSOLE</span>
+            <div className="font-mono flex items-center gap-2" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#333" }}>
+              <span
+                className="inline-block w-1.5 h-1.5"
+                style={{ background: "#14f195", boxShadow: "0 0 4px #14f195" }}
+              />
+              UPDATED {fetchedAt}
+            </div>
           </div>
         </div>
 
         {/* Ticker / metadata strip */}
         <div
           className="flex flex-wrap gap-0 mt-4 font-mono"
-          style={{ fontSize: "8px", letterSpacing: "0.1em", color: "#2a2a2a", textTransform: "uppercase" }}
+          style={{ fontSize: "8px", letterSpacing: "0.1em", color: "#383838", textTransform: "uppercase" }}
         >
           {[
             `MODE: ${status.mode}`,
