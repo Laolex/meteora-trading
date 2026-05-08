@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --sidebar-width: 176px;
+  --sidebar-width: 164px;
 }
 
 @theme inline {

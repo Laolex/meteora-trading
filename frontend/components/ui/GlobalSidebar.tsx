@@ -3,18 +3,17 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { motion } from "motion/react"
 
 const links = [
-  { href: "/", label: "Home" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/safety", label: "Safety" },
-  { href: "/architecture", label: "Architecture" },
-  { href: "/proof", label: "Proof" },
+  { href: "/", label: "HOME" },
+  { href: "/dashboard", label: "DASHBOARD" },
+  { href: "/safety", label: "SAFETY" },
+  { href: "/architecture", label: "ARCHITECTURE" },
+  { href: "/proof", label: "PROOF" },
 ]
 
-const EXPANDED_WIDTH = 176
-const COLLAPSED_WIDTH = 68
+const EXPANDED_WIDTH = 164
+const COLLAPSED_WIDTH = 44
 
 export default function GlobalSidebar() {
   const pathname = usePathname()
@@ -35,59 +34,105 @@ export default function GlobalSidebar() {
 
   return (
     <aside
-      className="hidden lg:flex fixed left-0 top-24 h-[calc(100vh-96px)] z-40 items-center pl-3 pointer-events-none"
-      style={{ width: `${isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH}px`, transition: "width 0.28s cubic-bezier(0.22,1,0.36,1)" }}
+      className="hidden lg:block fixed left-0 top-0 h-screen z-40"
+      style={{
+        width: `${isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH}px`,
+        transition: "width 0.22s cubic-bezier(0.22,1,0.36,1)",
+        borderRight: "1px solid #1a1a1a",
+        background: "#080808",
+      }}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
     >
+      {/* Top edge — green accent bar */}
+      <div style={{ height: "2px", background: "#14f195", width: "100%" }} />
+
+      {/* Logo area */}
       <div
-        className="pointer-events-auto relative w-full rounded-3xl border border-[#2e3740] bg-[linear-gradient(180deg,rgba(12,16,22,0.97)_0%,rgba(10,14,20,0.95)_100%)] px-2.5 py-3 backdrop-blur-[16px] transition-all duration-300"
-        onMouseEnter={() => setHovering(true)}
-        onMouseLeave={() => setHovering(false)}
+        className="flex items-center justify-between px-3 py-4"
+        style={{ borderBottom: "1px solid #141414", height: "64px" }}
       >
+        {isExpanded && (
+          <span
+            className="font-mono font-black"
+            style={{ fontSize: "11px", letterSpacing: "0.12em", color: "#14f195", textTransform: "uppercase" }}
+          >
+            METEORA
+          </span>
+        )}
         <button
           type="button"
           onClick={() => setCollapsed((v) => !v)}
-          className="absolute right-2 top-2 h-6 w-6 rounded-full border border-[#3b465451] text-[#9da7b3] transition hover:text-[#d6dbe1]"
+          className="font-mono"
+          style={{
+            fontSize: "10px",
+            letterSpacing: "0.06em",
+            color: "#333",
+            background: "transparent",
+            border: "1px solid #1e1e1e",
+            padding: "2px 5px",
+            cursor: "pointer",
+            flexShrink: 0,
+            marginLeft: isExpanded ? 0 : "auto",
+            marginRight: isExpanded ? 0 : "auto",
+            display: "block",
+          }}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? "›" : "‹"}
         </button>
-        <div className="h-44 w-px rounded-full bg-gradient-to-b from-[#14f19526] via-[#3a434f] to-transparent absolute left-2.5 top-1/2 -translate-y-1/2" />
-        <nav className={`w-full flex flex-col gap-1.5 ${isExpanded ? "pl-3 pt-8" : "pl-2 pr-1 pt-8"}`}>
+      </div>
+
+      {/* Nav links */}
+      <nav className="py-3">
         {links.map(({ href, label }) => {
           const active = pathname === href
           return (
-            <motion.div key={href} whileHover={{ x: -2 }} transition={{ type: "spring", stiffness: 260, damping: 24 }}>
-              <Link
-                href={href}
-                className={`group block w-full py-1.5 text-[12px] tracking-wide transition-all ${isExpanded ? "px-1" : "px-0 text-center"}`}
-                style={{
-                  color: active ? "#ececec" : "#8f96a0",
-                }}
-              >
-                <span
-                  className="inline-block transition-all group-hover:text-[#dcdcdc]"
-                  style={{ textShadow: active ? "0 0 14px rgba(20,241,149,0.18)" : "none" }}
-                >
-                  {isExpanded ? label : label.charAt(0)}
-                </span>
-                <span
-                  className={`block mt-1 h-px transition-all ${isExpanded ? "" : "mx-auto"}`}
-                  style={{
-                    width: isExpanded ? (active ? "40px" : "25px") : active ? "18px" : "12px",
-                    background: active ? "rgba(20,241,149,0.36)" : "rgba(255,255,255,0.12)",
-                  }}
-                />
-              </Link>
-            </motion.div>
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center font-mono transition-colors"
+              style={{
+                fontSize: "9px",
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                padding: isExpanded ? "8px 14px" : "8px 0",
+                justifyContent: isExpanded ? "flex-start" : "center",
+                color: active ? "#eaeaea" : "#333",
+                borderLeft: active ? "2px solid #14f195" : "2px solid transparent",
+                background: active ? "#14f1950a" : "transparent",
+              }}
+            >
+              {isExpanded ? (
+                <>
+                  <span style={{ color: active ? "#14f19566" : "#1e1e1e", marginRight: "6px" }}>//</span>
+                  {label}
+                </>
+              ) : (
+                <span>{label.charAt(0)}</span>
+              )}
+            </Link>
           )
         })}
-        </nav>
+      </nav>
+
+      {/* Bottom rule */}
+      <div
+        className="absolute bottom-0 left-0 right-0 px-3 py-3"
+        style={{ borderTop: "1px solid #141414" }}
+      >
         <div
-          aria-hidden
-          className="absolute -right-3 top-1/2 -translate-y-1/2 h-64 w-px"
-          style={{ background: "linear-gradient(to bottom, transparent, rgba(67,78,92,0.55), transparent)" }}
-        />
+          className="font-mono"
+          style={{
+            fontSize: "7px",
+            letterSpacing: "0.1em",
+            color: "#1e1e1e",
+            textTransform: "uppercase",
+            textAlign: isExpanded ? "left" : "center",
+          }}
+        >
+          {isExpanded ? "REV 2.6  //  D-01" : "2.6"}
+        </div>
       </div>
     </aside>
   )
