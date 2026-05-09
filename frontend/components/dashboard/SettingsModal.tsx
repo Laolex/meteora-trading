@@ -17,6 +17,8 @@ import {
 } from "@solana/spl-token"
 import {
   isAuthenticated,
+  clearToken,
+  verifyWallet,
   adminKillSwitch,
   adminToggleLlm,
   adminUpdateConfig,
@@ -116,6 +118,38 @@ function ParamRow({
           <span className="font-mono" style={{ fontSize: "9px", color: "#444" }}>{suffix}</span>
         )}
       </div>
+    </div>
+  )
+}
+
+function AuthButton({ onAuth }: { onAuth: () => void }) {
+  const wallet = useWallet()
+  const [loading, setLoading] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  const handleSign = async () => {
+    if (!wallet.publicKey || !wallet.signMessage) return
+    setLoading(true); setErr(null)
+    try {
+      await verifyWallet(wallet.publicKey.toBase58(), wallet.signMessage)
+      onAuth()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Sign-in failed")
+      setTimeout(() => setErr(null), 4000)
+    } finally { setLoading(false) }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      {err && <span className="font-mono" style={{ fontSize: "8px", color: "#e61919", letterSpacing: "0.06em" }}>{err}</span>}
+      <button
+        onClick={() => void handleSign()}
+        disabled={loading}
+        className="font-mono disabled:opacity-40"
+        style={{ fontSize: "8px", letterSpacing: "0.1em", color: "#14f195", background: "transparent", border: "1px solid #14f19530", padding: "2px 8px", cursor: "pointer" }}
+      >
+        {loading ? "···" : "[ SIGN IN ]"}
+      </button>
     </div>
   )
 }
@@ -455,6 +489,31 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
                     <span style={{ color: col as string, letterSpacing: "0.08em" }}>{val}</span>
                   </div>
                 ))}
+                {/* Operator auth row */}
+                <div className="flex items-center justify-between pt-2.5">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="inline-block w-1.5 h-1.5 rounded-full"
+                      style={{ background: authed ? "#14f195" : "#333", flexShrink: 0 }}
+                    />
+                    <span style={{ color: authed ? "#14f195" : "#444", letterSpacing: "0.1em" }}>
+                      OPERATOR {authed ? "AUTHENTICATED" : "NOT SIGNED IN"}
+                    </span>
+                  </div>
+                  {authed ? (
+                    <button
+                      onClick={() => { clearToken(); setAuthed(false) }}
+                      className="font-mono"
+                      style={{ fontSize: "8px", letterSpacing: "0.1em", color: "#444", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
+                    >
+                      [ SIGN OUT ]
+                    </button>
+                  ) : wallet.connected && wallet.signMessage ? (
+                    <AuthButton onAuth={() => setAuthed(true)} />
+                  ) : (
+                    <span style={{ color: "#2a2a2a", letterSpacing: "0.08em" }}>CONNECT WALLET TO SIGN IN</span>
+                  )}
+                </div>
               </div>
             </CollapsibleSection>
 
