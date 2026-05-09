@@ -173,20 +173,17 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
 
   useEffect(() => {
     if (!open || !wallet.publicKey) return
-    const fetchWalletBalances = async () => {
-      try {
-        const lamports = await connection.getBalance(wallet.publicKey!)
-        setWalletSol(lamports / LAMPORTS_PER_SOL)
-        const usdcMint = new PublicKey(status.network === "mainnet" ? USDC_MINT_MAINNET : USDC_MINT_DEVNET)
-        const ata = await getAssociatedTokenAddress(usdcMint, wallet.publicKey!)
-        try {
-          const info = await connection.getParsedAccountInfo(ata)
-          const parsed = (info.value?.data as { parsed?: { info?: { tokenAmount?: { uiAmountString?: string } } } } | null)?.parsed?.info?.tokenAmount
-          setWalletUsdc(parsed ? parseFloat(parsed.uiAmountString ?? "0") : 0)
-        } catch { setWalletUsdc(0) }
-      } catch { /* no-op */ }
-    }
-    void fetchWalletBalances()
+    const pk = wallet.publicKey
+    const usdcMint = new PublicKey(status.network === "mainnet" ? USDC_MINT_MAINNET : USDC_MINT_DEVNET)
+
+    connection.getBalance(pk)
+      .then(lamports => setWalletSol(lamports / LAMPORTS_PER_SOL))
+      .catch(() => setWalletSol(0))
+
+    getAssociatedTokenAddress(usdcMint, pk)
+      .then(ata => connection.getTokenAccountBalance(ata))
+      .then(resp => setWalletUsdc(resp.value.uiAmount ?? 0))
+      .catch(() => setWalletUsdc(0))
   }, [open, wallet.publicKey, connection, status.network])
 
   const handleAgentToggle = async () => {
@@ -506,7 +503,7 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
                           <div className="font-mono" style={{ fontSize: "9px", color: "#2a2a2a", letterSpacing: "0.1em" }}>
                             CONNECT WALLET TO CONTINUE
                           </div>
-                        ) : walletSol === null ? (
+                        ) : walletSol === null || walletUsdc === null ? (
                           <div className="flex gap-4 items-center">
                             {[72, 96].map(w => (
                               <div
