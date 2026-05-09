@@ -340,161 +340,21 @@ export default function VaultPanel() {
         <div className="flex items-center gap-2">
           <span className="font-mono" style={{
             fontSize: "9px", letterSpacing: "0.1em", textTransform: "uppercase",
-            color: state?.initialized ? "#14f195" : "#444",
+            color: "#444",
           }}>
-            {loading ? "···" : state?.initialized ? `● ${state.totalAumUsd != null ? "$" + state.totalAumUsd.toFixed(0) : "LIVE"}` : "NOT DEPLOYED"}
+            DEVNET ONLY
           </span>
           <span className="font-mono" style={{ fontSize: "9px", color: "#333" }}>{collapsed ? "+" : "−"}</span>
         </div>
       </button>
 
-      {!collapsed && loading && (
-        <p className="px-4 py-3 font-mono" style={{ fontSize: "9px", color: "#333", letterSpacing: "0.08em" }}>
-          LOADING VAULT STATE···
+      {!collapsed && (
+        <p className="px-4 py-3 font-mono" style={{ fontSize: "9px", color: "#444", letterSpacing: "0.06em", lineHeight: 1.7 }}>
+          ON-CHAIN VAULT PROGRAM NOT YET DEPLOYED TO MAINNET.<br />
+          INVESTOR DEPOSITS UNAVAILABLE UNTIL MAINNET LAUNCH.
         </p>
       )}
 
-      {!collapsed && !loading && !state?.initialized && (
-        <p className="px-4 py-3 font-mono" style={{ fontSize: "9px", color: "#444", letterSpacing: "0.06em" }}>
-          {state?.error ?? "VAULT NOT INITIALIZED ON-CHAIN"}
-        </p>
-      )}
-
-      {!collapsed && !loading && state?.initialized && (
-        <>
-          {/* AUM hero */}
-          <div className="px-4 py-4" style={{ borderBottom: "1px solid #141414" }}>
-            <div className="font-mono" style={{ fontSize: "9px", color: "#333", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "4px" }}>
-              TOTAL AUM
-            </div>
-            <div className="font-mono" style={{ fontSize: "1.8rem", fontWeight: 900, color: "#eaeaea", letterSpacing: "-0.02em", lineHeight: 1 }}>
-              {fmt(state.totalAumUsd ?? 0)}
-            </div>
-          </div>
-
-          {/* Capital flow bar */}
-          <div className="px-4 py-3" style={{ borderBottom: "1px solid #141414" }}>
-            <div className="flex gap-px h-1.5 mb-2">
-              {deployedPct > 0 && (
-                <div style={{ width: `${deployedPct}%`, height: "6px", background: "#14f195" }} />
-              )}
-              {idlePct > 0 && (
-                <div style={{ width: `${idlePct}%`, height: "6px", background: "#1e1e1e" }} />
-              )}
-            </div>
-            <div className="flex gap-4 font-mono" style={{ fontSize: "9px", color: "#444" }}>
-              <span>DEPLOYED <span style={{ color: "#eaeaea" }}>{fmt(deployedUsd)}</span></span>
-              <span>IDLE <span style={{ color: "#eaeaea" }}>{fmt(Math.max(0, idleUsd))}</span></span>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="px-4 py-3" style={{ borderBottom: "1px solid #141414" }}>
-            <div className="flex justify-between font-mono py-1.5" style={{ borderBottom: "1px solid #111" }}>
-              <span style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#444" }}>NAV / SHARE</span>
-              <span style={{ fontSize: "10px", color: "#555" }}>{fmt(state.navPerShareUsd ?? 1, 6)}</span>
-            </div>
-            <div className="flex justify-between font-mono py-1.5">
-              <span style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#444" }}>DEPOSIT CAP</span>
-              <span style={{ fontSize: "10px", color: "#555" }}>{fmt(state.depositCapUsd ?? 0, 0)}</span>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex font-mono" style={{ borderBottom: "1px solid #141414" }}>
-            {authed && (
-              <button
-                onClick={() => setTab("manager")}
-                style={{
-                  fontSize: "9px", letterSpacing: "0.12em", padding: "8px 16px",
-                  color: tab === "manager" ? "#eaeaea" : "#444",
-                  background: tab === "manager" ? "#141414" : "transparent",
-                  border: "none", borderRight: "1px solid #141414", cursor: "pointer",
-                  borderBottom: tab === "manager" ? "1px solid #14f195" : "1px solid transparent",
-                }}
-              >
-                MANAGER
-              </button>
-            )}
-            <button
-              onClick={() => setTab("investor")}
-              style={{
-                fontSize: "9px", letterSpacing: "0.12em", padding: "8px 16px",
-                color: tab === "investor" ? "#eaeaea" : "#444",
-                background: tab === "investor" ? "#141414" : "transparent",
-                border: "none", cursor: "pointer",
-                borderBottom: tab === "investor" ? "1px solid #14f195" : "1px solid transparent",
-              }}
-            >
-              INVESTOR
-            </button>
-          </div>
-
-          {/* Manager tab */}
-          {tab === "manager" && authed && (
-            <div className="px-4 py-4 space-y-5">
-              <ActionForm
-                label="WITHDRAW TO TRADE"
-                buttonText="Withdraw to Trade"
-                allAmount={Math.max(0, idleUsd)}
-                onSubmit={vaultManagerWithdraw}
-              />
-              <ActionForm
-                label="RETURN TO VAULT"
-                buttonText="Return to Vault"
-                allAmount={deployedUsd}
-                onSubmit={vaultManagerReturn}
-              />
-            </div>
-          )}
-
-          {/* Investor tab */}
-          {tab === "investor" && (
-            <div className="px-4 py-4">
-              {!publicKey ? (
-                <p className="font-mono" style={{ fontSize: "9px", color: "#444", letterSpacing: "0.08em" }}>
-                  CONNECT WALLET TO DEPOSIT OR WITHDRAW
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {/* Share balance */}
-                  <div>
-                    <div className="flex justify-between font-mono py-1.5" style={{ borderBottom: "1px solid #111" }}>
-                      <span style={{ fontSize: "9px", color: "#444", letterSpacing: "0.1em" }}>YOUR SHARES</span>
-                      <span style={{ fontSize: "10px", color: "#555" }}>
-                        {shareBalanceLoading ? "···" : shareBalance !== null ? shareBalance.toFixed(6) : "—"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between font-mono py-1.5">
-                      <span style={{ fontSize: "9px", color: "#444", letterSpacing: "0.1em" }}>VALUE</span>
-                      <span style={{ fontSize: "10px", color: "#555" }}>
-                        {shareBalanceLoading ? "···" : shareValue !== null ? fmt(shareValue) : "—"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <ActionForm
-                    label="DEPOSIT USDC"
-                    buttonText="Deposit"
-                    allAmount={depositCapacityLeft}
-                    onSubmit={async (amount) => {
-                      const result = await handleDeposit(amount)
-                      refreshShareBalance()
-                      return result
-                    }}
-                  />
-
-                  <ShareWithdrawForm
-                    shareBalance={shareBalance}
-                    onSubmit={handleWithdraw}
-                    onSuccess={refreshShareBalance}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-        </>
-      )}
     </div>
   )
 }
