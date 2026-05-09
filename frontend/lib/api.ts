@@ -110,12 +110,16 @@ const NGROK_HEADERS: Record<string, string> = process.env.NEXT_PUBLIC_API_URL?.i
 
 async function apiFetch<T>(path: string, fallback: T): Promise<T> {
   if (!process.env.NEXT_PUBLIC_API_URL) return fallback
-  const res = await fetch(`${API_BASE}${path}`, {
-    cache: "no-store",
-    headers: NGROK_HEADERS,
-  })
-  if (!res.ok) throw new Error(`API ${path} → ${res.status}`)
-  return res.json() as Promise<T>
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      cache: "no-store",
+      headers: NGROK_HEADERS,
+    })
+    if (!res.ok) return fallback
+    return res.json() as Promise<T>
+  } catch {
+    return fallback
+  }
 }
 
 // --- Mock fallbacks (used when NEXT_PUBLIC_API_URL is not set) ---
