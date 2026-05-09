@@ -130,7 +130,7 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
   // which may be devnet by default if NEXT_PUBLIC_SOLANA_RPC_URL isn't set.
   const connection = useMemo(() => new Connection(
     status.network === "mainnet"
-      ? (process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? "https://api.mainnet-beta.solana.com")
+      ? "https://api.mainnet-beta.solana.com"
       : "https://api.devnet.solana.com",
     "confirmed"
   ), [status.network])
