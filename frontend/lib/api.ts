@@ -74,6 +74,7 @@ export interface SafetyConfig {
 
 export interface MarketSnapshot {
   solPriceUsd: number
+  metPriceUsd: number | null
   ongoingTrades: number
   updatedAt: string
 }
@@ -271,28 +272,44 @@ export async function getAgentState(): Promise<AgentState> {
   return apiFetch("/agent/state", MOCK_AGENT_STATE).catch(() => MOCK_AGENT_STATE)
 }
 
+// MET token mint on Solana mainnet
+const MET_MINT = "METAewgxyPbgwsseH8T16a39CQ5VyVxZi9zXiDPY18m"
+
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
-  const response = await fetch(
-    "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",
-    { cache: "no-store" },
-  )
+  const [solRes, metRes, activity] = await Promise.allSettled([
+    fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd", { cache: "no-store" }),
+    fetch(`https://api.jup.ag/price/v2?ids=${MET_MINT}`, { cache: "no-store" }),
+    getActivity(50),
+  ])
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch SOL price: ${response.status}`)
+  let solPriceUsd: number | null = null
+  if (solRes.status === "fulfilled" && solRes.value.ok) {
+    const data = (await solRes.value.json()) as { solana?: { usd?: number } }
+    solPriceUsd = data.solana?.usd ?? null
   }
-
-  const data = (await response.json()) as { solana?: { usd?: number } }
-  const solPriceUsd = data.solana?.usd
 
   if (typeof solPriceUsd !== "number") {
-    throw new Error("Invalid SOL price payload")
+    throw new Error("Failed to fetch SOL price")
   }
 
-  const activity = await getActivity(50)
-  const ongoingTrades = activity.filter((item) => item.success === null).length
+  let metPriceUsd: number | null = null
+  if (metRes.status === "fulfilled" && metRes.value.ok) {
+    const data = (await metRes.value.json()) as {
+      data?: Record<string, { price?: string | number } | null>
+    }
+    const raw = data.data?.[MET_MINT]?.price
+    if (raw != null) {
+      const parsed = parseFloat(String(raw))
+      if (!isNaN(parsed)) metPriceUsd = parsed
+    }
+  }
+
+  const acts = activity.status === "fulfilled" ? activity.value : []
+  const ongoingTrades = acts.filter((item) => item.success === null).length
 
   return {
     solPriceUsd,
+    metPriceUsd,
     ongoingTrades,
     updatedAt: new Date().toISOString(),
   }

@@ -25,13 +25,12 @@ export default function Nav() {
       aria-label="Main navigation"
       className="fixed top-6 left-0 right-0 z-50 flex justify-center pointer-events-none px-4"
     >
-      {/* outer shell — bezel ring */}
+      {/* outer shell — nav-pill-shell CSS class forces solid on mobile, glass on md+ */}
       <div
-        className="pointer-events-auto p-[5px] rounded-full"
+        className="nav-pill-shell pointer-events-auto p-[5px] rounded-full"
         style={{
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.8)",
+          border: "1px solid rgba(255,255,255,0.18)",
+          boxShadow: "0 8px 40px rgba(0,0,0,0.9), 0 0 0 1px rgba(0,0,0,0.95)",
         }}
       >
         {/* inner core */}
@@ -74,7 +73,9 @@ export default function Nav() {
           </ul>
 
           <div className="flex items-center gap-2 ml-2">
-            <WalletButton />
+            <div className="hidden md:block">
+              <WalletButton />
+            </div>
             <MobileMenu />
           </div>
         </div>

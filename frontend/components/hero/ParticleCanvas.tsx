@@ -58,7 +58,6 @@ export default function ParticleCanvas() {
       const my = mouse.current.y
 
       for (const p of particles) {
-        // mouse repulsion
         const dx = p.x - mx
         const dy = p.y - my
         const dist = Math.sqrt(dx * dx + dy * dy)
@@ -68,7 +67,6 @@ export default function ParticleCanvas() {
           p.vy += (dy / dist) * force * 0.05
         }
 
-        // dampen speed to max
         const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
         if (speed > SPEED * 3) {
           p.vx = (p.vx / speed) * SPEED * 3

@@ -1,16 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { motion } from "motion/react"
 import { getMarketSnapshot } from "@/lib/api"
 
 interface SnapshotState {
   solPriceUsd: number | null
+  metPriceUsd: number | null
   ongoingTrades: number | null
 }
 
 export default function FootnoteTicker() {
-  const [snapshot, setSnapshot] = useState<SnapshotState>({ solPriceUsd: null, ongoingTrades: null })
+  const [snapshot, setSnapshot] = useState<SnapshotState>({ solPriceUsd: null, metPriceUsd: null, ongoingTrades: null })
   const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null)
   const [now, setNow] = useState(() => Date.now())
 
@@ -21,58 +21,59 @@ export default function FootnoteTicker() {
       try {
         const data = await getMarketSnapshot()
         if (!cancelled) {
-          setSnapshot({ solPriceUsd: data.solPriceUsd, ongoingTrades: data.ongoingTrades })
+          setSnapshot({ solPriceUsd: data.solPriceUsd, metPriceUsd: data.metPriceUsd, ongoingTrades: data.ongoingTrades })
           setLastUpdatedAt(Date.now())
         }
-      } catch (error) {
-        console.error("Failed to refresh footnote market snapshot", error)
-        if (!cancelled) {
-          setSnapshot({ solPriceUsd: null, ongoingTrades: null })
-        }
+      } catch {
+        if (!cancelled) setSnapshot({ solPriceUsd: null, metPriceUsd: null, ongoingTrades: null })
       }
     }
 
-    load()
-    const timer = window.setInterval(load, 30000)
-    const clock = window.setInterval(() => {
-      if (!cancelled) setNow(Date.now())
-    }, 1000)
-    return () => {
-      cancelled = true
-      window.clearInterval(timer)
-      window.clearInterval(clock)
-    }
+    void load()
+    const timer = window.setInterval(() => void load(), 30000)
+    const clock = window.setInterval(() => { if (!cancelled) setNow(Date.now()) }, 1000)
+    return () => { cancelled = true; window.clearInterval(timer); window.clearInterval(clock) }
   }, [])
 
-  const solPrice =
-    snapshot.solPriceUsd === null
-      ? "—"
-      : snapshot.solPriceUsd.toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
+  const fmt = (n: number | null, decimals = 2) =>
+    n === null ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
 
-  const ongoingTrades = snapshot.ongoingTrades === null ? "—" : String(snapshot.ongoingTrades)
-  const updatedLabel =
-    lastUpdatedAt === null ? "—" : `${Math.max(0, Math.floor((now - lastUpdatedAt) / 1000))}s ago`
+  const updatedLabel = lastUpdatedAt === null ? "—" : `${Math.max(0, Math.floor((now - lastUpdatedAt) / 1000))}s`
 
   return (
-    <div className="fixed bottom-4 right-4 z-40 rounded-xl border border-[#2d3641] bg-[rgba(23,28,35,0.72)] px-4 py-2.5 backdrop-blur-md min-w-[300px] md:min-w-[360px]">
-      <div className="flex items-center justify-between gap-4 text-[11px] tracking-wide" style={{ color: "#8a8a8a" }}>
-        <span className="flex items-center gap-1.5">
-          <motion.span
-            className="inline-block h-1.5 w-1.5 rounded-full bg-[#14f195]"
-            animate={{ opacity: [0.35, 1, 0.35] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-          />
-          SOL <span style={{ color: "#f5f5f5" }}>${solPrice}</span>
+    <div
+      className="fixed bottom-4 right-4 z-40 font-mono"
+      style={{
+        background: "#0d0d0d",
+        border: "1px solid #1e1e1e",
+        borderLeft: "3px solid #14f195",
+        padding: "8px 14px",
+        minWidth: "300px",
+      }}
+    >
+      {/* Status bar line */}
+      <div className="flex items-center gap-0 flex-wrap" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#555" }}>
+        {/* Live indicator */}
+        <span style={{ color: "#14f195", marginRight: "10px" }}>●</span>
+
+        {/* SOL */}
+        <span style={{ marginRight: "16px", textTransform: "uppercase" }}>
+          SOL <span style={{ color: "#eaeaea" }}>${fmt(snapshot.solPriceUsd)}</span>
         </span>
-        <span style={{ color: "#333333" }}>•</span>
-        <span>
-          Trades ongoing <span style={{ color: "#f5f5f5" }}>{ongoingTrades}</span>
+
+        {/* MET */}
+        <span style={{ marginRight: "16px", textTransform: "uppercase" }}>
+          MET <span style={{ color: "#eaeaea" }}>${fmt(snapshot.metPriceUsd, 4)}</span>
         </span>
-        <span style={{ color: "#6f7782" }}>
-          Updated <span style={{ color: "#d0d5db" }}>{updatedLabel}</span>
+
+        {/* Trades */}
+        <span style={{ marginRight: "16px", textTransform: "uppercase" }}>
+          ACTIVE <span style={{ color: "#eaeaea" }}>{snapshot.ongoingTrades ?? "—"}</span>
+        </span>
+
+        {/* Timestamp */}
+        <span style={{ color: "#333", textTransform: "uppercase", marginLeft: "auto" }}>
+          +{updatedLabel}
         </span>
       </div>
     </div>

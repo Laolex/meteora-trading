@@ -203,3 +203,6 @@ def load_config() -> Config:
 
 
 CONFIG = load_config() if os.getenv("METEORA_SKIP_CONFIG_LOAD") != "1" else None  # type: ignore
+
+# Mutable runtime overrides — set by admin API at runtime, layered on top of CONFIG
+RUNTIME_OVERRIDES: dict = {}

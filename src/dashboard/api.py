@@ -17,7 +17,9 @@ from pydantic import BaseModel
 from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair  # type: ignore
 
-from src.config import CONFIG
+from src.config import CONFIG, RUNTIME_OVERRIDES
+
+_LLM_KEY_FILE = Path("/opt/meteora-agent/var/anthropic-key.txt")
 from src.db import Database
 from src.dashboard.auth import router as auth_router
 from src.dashboard.admin import router as admin_router
@@ -110,6 +112,11 @@ async def lifespan(app: FastAPI):
     _wallet_pubkey = str(keypair.pubkey())
     app.state.wallet_keypair = keypair
     app.state.rpc = AsyncClient(cfg.rpc_url)
+    # Arm kill switch on fresh start so agent is paused until operator explicitly resumes
+    ks = Path(cfg.kill_switch_file)
+    if not ks.exists():
+        ks.parent.mkdir(parents=True, exist_ok=True)
+        ks.touch()
     yield
     await _db.close()
     await app.state.rpc.close()
@@ -159,9 +166,9 @@ async def get_kpi() -> KpiSummary:
         totalDeployedUsd=stats["total_deployed"],
         pnlDayUsd=stats["pnl_day"],
         pnlWeekUsd=stats["pnl_week"],
-        maxPositionUsd=cfg.max_position_usd,
-        maxTotalDeployedUsd=cfg.max_total_deployed_usd,
-        dailyLossLimitPct=cfg.daily_loss_limit_pct,
+        maxPositionUsd=RUNTIME_OVERRIDES.get("max_position_usd", cfg.max_position_usd),
+        maxTotalDeployedUsd=RUNTIME_OVERRIDES.get("max_total_deployed_usd", cfg.max_total_deployed_usd),
+        dailyLossLimitPct=RUNTIME_OVERRIDES.get("daily_loss_limit_pct", cfg.daily_loss_limit_pct),
         dailyLossCurrentPct=stats["daily_loss_pct"],
     )
 
@@ -178,13 +185,16 @@ async def get_risk() -> RiskUtilization:
     assert cfg is not None
     stats = await _db.get_position_stats()
 
+    max_dep = RUNTIME_OVERRIDES.get("max_total_deployed_usd", cfg.max_total_deployed_usd)
+    loss_limit = RUNTIME_OVERRIDES.get("daily_loss_limit_pct", cfg.daily_loss_limit_pct)
+
     pos_util = (stats["open_count"] / cfg.max_open_positions * 100) if cfg.max_open_positions > 0 else 0.0
-    dep_util = (stats["total_deployed"] / cfg.max_total_deployed_usd * 100) if cfg.max_total_deployed_usd > 0 else 0.0
+    dep_util = (stats["total_deployed"] / max_dep * 100) if max_dep > 0 else 0.0
     loss_pct = stats["daily_loss_pct"]
 
-    if loss_pct >= cfg.daily_loss_limit_pct:
+    if loss_pct >= loss_limit:
         guard = "tripped"
-    elif loss_pct >= cfg.daily_loss_limit_pct * 0.8:
+    elif loss_pct >= loss_limit * 0.8:
         guard = "warning"
     else:
         guard = "ok"
@@ -206,9 +216,9 @@ async def get_safety() -> SafetyConfig:
         killSwitchPresent=kill_present,
         killSwitchPath=str(cfg.kill_switch_file),
         liveGatePass=not kill_present,
-        maxPositionUsd=cfg.max_position_usd,
-        maxTotalDeployedUsd=cfg.max_total_deployed_usd,
-        dailyLossLimitPct=cfg.daily_loss_limit_pct,
+        maxPositionUsd=RUNTIME_OVERRIDES.get("max_position_usd", cfg.max_position_usd),
+        maxTotalDeployedUsd=RUNTIME_OVERRIDES.get("max_total_deployed_usd", cfg.max_total_deployed_usd),
+        dailyLossLimitPct=RUNTIME_OVERRIDES.get("daily_loss_limit_pct", cfg.daily_loss_limit_pct),
         maxOpenPositions=cfg.max_open_positions,
         network=cfg.network,
     )
@@ -240,17 +250,26 @@ _STATE_FILE = Path("/opt/meteora-agent/var/agent-state.json")
 async def get_agent_state() -> AgentState:
     cfg = CONFIG
     assert cfg is not None
+    _openai_key_file = Path("/opt/meteora-agent/var/openai-key.txt")
+    key_configured = (
+        bool(cfg.anthropic_api_key)
+        or bool(os.getenv("ANTHROPIC_API_KEY"))
+        or bool(os.getenv("OPENAI_API_KEY"))
+        or _LLM_KEY_FILE.exists()
+        or _openai_key_file.exists()
+    )
     if _STATE_FILE.exists():
         try:
             with open(_STATE_FILE) as f:
                 data = json.load(f)
-            return AgentState(**data, baseRangeBins=cfg.target_position_width_bins)
+            state = AgentState(**data, baseRangeBins=cfg.target_position_width_bins)
+            return state.model_copy(update={"anthropicKeyConfigured": key_configured})
         except Exception:
             pass
     return AgentState(
-        llmEnabled=bool(cfg.anthropic_api_key) and not cfg.llm_disabled_file.exists(),
+        llmEnabled=key_configured and not cfg.llm_disabled_file.exists(),
         llmDisabledByOperator=cfg.llm_disabled_file.exists(),
-        anthropicKeyConfigured=bool(cfg.anthropic_api_key),
+        anthropicKeyConfigured=key_configured,
         tunedAt=None,
         rebalanceDriftBps=cfg.rebalance_drift_bps,
         exitVolatilityPct=cfg.exit_volatility_24h_pct,

@@ -4,6 +4,9 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "motion/react"
+import dynamic from "next/dynamic"
+
+const WalletButton = dynamic(() => import("./WalletButton"), { ssr: false })
 
 const links = [
   { href: "/", label: "Home" },
@@ -69,7 +72,7 @@ export default function MobileMenu() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.32, ease }}
             className="fixed inset-0 z-[60] md:hidden flex flex-col"
-            style={{ background: "#06080c" }}
+            style={{ background: "#050608" }}
             onClick={() => setOpen(false)}
           >
             {/* inner border frame */}
@@ -135,15 +138,18 @@ export default function MobileMenu() {
               })}
             </nav>
 
-            {/* bottom label */}
+            {/* wallet + bottom label */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.4 }}
-              className="p-10 text-xs font-mono tracking-widest uppercase"
-              style={{ color: "#333" }}
+              className="p-10 flex items-center justify-between"
+              onClick={e => e.stopPropagation()}
             >
-              Meteora Agent · Colosseum 2026
+              <span className="text-xs font-mono tracking-widest uppercase" style={{ color: "#333" }}>
+                Meteora Agent · Colosseum 2026
+              </span>
+              <WalletButton />
             </motion.div>
           </motion.div>
         )}

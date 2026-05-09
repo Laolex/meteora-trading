@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "motion/react"
 import { viewportOnce, ease } from "@/lib/motion"
 import type { ActivityItem } from "@/lib/api"
@@ -29,6 +30,8 @@ function ResultToken({ success }: { success: boolean | null }) {
 }
 
 export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
+  const [collapsed, setCollapsed] = useState(true)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -38,18 +41,22 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
       style={{ border: "1px solid #1e1e1e", background: "#0d0d0d" }}
     >
       {/* Header */}
-      <div
-        className="px-4 py-2 flex items-center justify-between"
-        style={{ borderBottom: "1px solid #1a1a1a" }}
+      <button
+        onClick={() => setCollapsed(c => !c)}
+        className="w-full px-4 py-2 flex items-center justify-between"
+        style={{ borderBottom: collapsed ? "none" : "1px solid #1a1a1a", background: "transparent", cursor: "pointer" }}
       >
         <span className="term-label">[ RECENT ACTIVITY ]</span>
-        <span className="font-mono" style={{ fontSize: "9px", color: "#333", letterSpacing: "0.08em" }}>
-          {items.length} RECORDS
-        </span>
-      </div>
+        <div className="flex items-center gap-2">
+          <span className="font-mono" style={{ fontSize: "9px", color: "#333", letterSpacing: "0.08em" }}>
+            {items.length} RECORDS
+          </span>
+          <span className="font-mono" style={{ fontSize: "9px", color: "#333" }}>{collapsed ? "+" : "−"}</span>
+        </div>
+      </button>
 
       {/* Table */}
-      <div className="overflow-x-auto">
+      {!collapsed && <div className="overflow-x-auto">
         <table className="w-full min-w-[680px] font-mono" style={{ fontSize: "10px", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: "1px solid #141414" }}>
@@ -106,7 +113,7 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
             ))}
           </tbody>
         </table>
-      </div>
+      </div>}
     </motion.div>
   )
 }

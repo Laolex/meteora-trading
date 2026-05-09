@@ -214,6 +214,7 @@ export default function VaultPanel() {
   const [loading, setLoading] = useState(true)
   const [authed, setAuthed] = useState(false)
   const [tab, setTab] = useState<"manager" | "investor">("investor")
+  const [collapsed, setCollapsed] = useState(true)
 
   const { publicKey, sendTransaction } = useWallet()
   const { connection } = useConnection()
@@ -329,30 +330,37 @@ export default function VaultPanel() {
 
   return (
     <div style={{ border: "1px solid #1e1e1e", background: "#0d0d0d" }}>
-      {/* Header */}
-      <div className="px-4 py-2 flex items-center justify-between" style={{ borderBottom: "1px solid #141414" }}>
+      {/* Header — clickable to collapse */}
+      <button
+        onClick={() => setCollapsed(c => !c)}
+        className="w-full px-4 py-2 flex items-center justify-between"
+        style={{ borderBottom: collapsed ? "none" : "1px solid #141414", background: "transparent", cursor: "pointer" }}
+      >
         <span className="term-label">[ ON-CHAIN VAULT ]</span>
-        <span className="font-mono" style={{
-          fontSize: "9px", letterSpacing: "0.1em", textTransform: "uppercase",
-          color: state?.initialized ? "#14f195" : "#444",
-        }}>
-          {loading ? "···" : state?.initialized ? "● LIVE" : "NOT DEPLOYED"}
-        </span>
-      </div>
+        <div className="flex items-center gap-2">
+          <span className="font-mono" style={{
+            fontSize: "9px", letterSpacing: "0.1em", textTransform: "uppercase",
+            color: state?.initialized ? "#14f195" : "#444",
+          }}>
+            {loading ? "···" : state?.initialized ? `● ${state.totalAumUsd != null ? "$" + state.totalAumUsd.toFixed(0) : "LIVE"}` : "NOT DEPLOYED"}
+          </span>
+          <span className="font-mono" style={{ fontSize: "9px", color: "#333" }}>{collapsed ? "+" : "−"}</span>
+        </div>
+      </button>
 
-      {loading && (
+      {!collapsed && loading && (
         <p className="px-4 py-3 font-mono" style={{ fontSize: "9px", color: "#333", letterSpacing: "0.08em" }}>
           LOADING VAULT STATE···
         </p>
       )}
 
-      {!loading && !state?.initialized && (
+      {!collapsed && !loading && !state?.initialized && (
         <p className="px-4 py-3 font-mono" style={{ fontSize: "9px", color: "#444", letterSpacing: "0.06em" }}>
           {state?.error ?? "VAULT NOT INITIALIZED ON-CHAIN"}
         </p>
       )}
 
-      {!loading && state?.initialized && (
+      {!collapsed && !loading && state?.initialized && (
         <>
           {/* AUM hero */}
           <div className="px-4 py-4" style={{ borderBottom: "1px solid #141414" }}>
