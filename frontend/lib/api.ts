@@ -122,7 +122,7 @@ async function apiFetch<T>(path: string, fallback: T): Promise<T> {
 
 const MOCK_STATUS: AgentStatus = {
   mode: "DRY_RUN",
-  network: "devnet",
+  network: "mainnet",
   walletPubkey: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
   serviceStatus: "active",
   killSwitchPresent: false,
@@ -184,7 +184,7 @@ const MOCK_SAFETY: SafetyConfig = {
   maxTotalDeployedUsd: 500,
   dailyLossLimitPct: 5,
   maxOpenPositions: 1,
-  network: "devnet",
+  network: "mainnet",
 }
 
 const MOCK_WALLET_BALANCE: WalletBalance = {
