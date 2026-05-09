@@ -273,35 +273,27 @@ export async function getAgentState(): Promise<AgentState> {
 }
 
 // MET token mint on Solana mainnet
-const MET_MINT = "METAewgxyPbgwsseH8T16a39CQ5VyVxZi9zXiDPY18m"
 
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
-  const [solRes, metRes, activity] = await Promise.allSettled([
-    fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd", { cache: "no-store" }),
-    fetch(`https://api.jup.ag/price/v2?ids=${MET_MINT}`, { cache: "no-store" }),
+  const [cgRes, activity] = await Promise.allSettled([
+    fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana,meteora&vs_currencies=usd", { cache: "no-store" }),
     getActivity(50),
   ])
 
   let solPriceUsd: number | null = null
-  if (solRes.status === "fulfilled" && solRes.value.ok) {
-    const data = (await solRes.value.json()) as { solana?: { usd?: number } }
+  let metPriceUsd: number | null = null
+
+  if (cgRes.status === "fulfilled" && cgRes.value.ok) {
+    const data = (await cgRes.value.json()) as {
+      solana?: { usd?: number }
+      meteora?: { usd?: number }
+    }
     solPriceUsd = data.solana?.usd ?? null
+    metPriceUsd = data.meteora?.usd ?? null
   }
 
   if (typeof solPriceUsd !== "number") {
-    throw new Error("Failed to fetch SOL price")
-  }
-
-  let metPriceUsd: number | null = null
-  if (metRes.status === "fulfilled" && metRes.value.ok) {
-    const data = (await metRes.value.json()) as {
-      data?: Record<string, { price?: string | number } | null>
-    }
-    const raw = data.data?.[MET_MINT]?.price
-    if (raw != null) {
-      const parsed = parseFloat(String(raw))
-      if (!isNaN(parsed)) metPriceUsd = parsed
-    }
+    solPriceUsd = 0
   }
 
   const acts = activity.status === "fulfilled" ? activity.value : []
