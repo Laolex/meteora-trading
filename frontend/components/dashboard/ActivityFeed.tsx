@@ -105,7 +105,16 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
                 </td>
                 <td className="px-4 py-2" style={{ color: "#333" }}>
                   {item.txSignature
-                    ? <span style={{ color: "#14f195" }}>{item.txSignature.slice(0, 8)}…</span>
+                    ? (
+                      <a
+                        href={`https://explorer.solana.com/tx/${item.txSignature}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#14f195", textDecoration: "none" }}
+                      >
+                        {item.txSignature.slice(0, 8)}…
+                      </a>
+                    )
                     : <span>—</span>
                   }
                 </td>

@@ -20,7 +20,7 @@ export default function KpiCard({ label, value, sub, accent = false, index = 0, 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={viewportOnce}
       transition={{ duration: 0.4, delay: index * 0.06, ease }}
-      style={{ border: "1px solid #1e1e1e", background: "#0d0d0d" }}
+      style={{ background: "#0d0d0d" }}
     >
       {/* Label row */}
       <div

@@ -84,46 +84,29 @@ export default async function DashboardPage() {
         {/* Main content */}
         <div style={{ background: "#0A0A0A" }}>
 
-          {/* Metrics — open on load */}
           <CollapsibleSection label="[ METRICS ]" badge={`${kpi.openPositions} OPEN`} defaultOpen={true}>
-            <div className="grid grid-cols-2 xl:grid-cols-4">
-              <div style={{ borderRight: "1px solid #1e1e1e" }}>
-                <KpiCard label="Open Positions" value={String(kpi.openPositions)} sub={`max ${safety.maxOpenPositions} open`} accent index={0} />
-              </div>
-              <div style={{ borderRight: "1px solid #1e1e1e" }}>
-                <KpiCard label="Daily Fees" value={fmt(kpi.dailyFeesUsd)} sub="fees collected today" index={1} />
-              </div>
-              <div style={{ borderRight: "1px solid #1e1e1e" }}>
-                <KpiCard label="Total Deployed" value={fmt(kpi.totalDeployedUsd)} sub={`limit ${fmt(kpi.maxTotalDeployedUsd)}`} index={2} />
-              </div>
-              <div>
-                <KpiCard label="PnL Today" value={fmtPnl(kpi.pnlDayUsd)} sub={`week: ${fmtPnl(kpi.pnlWeekUsd)}`} accent={kpi.pnlDayUsd >= 0} index={3} delta={pnlDelta} deltaPositive={pnlDeltaPositive} />
-              </div>
+            <div className="grid grid-cols-2 xl:grid-cols-4" style={{ gap: "1px", background: "#1e1e1e" }}>
+              <KpiCard label="Open Positions" value={String(kpi.openPositions)} sub={`max ${safety.maxOpenPositions} open`} accent index={0} />
+              <KpiCard label="Daily Fees" value={fmt(kpi.dailyFeesUsd)} sub="fees collected today" index={1} />
+              <KpiCard label="Total Deployed" value={fmt(kpi.totalDeployedUsd)} sub={`limit ${fmt(kpi.maxTotalDeployedUsd)}`} index={2} />
+              <KpiCard label="PnL Today" value={fmtPnl(kpi.pnlDayUsd)} sub={`week: ${fmtPnl(kpi.pnlWeekUsd)}`} accent={kpi.pnlDayUsd >= 0} index={3} delta={pnlDelta} deltaPositive={pnlDeltaPositive} />
             </div>
           </CollapsibleSection>
 
-          {/* Session — collapsed on load, just before activity */}
           <div style={{ borderTop: "1px solid #1e1e1e" }}>
             <CollapsibleSection label="[ SESSION ]" badge={status.mode} defaultOpen={false}>
-              <div className="grid grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-2 xl:grid-cols-4" style={{ gap: "1px", background: "#1e1e1e" }}>
                 {[
-                  { label: "NETWORK", value: status.network.toUpperCase() },
+                  { label: "NETWORK",   value: status.network.toUpperCase() },
                   { label: "POSITIONS", value: `${kpi.openPositions} / ${safety.maxOpenPositions}` },
-                  { label: "LOSS CAP", value: `${safety.dailyLossLimitPct}%` },
-                  { label: "POS UTIL", value: `${risk.positionUtilPct.toFixed(0)}%` },
-                  { label: "DEPLOYED", value: fmt(kpi.totalDeployedUsd) },
+                  { label: "LOSS CAP",  value: `${safety.dailyLossLimitPct}%` },
+                  { label: "POS UTIL",  value: `${risk.positionUtilPct.toFixed(0)}%` },
+                  { label: "DEPLOYED",  value: fmt(kpi.totalDeployedUsd) },
                   { label: "DEP LIMIT", value: fmt(kpi.maxTotalDeployedUsd) },
-                  { label: "PNL DAY", value: fmtPnl(kpi.pnlDayUsd) },
-                  { label: "PNL WEEK", value: fmtPnl(kpi.pnlWeekUsd) },
-                ].map(({ label, value }, i, arr) => (
-                  <div
-                    key={label}
-                    className="px-4 py-3 font-mono"
-                    style={{
-                      borderRight: (i + 1) % 4 !== 0 && i < arr.length - 1 ? "1px solid #1e1e1e" : undefined,
-                      borderBottom: i < arr.length - 4 ? "1px solid #1e1e1e" : undefined,
-                    }}
-                  >
+                  { label: "PNL DAY",   value: fmtPnl(kpi.pnlDayUsd) },
+                  { label: "PNL WEEK",  value: fmtPnl(kpi.pnlWeekUsd) },
+                ].map(({ label, value }) => (
+                  <div key={label} className="px-4 py-3 font-mono" style={{ background: "#0d0d0d" }}>
                     <div style={{ fontSize: "8px", letterSpacing: "0.12em", color: "#444", textTransform: "uppercase", marginBottom: "4px" }}>
                       {label}
                     </div>
@@ -136,7 +119,6 @@ export default async function DashboardPage() {
             </CollapsibleSection>
           </div>
 
-          {/* Activity */}
           <div style={{ borderTop: "1px solid #1e1e1e", background: "#0A0A0A" }}>
             <ActivityFeed items={activity} />
           </div>
