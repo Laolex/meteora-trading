@@ -55,12 +55,16 @@ export default function StatusRow({ status }: { status: AgentStatus }) {
         </span>
       </div>
 
-      {/* Kill switch */}
-      {status.killSwitchPresent && (
-        <div className="flex items-center px-4 py-2" style={{ background: "rgba(230,25,25,0.07)" }}>
-          <span style={{ color: "#e61919", letterSpacing: "0.12em" }}>[ KILL SW ARMED ]</span>
-        </div>
-      )}
+      {/* Agent on/off */}
+      <div className="flex items-center px-4 py-2" style={{ background: status.killSwitchPresent ? "rgba(230,25,25,0.07)" : "rgba(20,241,149,0.05)" }}>
+        <span
+          className="w-1.5 h-1.5 rounded-full mr-2"
+          style={{ background: status.killSwitchPresent ? "#e61919" : "#14f195", flexShrink: 0 }}
+        />
+        <span style={{ color: status.killSwitchPresent ? "#e61919" : "#14f195", letterSpacing: "0.12em" }}>
+          AGENT {status.killSwitchPresent ? "OFF" : "ON"}
+        </span>
+      </div>
     </div>
   )
 }

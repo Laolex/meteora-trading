@@ -816,15 +816,15 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
                           boxShadow: armed ? "0 0 5px #e61919" : "0 0 5px #14f195",
                         }}
                       />
-                      AGENT {armed ? "PAUSED" : "RUNNING"}
+                      AGENT {armed ? "OFF" : "ON"}
                     </div>
                     <div
                       className="font-mono"
                       style={{ fontSize: "8px", letterSpacing: "0.06em", color: "#333", lineHeight: 1.5 }}
                     >
                       {armed
-                        ? "Kill switch armed — no trades will execute"
-                        : "Agent is actively managing positions"}
+                        ? "Agent is off — no trades will execute"
+                        : "Agent is on — actively managing positions"}
                     </div>
                   </div>
                   <button
@@ -833,7 +833,7 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
                     className="disabled:opacity-40 shrink-0"
                     style={btnStyle(armed ? "#14f195" : "#e61919")}
                   >
-                    {agentLoading ? "···" : armed ? "[ RESUME ]" : "[ PAUSE ]"}
+                    {agentLoading ? "···" : armed ? "[ TURN ON ]" : "[ TURN OFF ]"}
                   </button>
                 </div>
                 {agentError && (
