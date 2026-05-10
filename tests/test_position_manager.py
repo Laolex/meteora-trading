@@ -59,6 +59,10 @@ def test_min_sol_wallet_floor_is_0_25():
     assert MeteoraPositionManager.MIN_SOL_WALLET == 0.25
 
 
+def test_tx_fee_buffer_is_0_05():
+    assert MeteoraPositionManager.TX_FEE_BUFFER_SOL == 0.05
+
+
 def testy_only_range_places_all_bins_strictly_below_active():
     """When amount_x=0 the range must not include or exceed active bin so the
     SDK never needs X tokens — all bins are Y-only bins."""
