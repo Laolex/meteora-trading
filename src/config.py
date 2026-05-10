@@ -96,6 +96,8 @@ class Config:
     score_weight_volume_tvl: float
     score_weight_token_quality: float
     score_weight_bin_liquidity: float
+    min_pool_tvl_usd: float
+    max_vol_tvl_ratio: float
 
     # Rebalance
     rebalance_drift_bps: int
@@ -183,6 +185,8 @@ def load_config() -> Config:
         score_weight_volume_tvl=_required_float("SCORE_WEIGHT_VOLUME_TVL"),
         score_weight_token_quality=_required_float("SCORE_WEIGHT_TOKEN_QUALITY"),
         score_weight_bin_liquidity=_required_float("SCORE_WEIGHT_BIN_LIQUIDITY"),
+        min_pool_tvl_usd=_optional_float("MIN_POOL_TVL_USD", 50_000.0),
+        max_vol_tvl_ratio=_optional_float("MAX_VOL_TVL_RATIO", 20.0),
         rebalance_drift_bps=_required_int("REBALANCE_DRIFT_BPS"),
         rebalance_min_fees_usd=_required_float("REBALANCE_MIN_FEES_USD"),
         exit_volatility_24h_pct=_required_float("EXIT_VOLATILITY_24H_PCT"),

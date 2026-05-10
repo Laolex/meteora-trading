@@ -61,18 +61,29 @@ def _token_quality_score(pool: PoolSnapshot) -> float:
     return 0.3
 
 
-def score_pools(pools: list[PoolSnapshot], weights: ScoringWeights) -> list[ScoredPool]:
+def score_pools(
+    pools: list[PoolSnapshot],
+    weights: ScoringWeights,
+    *,
+    min_tvl_usd: float = 50_000.0,
+    max_vol_tvl_ratio: float = 20.0,
+) -> list[ScoredPool]:
     """
     Compute composite scores. Returns sorted descending by score.
+
+    min_tvl_usd: pools below this TVL are excluded entirely — prevents brand-new
+        or near-empty pools from being selected even if their volume/TVL looks huge.
+    max_vol_tvl_ratio: caps volume/TVL before normalizing so one whale trade in an
+        empty pool can't dominate the score across the whole candidate set.
     """
-    if not pools:
+    eligible = [p for p in pools if p.tvl_usd >= min_tvl_usd]
+    if not eligible:
         return []
 
-    fee_aprs = [p.fee_apr for p in pools]
-    vol_tvls = [p.volume_to_tvl for p in pools]
-    token_qualities = [_token_quality_score(p) for p in pools]
-    # Bin liquidity placeholder — needs per-pool bin array fetch (TODO day 2)
-    bin_liqs = [1.0] * len(pools)
+    fee_aprs = [p.fee_apr for p in eligible]
+    vol_tvls = [min(p.volume_to_tvl, max_vol_tvl_ratio) for p in eligible]
+    token_qualities = [_token_quality_score(p) for p in eligible]
+    bin_liqs = [1.0] * len(eligible)
 
     n_fee = _normalize(fee_aprs)
     n_vol = _normalize(vol_tvls)
@@ -80,7 +91,7 @@ def score_pools(pools: list[PoolSnapshot], weights: ScoringWeights) -> list[Scor
     n_bin = _normalize(bin_liqs)
 
     scored: list[ScoredPool] = []
-    for i, p in enumerate(pools):
+    for i, p in enumerate(eligible):
         components = {
             "fees_24h": n_fee[i],
             "volume_tvl": n_vol[i],

@@ -68,7 +68,7 @@ async def run_discovery() -> None:
             token_quality=config.score_weight_token_quality,
             bin_liquidity=config.score_weight_bin_liquidity,
         )
-        ranked = score_pools(pools, weights)
+        ranked = score_pools(pools, weights, min_tvl_usd=config.min_pool_tvl_usd, max_vol_tvl_ratio=config.max_vol_tvl_ratio)
         await db.store_pool_scores(ranked)
 
         log.info("=== TOP 10 POOLS ===")
@@ -219,7 +219,7 @@ async def run_loop() -> None:
                 pools = await client.list_all_pools()
                 for snapshot_pool in pools:
                     await db.upsert_pool_snapshot(snapshot_pool)
-                ranked = score_pools(pools, weights)
+                ranked = score_pools(pools, weights, min_tvl_usd=config.min_pool_tvl_usd, max_vol_tvl_ratio=config.max_vol_tvl_ratio)
                 await db.store_pool_scores(ranked)
                 pools_by_addr = {p.address: p for p in pools}
 
