@@ -3,7 +3,7 @@
 const assert = require("assert");
 const helper = require("./index.js");
 
-const { uiAmountToBN } = helper._internal;
+const { uiAmountToBN, assertNonZeroAmounts } = helper._internal;
 
 function run() {
   // Exact integer
@@ -33,6 +33,16 @@ function run() {
     () => uiAmountToBN("-1", 6, "amountX"),
     /negative/
   );
+
+  // Guard: both amounts zero must throw before hitting the RPC
+  const BN = require("bn.js");
+  assert.throws(
+    () => assertNonZeroAmounts(new BN(0), new BN(0)),
+    /both.*zero/i
+  );
+  // One non-zero is fine
+  assertNonZeroAmounts(new BN(0), new BN(1));
+  assertNonZeroAmounts(new BN(1), new BN(0));
 
   console.log("ok");
 }

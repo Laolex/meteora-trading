@@ -32,10 +32,23 @@ class PositionRange:
     upper_bin_id: int
 
 
+def y_only_range(active_bin_id: int, width: int) -> PositionRange:
+    """Return a range of `width` bins strictly below the active bin.
+
+    All bins in this range are Y-token bins in Meteora DLMM, so a deposit
+    with totalXAmount=0 will work correctly without the SDK zeroing both sides.
+    """
+    return PositionRange(
+        lower_bin_id=active_bin_id - width,
+        upper_bin_id=active_bin_id - 1,
+    )
+
+
 @dataclass
 class OpenResult:
     tx_signature: str
     position: Position
+    error: str | None = None  # set when guardrails blocked the open
 
 
 class MeteoraPositionManager:
@@ -43,17 +56,74 @@ class MeteoraPositionManager:
     High-level position operations. Delegates SDK calls to the Node helper.
     """
 
+    # ── constants for SOL economics ────────────────────────────────────────
+    SOL_RENT_PER_BIN_ARRAY: float = 0.072   # SOL cost per 10240-byte account (rent exempt min)
+    TX_FEE_BUFFER_SOL: float = 0.100         # buffer for tx fees + unforeseen costs
+    MIN_SOL_WALLET: float = 0.50            # do NOT attempt positions below this balance
+    MIN_RENT_COVERAGE_MULTIPLIER: float = 2.0  # position USD must be ≥ this × bin array rent in USD
+
     def __init__(
         self,
         rpc_client: AsyncClient,
         wallet: Keypair,
         node_helper_path: Path,
         dry_run: bool,
+        sol_price_usd: float = 93.0,  # injected for testability; production resolves via oracle
     ) -> None:
         self._rpc = rpc_client
         self._wallet = wallet
         self._helper = node_helper_path
         self._dry_run = dry_run
+        self._sol_price_usd = sol_price_usd
+
+    def _num_bin_arrays_estimate(self, bin_range: PositionRange) -> int:
+        """Estimate how many bin array accounts a position will need."""
+        spread = bin_range.upper_bin_id - bin_range.lower_bin_id + 1
+        # DLMM creates one bin array per ~25 bins (8192 bytes each at minimum)
+        # Conservative: round up to nearest multiple of 25
+        return max(3, (spread + 24) // 25)
+
+    async def _get_wallet_sol_balance(self) -> float:
+        resp = await self._rpc.get_balance(self._wallet.pubkey())
+        return resp.value / 1e9
+
+    async def _check_position_sol_viability(
+        self, amount_y_usd: float, bin_range: PositionRange
+    ) -> str | None:
+        """
+        Returns None if OK, or an error reason string if the position is unviable.
+        Checks two things:
+          1. Position size covers bin array rent (SOL economics)
+          2. Wallet has enough SOL to pay rent + fees
+        """
+        n_bins = self._num_bin_arrays_estimate(bin_range)
+        rent_sol = n_bins * self.SOL_RENT_PER_BIN_ARRAY
+        total_sol_needed = rent_sol + self.TX_FEE_BUFFER_SOL
+
+        # ── check 1: SOL wallet balance ──────────────────────────────────
+        wallet_sol = await self._get_wallet_sol_balance()
+        if wallet_sol < total_sol_needed:
+            return (
+                f"wallet SOL {wallet_sol:.4f} < required {total_sol_needed:.4f} "
+                f"({n_bins} bins × {self.SOL_RENT_PER_BIN_ARRAY} + {self.TX_FEE_BUFFER_SOL} buffer)"
+            )
+        if wallet_sol < self.MIN_SOL_WALLET:
+            return (
+                f"wallet SOL {wallet_sol:.4f} below hard floor {self.MIN_SOL_WALLET:.2f}; "
+                f"fund wallet before opening positions"
+            )
+
+        # ── check 2: position size vs rent ───────────────────────────────
+        rent_usd = rent_sol * self._sol_price_usd
+        min_position_usd = rent_usd * self.MIN_RENT_COVERAGE_MULTIPLIER
+        if amount_y_usd < min_position_usd:
+            return (
+                f"position ${amount_y_usd:.2f} below minimum ${min_position_usd:.2f} "
+                f"(rent for {n_bins} bins ≈ ${rent_usd:.2f} at ${self._sol_price_usd:.0f}/SOL "
+                f"× {self.MIN_RENT_COVERAGE_MULTIPLIER}x coverage required)"
+            )
+
+        return None  # all clear
 
     async def open_position(
         self,
@@ -84,6 +154,16 @@ class MeteoraPositionManager:
                 tx_signature="DRY_RUN_SIG",
                 position=position,
             )
+
+        # ── SOL economics guardrail ───────────────────────────────────────
+        if amount_y > 0:
+            reason = await self._check_position_sol_viability(amount_y, bin_range)
+            if reason:
+                log.error("SOL economics guard blocked open_position: %s", reason)
+                position = self._build_position(
+                    pool_address, pool_name, bin_range, amount_x, amount_y, ""
+                )
+                return OpenResult(tx_signature="", position=position, error=reason)
 
         position = self._build_position(pool_address, pool_name, bin_range, amount_x, amount_y, "")
 

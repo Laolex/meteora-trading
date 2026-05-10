@@ -19,13 +19,13 @@ from src.config import CONFIG, Config
 from src.db import Database
 from src.discovery.client import MeteoraClient
 from src.discovery.scorer import ScoringWeights, score_pools
-from src.position.manager import MeteoraPositionManager, PositionRange
+from src.position.manager import MeteoraPositionManager, PositionRange, y_only_range
 from src.rebalance.adaptive import adaptive_range_bins
 from src.rebalance.decision import Action, ActionType, DecisionContext, compute_volatility_pct, decide
 from src.rebalance.guards import SafetyGuard
 from src.rebalance.memo import build_memo_text, send_memo
 from src.rebalance.tuner import LLMTuner, TunedParams
-from src.vault.capital import sweep_to_vault, top_up_if_needed
+# from src.vault.capital import sweep_to_vault, top_up_if_needed
 
 _STATE_FILE = Path("/opt/meteora-agent/var/agent-state.json")
 
@@ -96,6 +96,10 @@ def _position_range(active_bin_id: int, width: int) -> PositionRange:
     return PositionRange(lower_bin_id=active_bin_id - half, upper_bin_id=active_bin_id + half)
 
 
+def _y_only_range(active_bin_id: int, width: int) -> PositionRange:
+    return y_only_range(active_bin_id, width)
+
+
 def _tuned_or_default(tuned: TunedParams | None, config) -> tuple[int, float]:
     """Return (rebalance_drift_bps, exit_volatility_24h_pct) from tuner or config."""
     if tuned is not None:
@@ -141,6 +145,7 @@ async def _execute_action(
     if action.type == ActionType.REBALANCE:
         if action.new_lower_bin_id is None or action.new_upper_bin_id is None:
             raise RuntimeError("Rebalance action missing target range")
+        rebalance_width = action.new_upper_bin_id - action.new_lower_bin_id + 1
         close_sig = await manager.close_position(position)
         await db.mark_position_closed(position.id, close_sig)
         open_result = await manager.open_position(
@@ -148,7 +153,7 @@ async def _execute_action(
             pool_name=pool.name,
             amount_x=0.0,
             amount_y=size_usd,
-            bin_range=PositionRange(action.new_lower_bin_id, action.new_upper_bin_id),
+            bin_range=y_only_range(pool.active_bin_id, rebalance_width),
         )
         open_result.position.deposited_value_usd = size_usd
         await db.upsert_position(open_result.position)
@@ -223,13 +228,13 @@ async def run_loop() -> None:
                 await db.ensure_daily_baseline(current_total)
                 day_start = await db.get_today_starting_value()
 
-                await top_up_if_needed(
-                    rpc=rpc,
-                    wallet_pubkey=wallet.pubkey(),
-                    network=config.network,
-                    required_usdc=config.default_position_size_usd,
-                    dry_run=config.dry_run,
-                )
+                # await top_up_if_needed(
+                #     rpc=rpc,
+                #     wallet_pubkey=wallet.pubkey(),
+                #     network=config.network,
+                #     required_usdc=config.default_position_size_usd,
+                #     dry_run=config.dry_run,
+                # )
 
                 if not open_positions and ranked and config.max_open_positions > 0:
                     top = ranked[0].pool
@@ -258,7 +263,7 @@ async def run_loop() -> None:
                         current_value_usd=current_total,
                     )
                     if guard_res.allowed:
-                        r = _position_range(top.active_bin_id, open_width)
+                        r = y_only_range(top.active_bin_id, open_width)
                         opened = await manager.open_position(
                             pool_address=top.address,
                             pool_name=top.name,
@@ -388,13 +393,13 @@ async def run_loop() -> None:
                         )
                         log.exception("Action execution failed for position %s", position.id)
 
-                await sweep_to_vault(
-                    rpc=rpc,
-                    wallet_pubkey=wallet.pubkey(),
-                    network=config.network,
-                    keep_usdc=config.default_position_size_usd,
-                    dry_run=config.dry_run,
-                )
+                # await sweep_to_vault(
+                #     rpc=rpc,
+                #     wallet_pubkey=wallet.pubkey(),
+                #     network=config.network,
+                #     keep_usdc=config.default_position_size_usd,
+                #     dry_run=config.dry_run,
+                # )
 
                 await asyncio.sleep(config.loop_interval_seconds)
             except KeyboardInterrupt:
