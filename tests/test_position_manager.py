@@ -55,6 +55,10 @@ async def test_open_position_passes_client_position_id_and_reuses_it_for_positio
     assert result.tx_signature == "SIG_123"
 
 
+def test_min_sol_wallet_floor_is_0_25():
+    assert MeteoraPositionManager.MIN_SOL_WALLET == 0.25
+
+
 def testy_only_range_places_all_bins_strictly_below_active():
     """When amount_x=0 the range must not include or exceed active bin so the
     SDK never needs X tokens — all bins are Y-only bins."""

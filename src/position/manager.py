@@ -59,7 +59,7 @@ class MeteoraPositionManager:
     # ── constants for SOL economics ────────────────────────────────────────
     SOL_RENT_PER_BIN_ARRAY: float = 0.072   # SOL cost per 10240-byte account (rent exempt min)
     TX_FEE_BUFFER_SOL: float = 0.100         # buffer for tx fees + unforeseen costs
-    MIN_SOL_WALLET: float = 0.50            # do NOT attempt positions below this balance
+    MIN_SOL_WALLET: float = 0.25            # do NOT attempt positions below this balance
     MIN_RENT_COVERAGE_MULTIPLIER: float = 2.0  # position USD must be ≥ this × bin array rent in USD
 
     def __init__(
