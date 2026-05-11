@@ -122,6 +122,7 @@ class MeteoraPositionManager:
             )
 
         # ── check 2: position size vs rent ───────────────────────────────
+        rent_sol = rent_lamports / 1e9
         rent_usd = rent_sol * self._sol_price_usd
         min_position_usd = rent_usd * self.MIN_RENT_COVERAGE_MULTIPLIER
         if amount_y_usd < min_position_usd:
