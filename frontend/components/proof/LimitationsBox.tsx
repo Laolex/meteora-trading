@@ -1,7 +1,7 @@
 const limitations = [
   "TX confirmation + retry is handled in node-helper via sendAndConfirmTransaction — broadcast hardening is complete; src/executor/ is an unused skeleton",
   "DB writes in DRY_RUN mode are real (actions_log, positions), but tx_signature is set to the placeholder string \"DRY_RUN_SIG\" rather than a real signature",
-  "Dashboard API requires a persistent public host — a stable domain or VPS is needed for production; process restarts change the URL if using tunnels",
+  "Dashboard panels are server snapshots. Live values update by refresh interval, and operators can force an immediate reload via the dashboard REFRESH control",
   "On-chain vault is deployed and live on devnet — no mainnet deployment has occurred; all capital at risk is $0",
 ]
 
@@ -31,7 +31,7 @@ export default function LimitationsBox() {
         ))}
         <p className="font-mono mt-3" style={{ fontSize: "9px", color: "#2a2a2a", letterSpacing: "0.04em", lineHeight: 1.7 }}>
           The safety rails, scoring engine, discovery loop, node-helper DLMM integration, and on-chain vault are all complete.
-          Remaining work: a persistent production host for the dashboard API.
+          Remaining work: mainnet vault deployment and operational tuning for real-capital execution.
         </p>
       </div>
     </div>

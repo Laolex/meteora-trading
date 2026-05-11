@@ -4,6 +4,7 @@ import ActivityFeed from "@/components/dashboard/ActivityFeed"
 import CollapsibleSection from "@/components/dashboard/CollapsibleSection"
 import SettingsModal from "@/components/dashboard/SettingsModal"
 import StatusRow from "@/components/dashboard/StatusRow"
+import RefreshButton from "@/components/dashboard/RefreshButton"
 import VaultPanel from "@/components/ui/VaultPanel"
 
 export const dynamic = "force-dynamic"
@@ -55,6 +56,7 @@ export default async function DashboardPage() {
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
               <span className="ops-badge">OPS CONSOLE</span>
+              <RefreshButton />
               <SettingsModal status={status} risk={risk} agentState={agentState} safety={safety} />
             </div>
             <div className="font-mono flex items-center gap-2" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#333" }}>

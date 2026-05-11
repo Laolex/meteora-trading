@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { motion } from "motion/react"
 
 const links = [
   { href: "/", label: "HOME" },
@@ -20,6 +21,7 @@ export default function GlobalSidebar() {
   // Always start collapsed — expands on hover only, or toggle click to pin open
   const [pinned, setPinned] = useState(false)
   const [hovering, setHovering] = useState(false)
+  const [hoveredHref, setHoveredHref] = useState<string | null>(null)
   const isExpanded = pinned || hovering
 
   useEffect(() => {
@@ -81,11 +83,14 @@ export default function GlobalSidebar() {
       <nav className="flex-1 flex flex-col justify-center">
         {links.map(({ href, label }) => {
           const active = pathname === href
+          const hovered = hoveredHref === href
           return (
             <Link
               key={href}
               href={href}
-              className="flex items-center font-mono transition-colors"
+              className="relative flex items-center font-mono transition-colors"
+              onMouseEnter={() => setHoveredHref(href)}
+              onMouseLeave={() => setHoveredHref(null)}
               style={{
                 fontSize: "9px",
                 letterSpacing: "0.14em",
@@ -93,17 +98,43 @@ export default function GlobalSidebar() {
                 padding: isExpanded ? "9px 14px" : "9px 0",
                 justifyContent: isExpanded ? "flex-start" : "center",
                 color: active ? "#eaeaea" : "#555",
-                borderLeft: active ? "2px solid #14f195" : "2px solid transparent",
-                background: active ? "#14f1950a" : "transparent",
+                borderLeft: "2px solid transparent",
+                background: "transparent",
               }}
             >
+              {(active || hovered) && (
+                <motion.span
+                  layoutId="sidebar-link-highlight"
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: active ? "rgba(20,241,149,0.12)" : "rgba(255,255,255,0.05)",
+                    borderLeft: "2px solid #14f195",
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
               {isExpanded ? (
                 <>
-                  <span style={{ color: active ? "#14f19566" : "#1e1e1e", marginRight: "6px" }}>//</span>
-                  {label}
+                  <span className="relative z-10" style={{ color: active ? "#14f19599" : "#1e1e1e", marginRight: "6px" }}>//</span>
+                  <motion.span
+                    className="relative z-10"
+                    animate={{
+                      x: hovered ? 2 : 0,
+                      color: active ? "#eaeaea" : hovered ? "#a3a3a3" : "#555",
+                    }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {label}
+                  </motion.span>
                 </>
               ) : (
-                <span>{label.charAt(0)}</span>
+                <motion.span
+                  className="relative z-10"
+                  animate={{ color: active ? "#eaeaea" : hovered ? "#a3a3a3" : "#555" }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {label.charAt(0)}
+                </motion.span>
               )}
             </Link>
           )
