@@ -103,7 +103,7 @@ function TelemetryCell({
       <div className="flex items-center gap-1.5" style={{ marginBottom: "8px" }}>
         <span
           className="font-mono"
-          style={{ fontSize: "8px", letterSpacing: "0.08em", color: danger ? "#E61919" : "#2a2a2a" }}
+          style={{ fontSize: "8px", letterSpacing: "0.08em", color: danger ? "#f59e0b" : "#2a2a2a" }}
         >
           {index} //
         </span>
@@ -116,9 +116,9 @@ function TelemetryCell({
       </div>
 
       {/* value row */}
-      <div className="flex items-baseline gap-1">
+      <div className="flex items-baseline gap-1" style={{ minWidth: 0, overflow: "hidden" }}>
         {prefix && (
-          <span className="font-mono" style={{ fontSize: "11px", color: "#444", lineHeight: 1 }}>{prefix}</span>
+          <span className="font-mono flex-shrink-0" style={{ fontSize: "11px", color: "#444", lineHeight: 1 }}>{prefix}</span>
         )}
         <input
           type="number"
@@ -127,26 +127,27 @@ function TelemetryCell({
           disabled={disabled}
           className="font-mono"
           style={{
-            flex: 1,
+            flex: "1 1 0",
             minWidth: 0,
+            width: 0,
             background: "transparent",
             border: "none",
             outline: "none",
-            fontSize: "22px",
+            fontSize: "20px",
             letterSpacing: "-0.02em",
             lineHeight: 1,
-            color: danger ? "#E61919" : "#eaeaea",
+            color: danger ? "#f59e0b" : "#eaeaea",
             padding: 0,
           }}
         />
         {suffix && (
-          <span className="font-mono" style={{ fontSize: "13px", color: danger ? "#E6191960" : "#2a2a2a", lineHeight: 1 }}>{suffix}</span>
+          <span className="font-mono flex-shrink-0" style={{ fontSize: "12px", color: danger ? "#f59e0b60" : "#2a2a2a", lineHeight: 1 }}>{suffix}</span>
         )}
       </div>
 
       {/* danger floor line */}
       {danger && (
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "#E6191918" }} />
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "#f59e0b18" }} />
       )}
     </div>
   )
