@@ -203,7 +203,7 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
   const [walletUsdc, setWalletUsdc] = useState<number | null>(null)
   const [depositPct, setDepositPct] = useState(0)
 
-  useEffect(() => { setAuthed(isAuthenticated()) }, [])
+  useEffect(() => { setAuthed(isAuthenticated()) }, [open])
 
   useEffect(() => {
     if (!open || !wallet.publicKey) return
@@ -1041,7 +1041,7 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
                     </div>
                   </div>
                 )}
-                {llmMsg && llmEnabled && keyConfigured && !llmMsg.includes("SAVED") && (
+                {llmMsg && !(llmEnabled || !keyConfigured) && !llmMsg.includes("SAVED") && (
                   <span
                     className="font-mono mt-2 block"
                     style={{ fontSize: "9px", color: "#f59e0b", letterSpacing: "0.08em" }}

@@ -280,7 +280,7 @@ export async function getAgentState(): Promise<AgentState> {
 
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
   const [cgRes, activity] = await Promise.allSettled([
-    fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana,meteora&vs_currencies=usd", { cache: "no-store" }),
+    fetch("/api/market", { cache: "no-store" }),
     getActivity(50),
   ])
 

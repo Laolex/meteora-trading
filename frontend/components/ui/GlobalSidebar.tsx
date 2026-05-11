@@ -25,9 +25,9 @@ export default function GlobalSidebar() {
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--sidebar-width",
-      `${pinned ? EXPANDED_WIDTH : COLLAPSED_WIDTH}px`,
+      `${isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH}px`,
     )
-  }, [pinned])
+  }, [isExpanded])
 
   return (
     <aside

@@ -308,6 +308,7 @@ export default function VaultPanel() {
         { pubkey: depositorShares, isSigner: false, isWritable: true },
         { pubkey: vaultDepositor, isSigner: false, isWritable: true },
         { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
       ],
       data,
