@@ -170,19 +170,18 @@ export default function DashboardPage() {
   const pnlDeltaPositive = kpi.pnlDayUsd >= dailyAvgFromWeek
 
   return (
-    <div className="crt-scanlines min-h-[100dvh] pt-24 pb-16 px-4 md:px-6 max-w-7xl mx-auto">
-      <div className="mb-3" style={{ borderBottom: "2px solid #1e1e1e", paddingBottom: "16px" }}>
+    <div className="crt-scanlines min-h-[100dvh] pt-24 pb-16 px-4 md:px-6 max-w-5xl mx-auto">
+      <div className="mb-8" style={{ borderBottom: "1px solid #1e1e1e", paddingBottom: "16px" }}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1
               className="font-mono font-black leading-none mb-1"
-              style={{ fontSize: "clamp(2.1rem, 7vw, 6.8rem)", letterSpacing: "-0.05em", color: "#eaeaea", textTransform: "uppercase" }}
+              style={{ fontSize: "clamp(1.4rem, 3vw, 2rem)", letterSpacing: "-0.03em", color: "#eaeaea", textTransform: "uppercase" }}
             >
               METEORA AGENT
             </h1>
-            <div className="font-mono flex flex-wrap items-center gap-3" style={{ fontSize: "10px", letterSpacing: "0.12em", color: "#666", textTransform: "uppercase" }}>
-              <span>[ AUTHENTICATED OPS CONSOLE ]</span>
-              <span style={{ color: "#e61919" }}>[ LIVE TELEMETRY ]</span>
+            <div className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.15em", color: "#333", textTransform: "uppercase" }}>
+              LIVE POSITIONS  //  TELEMETRY  //  EXECUTION LOG
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -192,21 +191,17 @@ export default function DashboardPage() {
               <SettingsModal status={status} risk={risk} agentState={agentState} safety={safety} />
             </div>
             <div className="font-mono flex items-center gap-2" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#333" }}>
-              <span className="inline-block w-1.5 h-1.5" style={{ background: "#e61919" }} />
+              <span className="inline-block w-1.5 h-1.5" style={{ background: "#14f195", boxShadow: "0 0 4px #14f195" }} />
               UPDATED {fetchedAt}
             </div>
           </div>
         </div>
       </div>
 
-      <StatusRow status={status} />
-
-      <div
-        className="grid gap-0 lg:grid-cols-[220px,1fr] items-start mt-px"
-        style={{ gap: "1px", background: "#1e1e1e", marginTop: "1px" }}
-      >
+      <div className="grid lg:grid-cols-2" style={{ gap: "1px", background: "#1e1e1e" }}>
         <div style={{ background: "#0A0A0A" }}>
-          <div className="lg:sticky lg:top-24" style={{ borderRight: "1px solid #1e1e1e" }}>
+          <StatusRow status={status} />
+          <div style={{ borderTop: "1px solid #1e1e1e" }}>
             <VaultPanel />
           </div>
         </div>
