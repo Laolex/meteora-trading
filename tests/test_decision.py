@@ -98,3 +98,10 @@ def test_recenter_preserves_width():
     assert action.type == ActionType.REBALANCE
     assert action.new_lower_bin_id == 40
     assert action.new_upper_bin_id == 60
+
+
+def test_recenter_preserves_even_width():
+    # range -20..-11 has width 10. Recenter on active 100 keeps width=10.
+    action = decide(_ctx(_position(lower=-20, upper=-11), _pool(active_bin=100)))
+    assert action.type == ActionType.REBALANCE
+    assert (action.new_upper_bin_id - action.new_lower_bin_id + 1) == 10

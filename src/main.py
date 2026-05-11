@@ -11,6 +11,7 @@ import json
 import logging
 import sys
 from dataclasses import replace
+from datetime import UTC, datetime
 from pathlib import Path
 
 from solana.rpc.async_api import AsyncClient
@@ -116,7 +117,6 @@ async def _execute_action(
     action: Action,
     position,
     pool,
-    size_usd: float,
     dry_run: bool = False,
 ) -> None:
     await db.log_action(pool.address, action, position_id=position.id, is_dry_run=dry_run)
@@ -150,27 +150,23 @@ async def _execute_action(
     if action.type == ActionType.REBALANCE:
         if action.new_lower_bin_id is None or action.new_upper_bin_id is None:
             raise RuntimeError("Rebalance action missing target range")
-        rebalance_width = action.new_upper_bin_id - action.new_lower_bin_id + 1
-        close_sig = await manager.close_position(position)
-        await db.mark_position_closed(position.id, close_sig)
-        active_bin = await manager.get_active_bin(pool.address)
-        open_result = await manager.open_position(
-            pool_address=pool.address,
-            pool_name=pool.name,
-            amount_x=0.0,
-            amount_y=size_usd,
-            bin_range=y_only_range(active_bin, rebalance_width),
+        rebalance_result = await manager.rebalance_position(
+            position,
+            y_only_range(
+                pool.active_bin_id,
+                action.new_upper_bin_id - action.new_lower_bin_id + 1,
+            ),
         )
-        if open_result.error:
-            raise RuntimeError(f"Rebalance open blocked by SOL guard: {open_result.error}")
-        open_result.position.deposited_value_usd = size_usd
-        await db.upsert_position(open_result.position)
+        position.lower_bin_id = rebalance_result.lower_bin_id
+        position.upper_bin_id = rebalance_result.upper_bin_id
+        position.last_rebalanced_at = datetime.now(UTC)
+        await db.upsert_position(position)
         await db.log_action(
             pool.address,
             action,
-            position_id=open_result.position.id,
+            position_id=position.id,
             executed=True,
-            tx_signature=open_result.tx_signature,
+            tx_signature=rebalance_result.tx_signature,
             success=True,
             is_dry_run=dry_run,
         )
@@ -423,7 +419,6 @@ async def run_loop() -> None:
                             action=action,
                             position=position,
                             pool=pool_live,
-                            size_usd=max(position.deposited_value_usd, config.default_position_size_usd),
                             dry_run=config.dry_run,
                         )
                         # On-chain receipt for every non-HOLD action

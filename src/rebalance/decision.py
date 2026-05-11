@@ -106,5 +106,8 @@ def compute_volatility_pct(price_now: float, price_24h_ago: float | None) -> flo
 
 def _recenter_range(active_bin_id: int, position: Position) -> tuple[int, int]:
     """Preserve the same bin width, recentered on active bin."""
-    half_width = (position.upper_bin_id - position.lower_bin_id) // 2
-    return active_bin_id - half_width, active_bin_id + half_width
+    width = position.upper_bin_id - position.lower_bin_id + 1
+    half = width // 2
+    if width % 2 == 0:
+        return active_bin_id - half, active_bin_id + half - 1
+    return active_bin_id - half, active_bin_id + half

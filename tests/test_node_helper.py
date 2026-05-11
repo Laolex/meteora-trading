@@ -86,3 +86,26 @@ def test_open_position_mock_accepts_fractional_ui_amounts(tmp_path):
     assert body["signature"].startswith("MOCK_SIG_")
     mapped = json.loads(position_map.read_text())
     assert mapped["client-pos-fractional"] == body["positionPubkey"]
+
+
+def test_rebalance_position_mock_uses_existing_mapping(tmp_path):
+    position_map = tmp_path / "positions.json"
+    # Seed mapping as produced by openPosition
+    position_map.write_text(json.dumps({"client-pos-1": "MOCK_POS_abc123"}))
+    payload = {
+        "method": "rebalancePosition",
+        "params": {
+            "poolAddress": "Pool111111111111111111111111111111111111111",
+            "positionId": "client-pos-1",
+            "lowerBinId": -40,
+            "upperBinId": -1,
+        },
+    }
+
+    res = _run_helper(payload, {"NODE_HELPER_POSITION_MAP_PATH": str(position_map)})
+
+    assert res.returncode == 0, res.stderr
+    body = json.loads(res.stdout)
+    assert body["signature"].startswith("MOCK_SIG_")
+    assert body["lowerBinId"] == -40
+    assert body["upperBinId"] == -1

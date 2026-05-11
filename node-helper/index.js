@@ -318,6 +318,99 @@ async function claimFeesReal(params) {
   return { signature };
 }
 
+async function rebalancePositionReal(params) {
+  const poolAddress = new PublicKey(requireParam(params, "poolAddress"));
+  const positionId = String(requireParam(params, "positionId"));
+  const lowerBinId = Number(requireParam(params, "lowerBinId"));
+  const upperBinId = Number(requireParam(params, "upperBinId"));
+  if (!Number.isFinite(lowerBinId) || !Number.isFinite(upperBinId) || lowerBinId > upperBinId) {
+    throw new Error(`Invalid bin range: lowerBinId=${params.lowerBinId} upperBinId=${params.upperBinId}`);
+  }
+
+  const map = loadPositionMap();
+  const positionPubkeyStr = map[positionId] || positionId;
+  const positionPubkey = new PublicKey(positionPubkeyStr);
+
+  const { connection, owner } = await makeContext();
+  const dlmm = await DLMM.create(connection, poolAddress);
+  const { userPositions } = await dlmm.getPositionsByUserAndLbPair(owner.publicKey);
+  const positionObj = userPositions.find(
+    (p) => p.publicKey.toBase58() === positionPubkey.toBase58()
+  );
+  if (!positionObj) {
+    throw new Error(`Position ${positionPubkeyStr} not found in pool ${poolAddress.toBase58()}`);
+  }
+  const positionData = positionObj.positionData;
+
+  const currentLower = Number(positionData.lowerBinId?.toString?.() ?? positionData.lowerBinId);
+  const currentUpper = Number(positionData.upperBinId?.toString?.() ?? positionData.upperBinId);
+  const currentWidth = currentUpper - currentLower + 1;
+  const requestedWidth = upperBinId - lowerBinId + 1;
+  if (currentWidth !== requestedWidth) {
+    throw new Error(
+      `rebalancePosition width mismatch: current=${currentWidth} requested=${requestedWidth}. ` +
+      "Current implementation supports in-place recenter with unchanged width."
+    );
+  }
+
+  const simulation = await dlmm.simulateRebalancePositionWithBalancedStrategy(
+    positionObj.publicKey,
+    positionData,
+    DLMM.StrategyType.Spot,
+    new BN(0),
+    new BN(0),
+    new BN(0),
+    new BN(0)
+  );
+  const maxActiveBinSlippage = new BN(5);
+  const ixs = await dlmm.rebalancePosition(
+    simulation,
+    maxActiveBinSlippage,
+    owner.publicKey,
+    100
+  );
+
+  let signature = null;
+  for (const ix of ixs.initBinArrayInstructions) {
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+    const tx = new anchor.web3.Transaction({
+      blockhash,
+      lastValidBlockHeight,
+      feePayer: owner.publicKey,
+    }).add(ix);
+    signature = await sendAndConfirmTransaction(connection, tx, [owner], {
+      confirmTransactionInitialTimeout: 120000,
+    });
+  }
+
+  {
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+    const tx = new anchor.web3.Transaction({
+      blockhash,
+      lastValidBlockHeight,
+      feePayer: owner.publicKey,
+    }).add(...ixs.rebalancePositionInstruction);
+    signature = await sendAndConfirmTransaction(connection, tx, [owner], {
+      confirmTransactionInitialTimeout: 120000,
+    });
+  }
+
+  if (!signature) {
+    throw new Error("rebalancePosition did not return a signature");
+  }
+
+  const updated = await dlmm.program.account.positionV2.fetch(positionPubkey);
+  const updatedLower = Number(updated.lowerBinId?.toString?.() ?? updated.lowerBinId);
+  const updatedUpper = Number(updated.upperBinId?.toString?.() ?? updated.upperBinId);
+
+  return {
+    signature,
+    positionPubkey: positionPubkey.toBase58(),
+    lowerBinId: updatedLower,
+    upperBinId: updatedUpper,
+  };
+}
+
 function openPositionMock(params) {
   const clientPositionId = String(requireParam(params, "clientPositionId"));
   const positionPubkey = mockPositionPubkey(clientPositionId);
@@ -345,6 +438,17 @@ function claimFeesMock(params) {
   return { signature: mockSignature() };
 }
 
+function rebalancePositionMock(params) {
+  const positionId = String(requireParam(params, "positionId"));
+  const lowerBinId = Number(requireParam(params, "lowerBinId"));
+  const upperBinId = Number(requireParam(params, "upperBinId"));
+  const map = loadPositionMap();
+  if (!map[positionId]) {
+    throw new Error(`Unknown positionId mapping: ${positionId}`);
+  }
+  return { signature: mockSignature(), lowerBinId, upperBinId };
+}
+
 async function getActiveBinReal(params) {
   const poolAddress = new PublicKey(requireParam(params, "poolAddress"));
   const { connection } = await makeContext();
@@ -365,6 +469,9 @@ async function dispatch(payload) {
   }
   if (method === "claimFees") {
     return useMock ? claimFeesMock(params) : await claimFeesReal(params);
+  }
+  if (method === "rebalancePosition") {
+    return useMock ? rebalancePositionMock(params) : await rebalancePositionReal(params);
   }
   if (method === "getActiveBin") {
     return await getActiveBinReal(params);

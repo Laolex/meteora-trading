@@ -51,6 +51,13 @@ class OpenResult:
     error: str | None = None  # set when guardrails blocked the open
 
 
+@dataclass
+class RebalanceResult:
+    tx_signature: str
+    lower_bin_id: int
+    upper_bin_id: int
+
+
 class MeteoraPositionManager:
     """
     High-level position operations. Delegates SDK calls to the Node helper.
@@ -212,6 +219,34 @@ class MeteoraPositionManager:
             "positionId": position.id,
         })
         return result["signature"]
+
+    async def rebalance_position(self, position: Position, bin_range: PositionRange) -> RebalanceResult:
+        """Rebalance an existing position in place to a new bin range."""
+        if self._dry_run:
+            log.info(
+                "[DRY_RUN] rebalance_position id=%s pool=%s range=%d..%d",
+                position.id,
+                position.pool_address,
+                bin_range.lower_bin_id,
+                bin_range.upper_bin_id,
+            )
+            return RebalanceResult(
+                tx_signature="DRY_RUN_SIG",
+                lower_bin_id=bin_range.lower_bin_id,
+                upper_bin_id=bin_range.upper_bin_id,
+            )
+
+        result = await self._invoke_helper("rebalancePosition", {
+            "poolAddress": position.pool_address,
+            "positionId": position.id,
+            "lowerBinId": bin_range.lower_bin_id,
+            "upperBinId": bin_range.upper_bin_id,
+        })
+        return RebalanceResult(
+            tx_signature=result["signature"],
+            lower_bin_id=int(result.get("lowerBinId", bin_range.lower_bin_id)),
+            upper_bin_id=int(result.get("upperBinId", bin_range.upper_bin_id)),
+        )
 
     async def claim_fees(self, position: Position) -> str:
         if self._dry_run:

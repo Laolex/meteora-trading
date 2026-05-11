@@ -1,8 +1,10 @@
 from unittest.mock import AsyncMock
+from datetime import datetime
 
 import pytest
 
 from src.position.manager import MeteoraPositionManager, PositionRange, y_only_range
+from src.position.models import Position, PositionStatus
 
 
 class _DummyRPC:
@@ -53,6 +55,48 @@ async def test_open_position_passes_client_position_id_and_reuses_it_for_positio
     assert "clientPositionId" in params
     assert params["clientPositionId"] == result.position.id
     assert result.tx_signature == "SIG_123"
+
+
+@pytest.mark.asyncio
+async def test_rebalance_position_calls_helper_with_existing_position_id(tmp_path):
+    manager = MeteoraPositionManager(
+        rpc_client=_DummyRPC(),
+        wallet=_DummyWallet(),
+        node_helper_path=tmp_path / "node-helper.js",
+        dry_run=False,
+        sol_price_usd=93.0,
+    )
+    manager._invoke_helper = AsyncMock(
+        return_value={"signature": "SIG_REBAL", "lowerBinId": -30, "upperBinId": -1}
+    )
+    position = Position(
+        id="pos-1",
+        pool_address="Pool111111111111111111111111111111111111111",
+        pool_name="TEST-POOL",
+        lower_bin_id=-20,
+        upper_bin_id=-1,
+        deposited_x=0.0,
+        deposited_y=4.0,
+        deposited_value_usd=4.0,
+        fees_earned_x=0.0,
+        fees_earned_y=0.0,
+        fees_earned_usd=0.0,
+        opened_at=datetime.utcnow(),
+        last_rebalanced_at=None,
+        status=PositionStatus.OPEN,
+        tx_signature_open="SIG_OPEN",
+    )
+
+    res = await manager.rebalance_position(position, PositionRange(lower_bin_id=-30, upper_bin_id=-1))
+
+    method, params = manager._invoke_helper.await_args.args
+    assert method == "rebalancePosition"
+    assert params["positionId"] == "pos-1"
+    assert params["lowerBinId"] == -30
+    assert params["upperBinId"] == -1
+    assert res.tx_signature == "SIG_REBAL"
+    assert res.lower_bin_id == -30
+    assert res.upper_bin_id == -1
 
 
 def test_min_sol_wallet_floor_is_positive():
