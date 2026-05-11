@@ -67,57 +67,87 @@ function CollapsibleSection({
   )
 }
 
-function ParamRow({
+function TelemetryCell({
+  index,
   label,
   prefix,
   suffix,
   value,
   onChange,
   disabled,
+  danger = false,
+  span = false,
 }: {
+  index: string
   label: string
   prefix?: string
   suffix?: string
   value: string
   onChange: (v: string) => void
   disabled?: boolean
+  danger?: boolean
+  span?: boolean
 }) {
   return (
     <div
-      className="flex items-center justify-between py-2.5"
-      style={{ borderBottom: "1px solid #111" }}
+      style={{
+        background: "#080808",
+        padding: "12px 14px 14px",
+        position: "relative",
+        gridColumn: span ? "1 / -1" : undefined,
+        opacity: disabled ? 0.45 : 1,
+        transition: "opacity 0.15s",
+      }}
     >
-      <span
-        className="font-mono"
-        style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#555", textTransform: "uppercase" }}
-      >
-        {label}
-      </span>
-      <div className="flex items-center gap-1">
+      {/* index + label */}
+      <div className="flex items-center gap-1.5" style={{ marginBottom: "8px" }}>
+        <span
+          className="font-mono"
+          style={{ fontSize: "8px", letterSpacing: "0.08em", color: danger ? "#E61919" : "#2a2a2a" }}
+        >
+          {index} //
+        </span>
+        <span
+          className="font-mono"
+          style={{ fontSize: "8px", letterSpacing: "0.14em", color: "#3a3a3a", textTransform: "uppercase" }}
+        >
+          {label}
+        </span>
+      </div>
+
+      {/* value row */}
+      <div className="flex items-baseline gap-1">
         {prefix && (
-          <span className="font-mono" style={{ fontSize: "9px", color: "#444" }}>{prefix}</span>
+          <span className="font-mono" style={{ fontSize: "11px", color: "#444", lineHeight: 1 }}>{prefix}</span>
         )}
         <input
           type="number"
           value={value}
           onChange={e => onChange(e.target.value)}
           disabled={disabled}
-          className="font-mono text-right"
+          className="font-mono"
           style={{
-            width: "80px",
-            fontSize: "10px",
-            letterSpacing: "0.06em",
-            color: "#eaeaea",
-            background: "#0d0d0d",
-            border: "1px solid #2a2a2a",
-            padding: "3px 6px",
+            flex: 1,
+            minWidth: 0,
+            background: "transparent",
+            border: "none",
             outline: "none",
+            fontSize: "22px",
+            letterSpacing: "-0.02em",
+            lineHeight: 1,
+            color: danger ? "#E61919" : "#eaeaea",
+            padding: 0,
           }}
         />
         {suffix && (
-          <span className="font-mono" style={{ fontSize: "9px", color: "#444" }}>{suffix}</span>
+          <span className="font-mono" style={{ fontSize: "13px", color: danger ? "#E6191960" : "#2a2a2a", lineHeight: 1 }}>{suffix}</span>
         )}
       </div>
+
+      {/* danger floor line */}
+      {danger && (
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "#E6191918" }} />
+      )}
     </div>
   )
 }
@@ -911,31 +941,66 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
 
             {/* ── RISK PARAMETERS ── */}
             <CollapsibleSection label="[ RISK PARAMETERS ]">
-              <div className="px-4 pt-2 pb-4">
-                <ParamRow label="Position Size Limit" prefix="$" value={maxPos} onChange={setMaxPos} disabled={!authed} />
-                <ParamRow label="Total Capital Cap" prefix="$" value={maxDep} onChange={setMaxDep} disabled={!authed} />
-                <ParamRow label="Daily Loss Circuit" suffix="%" value={lossLim} onChange={setLossLim} disabled={!authed} />
-                <ParamRow label="Max Open Positions" value={maxOpenPos} onChange={setMaxOpenPos} disabled={!authed} />
-                <ParamRow label="Exit Volatility" suffix="%" value={exitVol} onChange={setExitVol} disabled={!authed} />
-                <div className="flex items-center gap-3 mt-4">
+              <div>
+                {/* telemetry grid — gap:1px background acts as razor dividers */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1px",
+                    background: "#1a1a1a",
+                    borderBottom: "1px solid #1a1a1a",
+                  }}
+                >
+                  <TelemetryCell index="01" label="Position Limit" prefix="$" value={maxPos} onChange={setMaxPos} disabled={!authed} />
+                  <TelemetryCell index="02" label="Capital Cap" prefix="$" value={maxDep} onChange={setMaxDep} disabled={!authed} />
+                  <TelemetryCell index="03" label="Daily Loss" suffix="%" value={lossLim} onChange={setLossLim} disabled={!authed} danger />
+                  <TelemetryCell index="04" label="Max Positions" value={maxOpenPos} onChange={setMaxOpenPos} disabled={!authed} />
+                  <TelemetryCell index="05" label="Exit Volatility" suffix="%" value={exitVol} onChange={setExitVol} disabled={!authed} danger span />
+                </div>
+
+                {/* apply row */}
+                <div
+                  className="flex items-center justify-between px-4 py-3"
+                  style={{ background: "#060606" }}
+                >
                   <button
                     onClick={() => void handleSaveRisk()}
                     disabled={riskSaving || !authed}
-                    className="disabled:opacity-40"
-                    style={btnStyle("#14f195")}
+                    className="font-mono disabled:opacity-30"
+                    style={{
+                      fontSize: "9px",
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      color: "#14f195",
+                      background: "transparent",
+                      border: "1px solid #14f19530",
+                      padding: "5px 14px",
+                      cursor: riskSaving || !authed ? "not-allowed" : "pointer",
+                      transition: "border-color 0.12s, color 0.12s",
+                    }}
+                    onMouseEnter={e => { if (!riskSaving && authed) { e.currentTarget.style.borderColor = "#14f195"; } }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = "#14f19530"; }}
+                    onMouseDown={e => { e.currentTarget.style.transform = "scale(0.98)"; }}
+                    onMouseUp={e => { e.currentTarget.style.transform = ""; }}
                   >
-                    {riskSaving ? "···" : "[ APPLY ]"}
+                    {riskSaving ? "···" : "[ APPLY CHANGES ]"}
                   </button>
                   {riskMsg && (
                     <span
                       className="font-mono"
                       style={{
-                        fontSize: "9px",
-                        letterSpacing: "0.1em",
-                        color: riskMsg === "SAVED" ? "#14f195" : "#f59e0b",
+                        fontSize: "8px",
+                        letterSpacing: "0.14em",
+                        color: riskMsg === "SAVED" ? "#14f195" : "#E61919",
                       }}
                     >
-                      {riskMsg}
+                      {riskMsg === "SAVED" ? "// WRITTEN" : `// ${riskMsg}`}
+                    </span>
+                  )}
+                  {!authed && (
+                    <span className="font-mono" style={{ fontSize: "8px", letterSpacing: "0.1em", color: "#2a2a2a" }}>
+                      // AUTH REQUIRED
                     </span>
                   )}
                 </div>
