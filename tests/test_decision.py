@@ -41,7 +41,7 @@ def _ctx(
     return DecisionContext(
         position=position, pool=pool,
         volatility_24h_pct=vol_pct, sol_price_usd=150.0, current_fees_usd=fees_usd,
-        rebalance_drift_bps=50, rebalance_min_fees_usd=0.10, exit_volatility_24h_pct=30.0,
+        rebalance_drift_bps=50, exit_volatility_24h_pct=30.0,
     )
 
 
@@ -64,10 +64,10 @@ def test_out_of_range_with_fees_rebalances():
     assert action.new_upper_bin_id == 30
 
 
-def test_out_of_range_no_fees_claims():
-    # out of range but fees below min → claim only
+def test_out_of_range_no_fees_still_rebalances():
+    # out of range now always rebalances, independent of fee level
     action = decide(_ctx(_position(), _pool(active_bin=20), fees_usd=0.01))
-    assert action.type == ActionType.CLAIM
+    assert action.type == ActionType.REBALANCE
 
 
 def test_in_range_high_drift_rebalances():

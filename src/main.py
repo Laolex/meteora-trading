@@ -401,7 +401,6 @@ async def run_loop() -> None:
                         sol_price_usd=pool.current_price,
                         current_fees_usd=total_fees_usd,
                         rebalance_drift_bps=drift_bps,
-                        rebalance_min_fees_usd=config.rebalance_min_fees_usd,
                         exit_volatility_24h_pct=exit_vol_pct,
                     )
                     action = decide(ctx)
