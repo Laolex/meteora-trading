@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { useWalletModal } from "@solana/wallet-adapter-react-ui"
 import { useWallet } from "@solana/wallet-adapter-react"
 import {
@@ -186,6 +187,8 @@ function AuthButton({ onAuth }: { onAuth: () => void }) {
 }
 
 export default function SettingsModal({ status, risk: _risk, agentState, safety }: Props) {
+  const router = useRouter()
+  const [isRefreshing, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
   const [authed, setAuthed] = useState(false)
   const { setVisible: openWalletModal } = useWalletModal()
@@ -260,6 +263,7 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
     try {
       const result = await adminKillSwitch(!armed)
       setArmed(result.armed)
+      startTransition(() => router.refresh())
     } catch (err) {
       setAgentError(err instanceof Error ? err.message : "Request failed")
     } finally {
@@ -899,9 +903,9 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
                       {armed ? "Kill switch armed — no trades" : "Actively managing positions"}
                     </div>
                   </div>
-                  <button onClick={() => void handleAgentToggle()} disabled={agentLoading}
+                  <button onClick={() => void handleAgentToggle()} disabled={agentLoading || isRefreshing}
                     className="font-mono disabled:opacity-40 shrink-0" style={btnStyle(armed ? "#14f195" : "#e61919")}>
-                    {agentLoading ? "···" : armed ? "[ TURN ON ]" : "[ TURN OFF ]"}
+                    {agentLoading || isRefreshing ? "···" : armed ? "[ TURN ON ]" : "[ TURN OFF ]"}
                   </button>
                 </div>
                 {agentError && (
