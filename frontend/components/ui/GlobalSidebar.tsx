@@ -107,7 +107,7 @@ export default function GlobalSidebar() {
                   layoutId="sidebar-link-highlight"
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    background: active ? "rgba(20,241,149,0.12)" : "rgba(255,255,255,0.05)",
+                    background: active ? "rgba(20,241,149,0.12)" : "#101214",
                     borderLeft: "2px solid #14f195",
                   }}
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
