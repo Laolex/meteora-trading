@@ -5,6 +5,7 @@ import CollapsibleSection from "@/components/dashboard/CollapsibleSection"
 import SettingsModal from "@/components/dashboard/SettingsModal"
 import StatusRow from "@/components/dashboard/StatusRow"
 import VaultPanel from "@/components/ui/VaultPanel"
+import RefreshButton from "@/components/dashboard/RefreshButton"
 
 export const dynamic = "force-dynamic"
 
@@ -38,7 +39,6 @@ export default async function DashboardPage() {
   return (
     <div className="crt-scanlines min-h-screen pt-24 pb-16 px-4 md:px-6 max-w-7xl mx-auto">
 
-      {/* Terminal header */}
       <div className="mb-3" style={{ borderBottom: "1px solid #1e1e1e", paddingBottom: "16px" }}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -60,28 +60,25 @@ export default async function DashboardPage() {
             <div className="font-mono flex items-center gap-2" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#333" }}>
               <span className="inline-block w-1.5 h-1.5" style={{ background: "#14f195", boxShadow: "0 0 4px #14f195" }} />
               UPDATED {fetchedAt}
+              <RefreshButton />
             </div>
           </div>
         </div>
 
       </div>
 
-      {/* Status flex heading */}
       <StatusRow status={status} />
 
-      {/* Main grid — gap below status row */}
       <div
         className="grid gap-0 lg:grid-cols-[220px,1fr] items-start mt-px"
         style={{ gap: "1px", background: "#1e1e1e", marginTop: "1px" }}
       >
-        {/* Left sidebar: Vault only */}
         <div style={{ background: "#0A0A0A" }}>
           <div className="lg:sticky lg:top-24" style={{ borderRight: "1px solid #1e1e1e" }}>
             <VaultPanel />
           </div>
         </div>
 
-        {/* Main content */}
         <div style={{ background: "#0A0A0A" }}>
 
           <CollapsibleSection label="[ METRICS ]" badge={`${kpi.openPositions} OPEN`} defaultOpen={true}>

@@ -17,7 +17,6 @@ const COLLAPSED_WIDTH = 44
 
 export default function GlobalSidebar() {
   const pathname = usePathname()
-  // Always start collapsed — expands on hover only, or toggle click to pin open
   const [pinned, setPinned] = useState(false)
   const [hovering, setHovering] = useState(false)
   const isExpanded = pinned || hovering
@@ -41,10 +40,8 @@ export default function GlobalSidebar() {
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
-      {/* Top accent bar */}
       <div style={{ height: "2px", background: "#14f195", width: "100%", flexShrink: 0 }} />
 
-      {/* Toggle pin button — top-right */}
       <div
         className="flex items-center px-3"
         style={{ height: "52px", flexShrink: 0, justifyContent: isExpanded ? "space-between" : "center" }}
@@ -77,7 +74,6 @@ export default function GlobalSidebar() {
         </button>
       </div>
 
-      {/* Nav — vertically centered */}
       <nav className="flex-1 flex flex-col justify-center">
         {links.map(({ href, label }) => {
           const active = pathname === href
@@ -110,7 +106,6 @@ export default function GlobalSidebar() {
         })}
       </nav>
 
-      {/* Footer */}
       <div
         className="px-3 py-3 font-mono"
         style={{

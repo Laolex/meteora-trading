@@ -31,7 +31,6 @@ export default function MobileMenu() {
 
   return (
     <>
-      {/* hamburger — morphs to X */}
       <button
         type="button"
         aria-label={open ? "Close menu" : "Open menu"}
@@ -62,96 +61,76 @@ export default function MobileMenu() {
         </span>
       </button>
 
-      {/* full-screen overlay */}
       <AnimatePresence>
         {open && (
-          <motion.div
-            key="overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.32, ease }}
-            className="fixed inset-0 z-[60] md:hidden flex flex-col"
-            style={{ background: "#050608" }}
-            onClick={() => setOpen(false)}
-          >
-            {/* inner border frame */}
-            <div
-              className="absolute inset-3 rounded-3xl pointer-events-none"
-              style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+          <>
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-40 md:hidden"
+              style={{ background: "rgba(0,0,0,0.6)" }}
+              onClick={() => setOpen(false)}
             />
 
-            {/* close button */}
-            <div className="flex justify-end p-8">
-              <motion.button
-                type="button"
-                aria-label="Close menu"
-                onClick={() => setOpen(false)}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1, duration: 0.24, ease }}
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "#888" }}
-              >
-                ✕
-              </motion.button>
-            </div>
-
-            {/* nav links — staggered mask reveal from bottom */}
-            <nav className="flex-1 flex flex-col justify-center px-10 gap-1" onClick={(e) => e.stopPropagation()}>
-              {links.map(({ href, label }, i) => {
-                const active = pathname === href
-                return (
-                  <div key={href} style={{ overflow: "hidden" }}>
+            <motion.div
+              key="dropdown"
+              initial={{ opacity: 0, y: -8, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.97 }}
+              transition={{ duration: 0.24, ease }}
+              className="fixed top-[72px] left-4 right-4 z-50 md:hidden rounded-2xl overflow-hidden"
+              style={{
+                background: "#0d0f14",
+                border: "1px solid rgba(255,255,255,0.08)",
+                boxShadow: "0 24px 48px rgba(0,0,0,0.8)",
+              }}
+            >
+              <nav className="p-2">
+                {links.map(({ href, label }, i) => {
+                  const active = pathname === href
+                  return (
                     <motion.div
-                      initial={{ y: 48, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: 24, opacity: 0 }}
-                      transition={{ delay: 0.08 + i * 0.07, duration: 0.5, ease }}
+                      key={href}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05, duration: 0.2, ease }}
                     >
                       <Link
                         href={href}
-                        className="block py-4 text-4xl font-semibold tracking-tight transition-colors duration-150"
-                        style={{
-                          color: active ? "#f5f5f5" : "#333",
-                          letterSpacing: "-0.02em",
-                        }}
                         onClick={() => setOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-150"
+                        style={{
+                          background: active ? "rgba(20,241,149,0.06)" : "transparent",
+                          color: active ? "#f5f5f5" : "#666",
+                        }}
                       >
-                        <motion.span
-                          whileHover={{ color: "#f5f5f5", x: 6 }}
-                          transition={{ duration: 0.2, ease }}
-                          style={{ display: "block" }}
-                        >
-                          {label}
-                          {active && (
-                            <span
-                              className="ml-3 inline-block w-1.5 h-1.5 rounded-full align-middle"
-                              style={{ background: "#14f195", boxShadow: "0 0 8px #14f195" }}
-                            />
-                          )}
-                        </motion.span>
+                        {active && (
+                          <span
+                            className="flex-shrink-0 w-1 h-1 rounded-full"
+                            style={{ background: "#14f195" }}
+                          />
+                        )}
+                        <span className="text-[15px] font-medium tracking-tight">{label}</span>
                       </Link>
                     </motion.div>
-                  </div>
-                )
-              })}
-            </nav>
+                  )
+                })}
+              </nav>
 
-            {/* wallet + bottom label */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
-              className="p-10 flex items-center justify-between"
-              onClick={e => e.stopPropagation()}
-            >
-              <span className="text-xs font-mono tracking-widest uppercase" style={{ color: "#333" }}>
-                Meteora Agent · Colosseum 2026
-              </span>
-              <WalletButton />
+              <div
+                className="px-4 py-3 flex items-center justify-between"
+                style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+              >
+                <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: "#2a2a2a" }}>
+                  Colosseum 2026
+                </span>
+                <WalletButton />
+              </div>
             </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
