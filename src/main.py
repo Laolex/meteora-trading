@@ -115,8 +115,9 @@ async def _execute_action(
     position,
     pool,
     size_usd: float,
+    dry_run: bool = False,
 ) -> None:
-    await db.log_action(pool.address, action, position_id=position.id)
+    await db.log_action(pool.address, action, position_id=position.id, is_dry_run=dry_run)
     if action.type == ActionType.HOLD:
         return
     if action.type == ActionType.CLAIM:
@@ -128,6 +129,7 @@ async def _execute_action(
             executed=True,
             tx_signature=sig,
             success=True,
+            is_dry_run=dry_run,
         )
         return
     if action.type == ActionType.EXIT:
@@ -140,6 +142,7 @@ async def _execute_action(
             executed=True,
             tx_signature=sig,
             success=True,
+            is_dry_run=dry_run,
         )
         return
     if action.type == ActionType.REBALANCE:
@@ -167,6 +170,7 @@ async def _execute_action(
             executed=True,
             tx_signature=open_result.tx_signature,
             success=True,
+            is_dry_run=dry_run,
         )
         return
     raise RuntimeError(f"Unknown action type: {action.type}")
@@ -209,6 +213,9 @@ async def run_loop() -> None:
         log.info("LLM parameter tuner enabled (interval=%ds)", config.llm_tune_interval_seconds)
     else:
         log.info("LLM parameter tuner disabled — set ANTHROPIC_API_KEY to enable")
+
+    _position_failures: dict[str, int] = {}
+    _MAX_POSITION_FAILURES = 5
 
     try:
         while True:
@@ -300,6 +307,7 @@ async def run_loop() -> None:
                                 executed=True,
                                 tx_signature=opened.tx_signature,
                                 success=True,
+                                is_dry_run=config.dry_run,
                             )
                             log.info(
                                 "Opened initial position on %s (%s) bins %d..%d",
@@ -312,6 +320,14 @@ async def run_loop() -> None:
                         log.warning("Initial open blocked by guard: %s", guard_res.reason)
 
                 for position in open_positions:
+                    fails = _position_failures.get(position.id, 0)
+                    if fails >= _MAX_POSITION_FAILURES:
+                        log.error(
+                            "Position %s has failed %d consecutive times — skipping until manual review",
+                            position.id, fails,
+                        )
+                        continue
+
                     pool = pools_by_addr.get(position.pool_address)
                     if pool is None:
                         log.warning(
@@ -397,11 +413,13 @@ async def run_loop() -> None:
                             position=position,
                             pool=pool,
                             size_usd=max(position.deposited_value_usd, config.default_position_size_usd),
+                            dry_run=config.dry_run,
                         )
                         # On-chain receipt for every non-HOLD action
                         if action.type in (ActionType.REBALANCE, ActionType.EXIT, ActionType.CLAIM):
                             memo = build_memo_text(action.type.value, pool.address, action.reason)
                             await send_memo(rpc, wallet, memo, config.dry_run)
+                        _position_failures.pop(position.id, None)
                     except Exception as exc:
                         await db.log_action(
                             pool.address,
@@ -410,8 +428,10 @@ async def run_loop() -> None:
                             executed=True,
                             success=False,
                             error_message=str(exc),
+                            is_dry_run=config.dry_run,
                         )
                         log.exception("Action execution failed for position %s", position.id)
+                        _position_failures[position.id] = _position_failures.get(position.id, 0) + 1
 
                 # await sweep_to_vault(
                 #     rpc=rpc,

@@ -201,6 +201,7 @@ class Database:
         tx_signature: str | None = None,
         success: bool | None = None,
         error_message: str | None = None,
+        is_dry_run: bool = False,
     ) -> None:
         pool = self._require_pool()
         async with pool.acquire() as conn:
@@ -208,9 +209,9 @@ class Database:
                 """
                 INSERT INTO actions_log(
                     position_id, pool_address, action_type, reason,
-                    executed_at, tx_signature, success, error_message
+                    executed_at, tx_signature, success, error_message, is_dry_run
                 )
-                VALUES($1::uuid, $2, $3, $4, CASE WHEN $5 THEN NOW() ELSE NULL END, $6, $7, $8)
+                VALUES($1::uuid, $2, $3, $4, CASE WHEN $5 THEN NOW() ELSE NULL END, $6, $7, $8, $9)
                 """,
                 position_id,
                 pool_address,
@@ -220,6 +221,7 @@ class Database:
                 tx_signature,
                 success,
                 error_message,
+                is_dry_run,
             )
 
     async def ensure_daily_baseline(self, baseline_usd: float) -> None:

@@ -83,6 +83,11 @@ def decide(ctx: DecisionContext) -> Action:
                 new_lower_bin_id=new_lower,
                 new_upper_bin_id=new_upper,
             )
+        if ctx.current_fees_usd <= 0:
+            return Action(
+                type=ActionType.HOLD,
+                reason="out of range but no fees accrued yet — skipping claim",
+            )
         return Action(
             type=ActionType.CLAIM,
             reason=(

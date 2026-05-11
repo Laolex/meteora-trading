@@ -67,7 +67,8 @@ CREATE TABLE IF NOT EXISTS actions_log (
     executed_at TIMESTAMPTZ,
     tx_signature TEXT,
     success BOOLEAN,
-    error_message TEXT
+    error_message TEXT,
+    is_dry_run BOOLEAN NOT NULL DEFAULT FALSE
 );
 CREATE INDEX IF NOT EXISTS idx_actions_log_time ON actions_log(decided_at DESC);
 
