@@ -1,6 +1,6 @@
 const limitations = [
   "src/executor/ is an unused skeleton — TX confirmation and retry are handled directly in node-helper via sendAndConfirmTransaction; the executor layer was superseded before use",
-  "DRY_RUN mode writes real rows to actions_log and positions with is_dry_run=true — no on-chain transactions are sent, but the DB reflects simulated activity alongside live history",
+  "Positions that trip the circuit breaker (5 consecutive failures) are skipped until manual reset — no automatic recovery; operator must clear the failure state via service restart or direct intervention",
   "Dashboard panels are server snapshots. Live values update by refresh interval, and operators can force an immediate reload via the dashboard REFRESH control",
   "On-chain vault is deployed and live on devnet — no mainnet vault deployment has occurred; all LP capital is managed directly from the operator wallet",
 ]
