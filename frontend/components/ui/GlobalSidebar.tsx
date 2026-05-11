@@ -43,8 +43,8 @@ export default function GlobalSidebar() {
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
-      {/* Top accent bar */}
-      <div style={{ height: "2px", background: "#14f195", width: "100%", flexShrink: 0 }} />
+      {/* Top accent bar — single accent hit */}
+      <div style={{ height: "1px", background: "#14f195", width: "100%", flexShrink: 0 }} />
 
       {/* Toggle pin button — top-right */}
       <div
@@ -54,7 +54,7 @@ export default function GlobalSidebar() {
         {isExpanded && (
           <span
             className="font-mono font-black"
-            style={{ fontSize: "10px", letterSpacing: "0.14em", color: "#14f195", textTransform: "uppercase" }}
+            style={{ fontSize: "10px", letterSpacing: "0.14em", color: "#2e2e2e", textTransform: "uppercase" }}
           >
             METEORA
           </span>
@@ -66,12 +66,13 @@ export default function GlobalSidebar() {
           style={{
             fontSize: "9px",
             letterSpacing: "0.06em",
-            color: "#2a2a2a",
+            color: pinned ? "#14f195" : "#444",
             background: "transparent",
-            border: "1px solid #1e1e1e",
+            border: `1px solid ${pinned ? "#14f19540" : "#252525"}`,
             padding: "2px 5px",
             cursor: "pointer",
             flexShrink: 0,
+            transition: "color 0.15s, border-color 0.15s",
           }}
           aria-label={pinned ? "Unpin sidebar" : "Pin sidebar open"}
         >
@@ -97,7 +98,7 @@ export default function GlobalSidebar() {
                 textTransform: "uppercase",
                 padding: isExpanded ? "9px 14px" : "9px 0",
                 justifyContent: isExpanded ? "flex-start" : "center",
-                color: active ? "#eaeaea" : "#555",
+                color: active ? "#eaeaea" : "#484848",
                 borderLeft: "2px solid transparent",
                 background: "transparent",
               }}
@@ -107,7 +108,7 @@ export default function GlobalSidebar() {
                   layoutId="sidebar-link-highlight"
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    background: active ? "rgba(20,241,149,0.12)" : "#101214",
+                    background: active ? "rgba(20,241,149,0.07)" : "#101214",
                     borderLeft: "2px solid #14f195",
                   }}
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
@@ -117,7 +118,7 @@ export default function GlobalSidebar() {
                 <>
                   <motion.span
                     className="relative z-10"
-                    animate={{ color: active ? "#14f19599" : hovered ? "#14f19550" : "#1e1e1e" }}
+                    animate={{ color: active ? "#14f19580" : hovered ? "#14f19540" : "#2a2a2a" }}
                     transition={{ duration: 0.2 }}
                     style={{ marginRight: "6px" }}
                   >//</motion.span>
@@ -125,7 +126,7 @@ export default function GlobalSidebar() {
                     className="relative z-10"
                     animate={{
                       x: hovered ? 2 : 0,
-                      color: active ? "#eaeaea" : hovered ? "#a3a3a3" : "#555",
+                      color: active ? "#eaeaea" : hovered ? "#888" : "#484848",
                     }}
                     transition={{ duration: 0.2 }}
                   >
@@ -135,7 +136,7 @@ export default function GlobalSidebar() {
               ) : (
                 <motion.span
                   className="relative z-10"
-                  animate={{ color: active ? "#eaeaea" : hovered ? "#a3a3a3" : "#555" }}
+                  animate={{ color: active ? "#eaeaea" : hovered ? "#888" : "#484848" }}
                   transition={{ duration: 0.2 }}
                 >
                   {label.charAt(0)}
@@ -150,10 +151,10 @@ export default function GlobalSidebar() {
       <div
         className="px-3 py-3 font-mono"
         style={{
-          borderTop: "1px solid #141414",
+          borderTop: "1px solid #1a1a1a",
           fontSize: "7px",
           letterSpacing: "0.1em",
-          color: "#1a1a1a",
+          color: "#303030",
           textTransform: "uppercase",
           textAlign: isExpanded ? "left" : "center",
           flexShrink: 0,
