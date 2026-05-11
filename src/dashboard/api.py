@@ -160,16 +160,27 @@ async def get_kpi() -> KpiSummary:
     cfg = CONFIG
     assert cfg is not None
     stats = await _db.get_position_stats()
+    wallet = await get_balance(app.state.rpc, app.state.wallet_keypair.pubkey(), cfg.network)
+    current_equity_usd = stats["total_deployed"] + float(wallet["usdcBalance"])
+    day_start = await _db.get_today_starting_value()
+    week_start = await _db.get_starting_value_days_ago(7)
+    pnl_day = current_equity_usd - day_start if day_start > 0 else 0.0
+    pnl_week = current_equity_usd - week_start if week_start is not None else 0.0
+    daily_loss_pct = (
+        max(0.0, (day_start - current_equity_usd) / day_start * 100.0)
+        if day_start > 0
+        else 0.0
+    )
     return KpiSummary(
         openPositions=stats["open_count"],
         dailyFeesUsd=stats["fees_earned"],
         totalDeployedUsd=stats["total_deployed"],
-        pnlDayUsd=stats["pnl_day"],
-        pnlWeekUsd=stats["pnl_week"],
+        pnlDayUsd=pnl_day,
+        pnlWeekUsd=pnl_week,
         maxPositionUsd=RUNTIME_OVERRIDES.get("max_position_usd", cfg.max_position_usd),
         maxTotalDeployedUsd=RUNTIME_OVERRIDES.get("max_total_deployed_usd", cfg.max_total_deployed_usd),
         dailyLossLimitPct=RUNTIME_OVERRIDES.get("daily_loss_limit_pct", cfg.daily_loss_limit_pct),
-        dailyLossCurrentPct=stats["daily_loss_pct"],
+        dailyLossCurrentPct=daily_loss_pct,
     )
 
 

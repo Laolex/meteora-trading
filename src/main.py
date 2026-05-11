@@ -10,6 +10,7 @@ import asyncio
 import json
 import logging
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 from solana.rpc.async_api import AsyncClient
@@ -236,7 +237,9 @@ async def run_loop() -> None:
 
                 open_positions = await db.list_open_positions()
                 current_total = sum(p.deposited_value_usd for p in open_positions)
-                await db.ensure_daily_baseline(current_total)
+                wallet_usdc = await manager.get_wallet_usdc_balance()
+                current_equity = current_total + wallet_usdc
+                await db.ensure_daily_baseline(current_equity)
                 day_start = await db.get_today_starting_value()
 
                 # await top_up_if_needed(
@@ -277,14 +280,11 @@ async def run_loop() -> None:
                         top.name, top_vol_pct, open_width, config.target_position_width_bins,
                     )
 
-                    # When nothing is deployed the daily-PnL check is meaningless
-                    # (0 vs day_start baseline looks like 100% loss). Pass 0 as baseline
-                    # so the guard skips that check and only validates size/total limits.
                     guard_res = guard.all_clear(
                         proposed_position_usd=config.default_position_size_usd,
                         current_total_usd=current_total,
-                        day_start_value_usd=0.0,
-                        current_value_usd=current_total,
+                        day_start_value_usd=day_start,
+                        current_value_usd=current_equity,
                     )
                     if guard_res.allowed:
                         active_bin = await manager.get_active_bin(top.address)
@@ -338,23 +338,34 @@ async def run_loop() -> None:
                         )
                         continue
 
+                    try:
+                        live_active_bin = await manager.get_active_bin(pool.address)
+                    except Exception:
+                        log.warning(
+                            "Failed to fetch on-chain active bin for %s; falling back to API snapshot bin=%s",
+                            pool.address,
+                            pool.active_bin_id,
+                        )
+                        live_active_bin = pool.active_bin_id
+                    pool_live = replace(pool, active_bin_id=live_active_bin)
+
                     # Volatility from price history — enables EXIT safety rule
-                    price_24h_ago = await db.get_price_24h_ago(pool.address)
-                    volatility_24h_pct = compute_volatility_pct(pool.current_price, price_24h_ago)
+                    price_24h_ago = await db.get_price_24h_ago(pool_live.address)
+                    volatility_24h_pct = compute_volatility_pct(pool_live.current_price, price_24h_ago)
 
                     # LLM parameter tuning — runs once per hour if not disabled by operator
                     if tuner is not None and tuner.due():
                         if config.llm_disabled_file.exists():
                             log.info("LLM tuner disabled by operator — using config defaults")
                         else:
-                            drift_now = position.drift_bps_from_center(pool.active_bin_id, pool.bin_step)
-                            rebalance_count = await db.count_rebalances_today(pool.address)
+                            drift_now = position.drift_bps_from_center(pool_live.active_bin_id, pool_live.bin_step)
+                            rebalance_count = await db.count_rebalances_today(pool_live.address)
                             tuned = tuner.tune(
-                                pool_name=pool.name,
+                                pool_name=pool_live.name,
                                 volatility_24h_pct=volatility_24h_pct,
-                                fee_apr=pool.fee_apr,
+                                fee_apr=pool_live.fee_apr,
                                 drift_bps=drift_now,
-                                out_of_range=not position.is_in_range(pool.active_bin_id),
+                                out_of_range=not position.is_in_range(pool_live.active_bin_id),
                                 rebalance_count=rebalance_count,
                                 default_drift_bps=config.rebalance_drift_bps,
                                 default_exit_vol_pct=config.exit_volatility_24h_pct,
@@ -377,10 +388,10 @@ async def run_loop() -> None:
                     )
 
                     # Estimated fees this loop cycle
-                    in_range = position.is_in_range(pool.active_bin_id)
+                    in_range = position.is_in_range(pool_live.active_bin_id)
                     est_fees = (
                         position.deposited_value_usd
-                        * (pool.fee_apr / 365.0)
+                        * (pool_live.fee_apr / 365.0)
                         * (config.loop_interval_seconds / 86400.0)
                         if in_range else 0.0
                     )
@@ -397,9 +408,9 @@ async def run_loop() -> None:
 
                     ctx = DecisionContext(
                         position=position,
-                        pool=pool,
+                        pool=pool_live,
                         volatility_24h_pct=volatility_24h_pct,
-                        sol_price_usd=pool.current_price,
+                        sol_price_usd=pool_live.current_price,
                         current_fees_usd=total_fees_usd,
                         rebalance_drift_bps=drift_bps,
                         exit_volatility_24h_pct=exit_vol_pct,
@@ -411,18 +422,18 @@ async def run_loop() -> None:
                             manager=manager,
                             action=action,
                             position=position,
-                            pool=pool,
+                            pool=pool_live,
                             size_usd=max(position.deposited_value_usd, config.default_position_size_usd),
                             dry_run=config.dry_run,
                         )
                         # On-chain receipt for every non-HOLD action
                         if action.type in (ActionType.REBALANCE, ActionType.EXIT, ActionType.CLAIM):
-                            memo = build_memo_text(action.type.value, pool.address, action.reason)
+                            memo = build_memo_text(action.type.value, pool_live.address, action.reason)
                             await send_memo(rpc, wallet, memo, config.dry_run)
                         _position_failures.pop(position.id, None)
                     except Exception as exc:
                         await db.log_action(
-                            pool.address,
+                            pool_live.address,
                             action,
                             position_id=position.id,
                             executed=True,

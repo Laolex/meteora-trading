@@ -109,6 +109,12 @@ class MeteoraPositionManager:
             log.warning("Could not fetch USDC balance: %s", exc)
         return 0.0
 
+    async def get_wallet_sol_balance(self) -> float:
+        return await self._get_wallet_sol_balance()
+
+    async def get_wallet_usdc_balance(self) -> float:
+        return await self._get_wallet_usdc_balance()
+
     async def _check_position_sol_viability(
         self, amount_y_usd: float, bin_range: PositionRange
     ) -> str | None:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 import asyncpg
 
@@ -244,6 +244,15 @@ class Database:
         async with pool.acquire() as conn:
             row = await conn.fetchrow("SELECT starting_value_usd FROM pnl_daily WHERE day=$1", today)
         return float(row["starting_value_usd"]) if row else 0.0
+
+    async def get_starting_value_days_ago(self, days_ago: int) -> float | None:
+        pool = self._require_pool()
+        target_day = date.today() - timedelta(days=days_ago)
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow("SELECT starting_value_usd FROM pnl_daily WHERE day=$1", target_day)
+        if row is None:
+            return None
+        return float(row["starting_value_usd"])
 
     async def get_price_24h_ago(self, pool_address: str) -> float | None:
         """Return the oldest price captured in the last 24 h for a pool, or None."""
