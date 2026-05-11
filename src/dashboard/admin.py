@@ -86,6 +86,8 @@ class UpdateConfigRequest(BaseModel):
     maxPositionUsd: float | None = None
     maxTotalDeployedUsd: float | None = None
     dailyLossPct: float | None = None
+    maxOpenPositions: int | None = None
+    exitVolatilityPct: float | None = None
 
 
 class UpdateConfigResponse(BaseModel):
@@ -113,6 +115,12 @@ def update_config(
     if body.dailyLossPct is not None:
         existing["daily_loss_limit_pct"] = body.dailyLossPct
         RUNTIME_OVERRIDES["daily_loss_limit_pct"] = body.dailyLossPct
+    if body.maxOpenPositions is not None:
+        existing["max_open_positions"] = body.maxOpenPositions
+        RUNTIME_OVERRIDES["max_open_positions"] = body.maxOpenPositions
+    if body.exitVolatilityPct is not None:
+        existing["exit_volatility_24h_pct"] = body.exitVolatilityPct
+        RUNTIME_OVERRIDES["exit_volatility_24h_pct"] = body.exitVolatilityPct
     _RUNTIME_CONFIG_FILE.write_text(json.dumps(existing, indent=2))
     return UpdateConfigResponse(ok=True)
 

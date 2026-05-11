@@ -15,7 +15,7 @@ from pathlib import Path
 from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair  # type: ignore
 
-from src.config import CONFIG, Config
+from src.config import CONFIG, Config, RUNTIME_OVERRIDES
 from src.db import Database
 from src.discovery.client import MeteoraClient
 from src.discovery.scorer import ScoringWeights, score_pools
@@ -104,7 +104,8 @@ def _tuned_or_default(tuned: TunedParams | None, config) -> tuple[int, float]:
     """Return (rebalance_drift_bps, exit_volatility_24h_pct) from tuner or config."""
     if tuned is not None:
         return tuned.rebalance_drift_bps, tuned.exit_volatility_24h_pct
-    return config.rebalance_drift_bps, config.exit_volatility_24h_pct
+    exit_vol = RUNTIME_OVERRIDES.get("exit_volatility_24h_pct", config.exit_volatility_24h_pct)
+    return config.rebalance_drift_bps, exit_vol
 
 
 async def _execute_action(
@@ -257,7 +258,7 @@ async def run_loop() -> None:
                     None,
                 )
                 if (
-                    len(open_positions) < config.max_open_positions
+                    len(open_positions) < int(RUNTIME_OVERRIDES.get("max_open_positions", config.max_open_positions))
                     and next_pool is not None
                 ):
                     top = next_pool.pool

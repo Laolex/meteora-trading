@@ -178,6 +178,8 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
   const [maxPos, setMaxPos] = useState(String(safety.maxPositionUsd))
   const [maxDep, setMaxDep] = useState(String(safety.maxTotalDeployedUsd))
   const [lossLim, setLossLim] = useState(String(safety.dailyLossLimitPct))
+  const [maxOpenPos, setMaxOpenPos] = useState(String(safety.maxOpenPositions))
+  const [exitVol, setExitVol] = useState(String(agentState.exitVolatilityPct ?? 30))
   const [riskSaving, setRiskSaving] = useState(false)
   const [riskMsg, setRiskMsg] = useState<string | null>(null)
 
@@ -239,11 +241,15 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
     const pos = parseFloat(maxPos)
     const dep = parseFloat(maxDep)
     const loss = parseFloat(lossLim)
-    if (isNaN(pos) || isNaN(dep) || isNaN(loss)) { setRiskMsg("INVALID VALUES"); return }
+    const openPos = parseInt(maxOpenPos, 10)
+    const vol = parseFloat(exitVol)
+    if (isNaN(pos) || isNaN(dep) || isNaN(loss) || isNaN(openPos) || isNaN(vol)) { setRiskMsg("INVALID VALUES"); return }
+    if (openPos < 1) { setRiskMsg("MIN 1 POSITION"); return }
+    if (vol <= 0 || vol > 100) { setRiskMsg("VOL 1–100%"); return }
     setRiskSaving(true)
     setRiskMsg(null)
     try {
-      await adminUpdateConfig({ maxPositionUsd: pos, maxTotalDeployedUsd: dep, dailyLossPct: loss })
+      await adminUpdateConfig({ maxPositionUsd: pos, maxTotalDeployedUsd: dep, dailyLossPct: loss, maxOpenPositions: openPos, exitVolatilityPct: vol })
       setRiskMsg("SAVED")
       setTimeout(() => setRiskMsg(null), 2500)
     } catch (err) {
@@ -909,6 +915,8 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
                 <ParamRow label="Position Size Limit" prefix="$" value={maxPos} onChange={setMaxPos} disabled={!authed} />
                 <ParamRow label="Total Capital Cap" prefix="$" value={maxDep} onChange={setMaxDep} disabled={!authed} />
                 <ParamRow label="Daily Loss Circuit" suffix="%" value={lossLim} onChange={setLossLim} disabled={!authed} />
+                <ParamRow label="Max Open Positions" value={maxOpenPos} onChange={setMaxOpenPos} disabled={!authed} />
+                <ParamRow label="Exit Volatility" suffix="%" value={exitVol} onChange={setExitVol} disabled={!authed} />
                 <div className="flex items-center gap-3 mt-4">
                   <button
                     onClick={() => void handleSaveRisk()}

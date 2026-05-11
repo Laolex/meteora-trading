@@ -126,6 +126,8 @@ export async function adminUpdateConfig(params: {
   maxPositionUsd?: number
   maxTotalDeployedUsd?: number
   dailyLossPct?: number
+  maxOpenPositions?: number
+  exitVolatilityPct?: number
 }): Promise<{ ok: boolean }> {
   const token = getToken()
   if (!token) throw new Error("Not authenticated")
