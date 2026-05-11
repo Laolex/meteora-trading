@@ -37,11 +37,13 @@ async def initialize(usdc_mint: str, deposit_cap_usdc: float) -> dict:
     })
 
 
-async def manager_withdraw(amount_micro: int) -> dict:
-    """Pull `amount_micro` micro-USDC from vault to manager hot wallet."""
-    return await _invoke("manager-withdraw", {"amount_micro": amount_micro})
+async def manager_withdraw(amount_micro: int) -> str:
+    """Pull `amount_micro` micro-USDC from vault to manager hot wallet. Returns tx signature."""
+    result = await _invoke("manager-withdraw", {"amount_micro": amount_micro})
+    return result["signature"]
 
 
-async def manager_return(amount_micro: int) -> dict:
-    """Return `amount_micro` micro-USDC from hot wallet to vault; updates NAV."""
-    return await _invoke("manager-return", {"amount_micro": amount_micro})
+async def manager_return(amount_micro: int) -> str:
+    """Return `amount_micro` micro-USDC from hot wallet to vault; updates NAV. Returns tx signature."""
+    result = await _invoke("manager-return", {"amount_micro": amount_micro})
+    return result["signature"]

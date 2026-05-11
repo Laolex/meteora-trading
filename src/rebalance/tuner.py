@@ -106,7 +106,10 @@ class LLMTuner:
                 max_tokens=256,
                 messages=[{"role": "user", "content": prompt}],
             )
-            text = response.content[0].text.strip()
+            text_block = next((b for b in response.content if hasattr(b, "text")), None)
+            if text_block is None:
+                raise RuntimeError("No text block in LLM response")
+            text = text_block.text.strip()
             data = json.loads(text)
             params = TunedParams(
                 rebalance_drift_bps=int(data["rebalance_drift_bps"]),
