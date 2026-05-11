@@ -1,9 +1,8 @@
 const limitations = [
-  "src/executor/ is an unused skeleton — all on-chain execution flows through node-helper via sendAndConfirmTransaction",
-  "DB writes in DRY_RUN mode produce real rows (actions_log, positions) but tx_signature is set to the literal string \"DRY_RUN_SIG\", not a real signature",
-  "Dashboard API requires a persistent public host — the Vercel frontend falls back to mock/demo data when NEXT_PUBLIC_API_URL is unset or unreachable",
-  "LLM parameter tuner is disabled without ANTHROPIC_API_KEY — the agent runs its built-in scoring logic only",
-  "On-chain vault contract is deployed on devnet only; mainnet positions are managed directly via DLMM SDK, not the vault program",
+  "TX confirmation + retry is handled in node-helper via sendAndConfirmTransaction — broadcast hardening is complete; src/executor/ is an unused skeleton",
+  "DB writes in DRY_RUN mode are real (actions_log, positions), but tx_signature is set to the placeholder string \"DRY_RUN_SIG\" rather than a real signature",
+  "Dashboard API requires a persistent public host — a stable domain or VPS is needed for production; process restarts change the URL if using tunnels",
+  "On-chain vault is deployed and live on devnet — no mainnet deployment has occurred; all capital at risk is $0",
 ]
 
 export default function LimitationsBox() {
@@ -31,8 +30,8 @@ export default function LimitationsBox() {
           </div>
         ))}
         <p className="font-mono mt-3" style={{ fontSize: "9px", color: "#2a2a2a", letterSpacing: "0.04em", lineHeight: 1.7 }}>
-          Core is live on Solana mainnet — 2 active SOL-USDC positions, real USDC deployed, real fee collection.
-          Safety rails, scoring engine, pool discovery, and DLMM integration are all complete and verified on-chain.
+          The safety rails, scoring engine, discovery loop, node-helper DLMM integration, and on-chain vault are all complete.
+          Remaining work: a persistent production host for the dashboard API.
         </p>
       </div>
     </div>

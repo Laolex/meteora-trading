@@ -81,14 +81,14 @@ export default function MobileMenu() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.97 }}
               transition={{ duration: 0.24, ease }}
-              className="fixed top-[72px] left-4 right-4 z-50 md:hidden rounded-2xl overflow-hidden"
+              className="fixed top-[76px] left-1/2 -translate-x-1/2 z-50 md:hidden rounded-2xl overflow-hidden w-[calc(100vw-2rem)] max-w-[420px]"
               style={{
                 background: "#0d0f14",
                 border: "1px solid rgba(255,255,255,0.08)",
                 boxShadow: "0 24px 48px rgba(0,0,0,0.8)",
               }}
             >
-              <nav className="p-2">
+              <nav className="p-1.5">
                 {links.map(({ href, label }, i) => {
                   const active = pathname === href
                   return (
@@ -101,7 +101,7 @@ export default function MobileMenu() {
                       <Link
                         href={href}
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-150"
+                        className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition-colors duration-150"
                         style={{
                           background: active ? "rgba(20,241,149,0.06)" : "transparent",
                           color: active ? "#f5f5f5" : "#666",
@@ -113,7 +113,7 @@ export default function MobileMenu() {
                             style={{ background: "#14f195" }}
                           />
                         )}
-                        <span className="text-[15px] font-medium tracking-tight">{label}</span>
+                        <span className="text-[14px] font-medium tracking-tight">{label}</span>
                       </Link>
                     </motion.div>
                   )
@@ -121,7 +121,7 @@ export default function MobileMenu() {
               </nav>
 
               <div
-                className="px-4 py-3 flex items-center justify-between"
+                className="px-3.5 py-2.5 flex items-center justify-between"
                 style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
               >
                 <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: "#2a2a2a" }}>

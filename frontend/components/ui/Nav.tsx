@@ -25,6 +25,7 @@ export default function Nav() {
       aria-label="Main navigation"
       className="fixed top-6 left-0 right-0 z-50 flex justify-center pointer-events-none px-4"
     >
+      {/* outer shell — nav-pill-shell CSS class forces solid on mobile, glass on md+ */}
       <div
         className="nav-pill-shell pointer-events-auto p-[5px] rounded-full"
         style={{
@@ -32,6 +33,7 @@ export default function Nav() {
           boxShadow: "0 8px 40px rgba(0,0,0,0.9), 0 0 0 1px rgba(0,0,0,0.95)",
         }}
       >
+        {/* inner core */}
         <div
           className="flex items-center gap-1 pl-3 pr-2 py-2 rounded-full"
           style={{
