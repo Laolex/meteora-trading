@@ -103,13 +103,13 @@ function TelemetryCell({
       <div className="flex items-center gap-1.5" style={{ marginBottom: "8px" }}>
         <span
           className="font-mono"
-          style={{ fontSize: "8px", letterSpacing: "0.08em", color: danger ? "#f59e0b" : "#2a2a2a" }}
+          style={{ fontSize: "8px", letterSpacing: "0.08em", color: danger ? "#f59e0b" : "#444" }}
         >
           {index} //
         </span>
         <span
           className="font-mono"
-          style={{ fontSize: "8px", letterSpacing: "0.14em", color: "#3a3a3a", textTransform: "uppercase" }}
+          style={{ fontSize: "8px", letterSpacing: "0.14em", color: "#666", textTransform: "uppercase" }}
         >
           {label}
         </span>
@@ -511,44 +511,34 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
 
             {/* ── SYSTEM STATUS (open by default) ── */}
             <CollapsibleSection label="[ SYSTEM STATUS ]" defaultOpen>
-              <div className="px-4 py-3 font-mono" style={{ fontSize: "9px" }}>
-                {[
+              <div style={{ display: "grid", gap: "1px", background: "#1a1a1a" }}>
+                {([
                   ["MODE", status.mode, status.mode !== "DRY_RUN" ? "#14f195" : "#f59e0b"],
-                  ["NETWORK", status.network.toUpperCase(), "#555"],
+                  ["NETWORK", status.network.toUpperCase(), "#888"],
                   ["SERVICE", status.serviceStatus.toUpperCase(), status.serviceStatus === "active" ? "#14f195" : "#e61919"],
-                ].map(([lbl, val, col]) => (
-                  <div
-                    key={lbl}
-                    className="flex justify-between py-1.5"
-                    style={{ borderBottom: "1px solid #111" }}
-                  >
-                    <span style={{ color: "#555", letterSpacing: "0.1em" }}>{lbl}</span>
-                    <span style={{ color: col as string, letterSpacing: "0.08em" }}>{val}</span>
+                ] as [string, string, string][]).map(([lbl, val, col]) => (
+                  <div key={lbl} className="flex items-center justify-between font-mono" style={{ background: "#080808", padding: "10px 14px" }}>
+                    <span style={{ fontSize: "8px", letterSpacing: "0.14em", color: "#555" }}>{lbl}</span>
+                    <span style={{ fontSize: "10px", letterSpacing: "0.1em", color: col }}>{val}</span>
                   </div>
                 ))}
-                {/* Operator auth row */}
-                <div className="flex items-center justify-between pt-2.5">
+                {/* Auth row */}
+                <div className="flex items-center justify-between font-mono" style={{ background: "#080808", padding: "10px 14px" }}>
                   <div className="flex items-center gap-2">
-                    <span
-                      className="inline-block w-1.5 h-1.5 rounded-full"
-                      style={{ background: authed ? "#14f195" : "#333", flexShrink: 0 }}
-                    />
-                    <span style={{ color: authed ? "#14f195" : "#444", letterSpacing: "0.1em" }}>
+                    <span className="inline-block w-1.5 h-1.5" style={{ background: authed ? "#14f195" : "#333", flexShrink: 0 }} />
+                    <span style={{ fontSize: "8px", letterSpacing: "0.12em", color: authed ? "#14f195" : "#555" }}>
                       OPERATOR {authed ? "AUTHENTICATED" : "NOT SIGNED IN"}
                     </span>
                   </div>
                   {authed ? (
-                    <button
-                      onClick={() => { clearToken(); setAuthed(false) }}
-                      className="font-mono"
-                      style={{ fontSize: "8px", letterSpacing: "0.1em", color: "#444", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
-                    >
+                    <button onClick={() => { clearToken(); setAuthed(false) }} className="font-mono"
+                      style={{ fontSize: "8px", letterSpacing: "0.1em", color: "#444", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}>
                       [ SIGN OUT ]
                     </button>
                   ) : wallet.connected && wallet.signMessage ? (
                     <AuthButton onAuth={() => setAuthed(true)} />
                   ) : (
-                    <span style={{ color: "#2a2a2a", letterSpacing: "0.08em" }}>CONNECT WALLET TO SIGN IN</span>
+                    <span className="font-mono" style={{ fontSize: "8px", color: "#333", letterSpacing: "0.08em" }}>CONNECT WALLET</span>
                   )}
                 </div>
               </div>
@@ -586,12 +576,12 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
                   })}
                 </div>
 
-                <div className="px-4 pt-4 pb-5">
+                <div className="px-4 pt-4 pb-5" style={{ background: "#080808" }}>
                   {fundsMode === "deposit" ? (
                     <>
                       {/* Balance display */}
                       <div className="mb-5" style={{ borderBottom: "1px solid #111", paddingBottom: "16px" }}>
-                        <div className="font-mono mb-3" style={{ fontSize: "8px", letterSpacing: "0.14em", color: "#2a2a2a" }}>
+                        <div className="font-mono mb-3" style={{ fontSize: "8px", letterSpacing: "0.14em", color: "#555" }}>
                           YOUR BALANCE
                         </div>
 
@@ -769,7 +759,7 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
                     <>
                       {/* Withdraw - mirrors deposit, amber accent */}
                       <div className="mb-5" style={{ borderBottom: "1px solid #111", paddingBottom: "16px" }}>
-                        <div className="font-mono mb-2" style={{ fontSize: "8px", letterSpacing: "0.14em", color: "#2a2a2a" }}>
+                        <div className="font-mono mb-2" style={{ fontSize: "8px", letterSpacing: "0.14em", color: "#555" }}>
                           AGENT WALLET BALANCE
                         </div>
                         <div className="flex items-baseline gap-5">
@@ -898,44 +888,26 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
 
             {/* ── AGENT CONTROL ── */}
             <CollapsibleSection label="[ AGENT CONTROL ]">
-              <div className="px-4 py-4">
-                <div className="flex items-start justify-between gap-3 mb-3">
+              <div style={{ display: "grid", gap: "1px", background: "#1a1a1a" }}>
+                <div className="flex items-center justify-between" style={{ background: "#080808", padding: "12px 14px" }}>
                   <div>
-                    <div
-                      className="font-mono mb-1"
-                      style={{ fontSize: "11px", letterSpacing: "0.1em", color: armed ? "#e61919" : "#14f195" }}
-                    >
-                      <span
-                        className="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle"
-                        style={{
-                          background: armed ? "#e61919" : "#14f195",
-                          boxShadow: armed ? "0 0 5px #e61919" : "0 0 5px #14f195",
-                        }}
-                      />
-                      AGENT {armed ? "OFF" : "ON"}
+                    <div className="flex items-center gap-2 font-mono mb-1">
+                      <span className="inline-block w-1.5 h-1.5" style={{ background: armed ? "#e61919" : "#14f195", boxShadow: armed ? "0 0 4px #e61919" : "0 0 4px #14f195" }} />
+                      <span style={{ fontSize: "10px", letterSpacing: "0.1em", color: armed ? "#e61919" : "#14f195" }}>AGENT {armed ? "OFF" : "ON"}</span>
                     </div>
-                    <div
-                      className="font-mono"
-                      style={{ fontSize: "8px", letterSpacing: "0.06em", color: "#333", lineHeight: 1.5 }}
-                    >
-                      {armed
-                        ? "Agent is off — no trades will execute"
-                        : "Agent is on — actively managing positions"}
+                    <div className="font-mono" style={{ fontSize: "8px", letterSpacing: "0.06em", color: "#555", lineHeight: 1.5 }}>
+                      {armed ? "Kill switch armed — no trades" : "Actively managing positions"}
                     </div>
                   </div>
-                  <button
-                    onClick={() => void handleAgentToggle()}
-                    disabled={agentLoading}
-                    className="disabled:opacity-40 shrink-0"
-                    style={btnStyle(armed ? "#14f195" : "#e61919")}
-                  >
+                  <button onClick={() => void handleAgentToggle()} disabled={agentLoading}
+                    className="font-mono disabled:opacity-40 shrink-0" style={btnStyle(armed ? "#14f195" : "#e61919")}>
                     {agentLoading ? "···" : armed ? "[ TURN ON ]" : "[ TURN OFF ]"}
                   </button>
                 </div>
                 {agentError && (
-                  <span className="font-mono" style={{ fontSize: "9px", color: "#f59e0b", letterSpacing: "0.08em" }}>
-                    {agentError}
-                  </span>
+                  <div className="font-mono" style={{ background: "#080808", padding: "8px 14px", fontSize: "8px", color: "#f59e0b", letterSpacing: "0.1em" }}>
+                    // {agentError}
+                  </div>
                 )}
               </div>
             </CollapsibleSection>
@@ -1010,118 +982,82 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
 
             {/* ── LLM PROVIDER ── */}
             <CollapsibleSection label="[ LLM PROVIDER ]">
-              <div className="px-4 py-4" style={{ paddingBottom: "80px" }}>
-                <div className="flex items-start justify-between gap-3 mb-4">
+              <div style={{ display: "grid", gap: "1px", background: "#1a1a1a", paddingBottom: "60px" }}>
+                {/* Status + toggle */}
+                <div className="flex items-center justify-between" style={{ background: "#080808", padding: "12px 14px" }}>
                   <div>
-                    <div
-                      className="font-mono mb-1"
-                      style={{ fontSize: "10px", letterSpacing: "0.1em", color: llmEnabled ? "#14f195" : "#555" }}
-                    >
-                      <span
-                        className="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle"
-                        style={{ background: llmEnabled ? "#14f195" : "#333" }}
-                      />
-                      LLM {llmEnabled ? "ENABLED" : "DISABLED"}
+                    <div className="flex items-center gap-2 font-mono mb-1">
+                      <span className="inline-block w-1.5 h-1.5" style={{ background: llmEnabled ? "#14f195" : "#333" }} />
+                      <span style={{ fontSize: "10px", letterSpacing: "0.1em", color: llmEnabled ? "#14f195" : "#555" }}>
+                        LLM {llmEnabled ? "ENABLED" : "DISABLED"}
+                      </span>
                     </div>
-                    <div
-                      className="font-mono"
-                      style={{ fontSize: "8px", color: keyConfigured ? "#14f195" : "#333", letterSpacing: "0.08em" }}
-                    >
-                      {keyConfigured ? "API KEY CONFIGURED" : "NO API KEY"}
+                    <div className="font-mono" style={{ fontSize: "8px", letterSpacing: "0.08em", color: keyConfigured ? "#14f195" : "#444" }}>
+                      {keyConfigured ? "// KEY CONFIGURED" : "// NO API KEY"}
                     </div>
                   </div>
-                  <button
-                    onClick={() => void handleLlmToggle()}
-                    disabled={llmLoading || !authed}
-                    className="disabled:opacity-40 shrink-0"
-                    style={btnStyle(llmEnabled ? "#f59e0b" : "#14f195")}
-                  >
+                  <button onClick={() => void handleLlmToggle()} disabled={llmLoading || !authed}
+                    className="font-mono disabled:opacity-40 shrink-0" style={btnStyle(llmEnabled ? "#f59e0b" : "#14f195")}>
                     {llmLoading ? "···" : llmEnabled ? "[ DISABLE ]" : "[ ENABLE ]"}
                   </button>
                 </div>
 
-                <div className="flex gap-1.5 mb-4">
-                  {(["anthropic", "openai"] as const).map(p => (
-                    <button
-                      key={p}
-                      onClick={() => setLlmProvider(p)}
-                      className="font-mono"
-                      style={{
-                        fontSize: "8px",
-                        letterSpacing: "0.12em",
-                        textTransform: "uppercase",
-                        padding: "4px 10px",
-                        border: `1px solid ${llmProvider === p ? "#14f195" : "#2a2a2a"}`,
-                        color: llmProvider === p ? "#14f195" : "#444",
-                        background: llmProvider === p ? "rgba(20,241,149,0.06)" : "transparent",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {p === "anthropic" ? "ANTHROPIC" : "OPENAI"}
-                    </button>
-                  ))}
-                </div>
+                {/* Provider selector — 2-col grid */}
+                {(["anthropic", "openai"] as const).map(p => (
+                  <button key={p} onClick={() => setLlmProvider(p)} className="font-mono"
+                    style={{
+                      background: llmProvider === p ? "rgba(20,241,149,0.06)" : "#080808",
+                      padding: "10px 14px",
+                      fontSize: "8px",
+                      letterSpacing: "0.14em",
+                      textTransform: "uppercase",
+                      color: llmProvider === p ? "#14f195" : "#555",
+                      border: "none",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      borderLeft: `2px solid ${llmProvider === p ? "#14f195" : "transparent"}`,
+                      transition: "color 0.12s, background 0.12s",
+                    }}>
+                    {llmProvider === p ? "▶ " : "  "}{p === "anthropic" ? "ANTHROPIC" : "OPENAI"}
+                  </button>
+                ))}
 
+                {/* API key input */}
                 {(llmEnabled || !keyConfigured) && (
-                  <div style={{ borderTop: "1px solid #1a1a1a", paddingTop: "14px" }}>
-                    <div
-                      className="font-mono mb-2"
-                      style={{ fontSize: "8px", letterSpacing: "0.14em", color: "#444", textTransform: "uppercase" }}
-                    >
-                      {llmProvider === "anthropic" ? "ANTHROPIC" : "OPENAI"} API KEY
+                  <div style={{ background: "#080808", padding: "12px 14px" }}>
+                    <div className="font-mono mb-2" style={{ fontSize: "8px", letterSpacing: "0.14em", color: "#555" }}>
+                      {llmProvider === "anthropic" ? "ANTHROPIC" : "OPENAI"} // API KEY
                     </div>
-                    <div className="flex gap-1.5 mb-2">
+                    <div className="flex gap-1.5 mb-3">
                       <input
                         type={llmKeyVisible ? "text" : "password"}
                         value={llmKey}
                         onChange={e => setLlmKey(e.target.value)}
                         placeholder={keyPlaceholder}
                         className="font-mono flex-1 min-w-0"
-                        style={{
-                          fontSize: "9px",
-                          letterSpacing: "0.04em",
-                          color: "#aaa",
-                          background: "#0d0d0d",
-                          border: "1px solid #2a2a2a",
-                          padding: "5px 8px",
-                          outline: "none",
-                        }}
+                        style={{ fontSize: "9px", letterSpacing: "0.04em", color: "#aaa", background: "#0a0a0a", border: "1px solid #2a2a2a", padding: "5px 8px", outline: "none" }}
                       />
-                      <button onClick={() => setLlmKeyVisible(v => !v)} style={btnStyle("#333")}>
+                      <button onClick={() => setLlmKeyVisible(v => !v)} style={btnStyle("#333")} className="font-mono shrink-0">
                         {llmKeyVisible ? "HIDE" : "SHOW"}
                       </button>
                     </div>
                     <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => void handleSaveLlmKey()}
-                        disabled={llmKeySaving || !authed || !llmKey.trim()}
-                        className="disabled:opacity-40"
-                        style={btnStyle("#14f195")}
-                      >
+                      <button onClick={() => void handleSaveLlmKey()} disabled={llmKeySaving || !authed || !llmKey.trim()}
+                        className="font-mono disabled:opacity-40" style={btnStyle("#14f195")}>
                         {llmKeySaving ? "···" : "[ SAVE KEY ]"}
                       </button>
                       {llmMsg && (
-                        <span
-                          className="font-mono"
-                          style={{
-                            fontSize: "9px",
-                            letterSpacing: "0.1em",
-                            color: llmMsg.includes("SAVED") ? "#14f195" : "#f59e0b",
-                          }}
-                        >
-                          {llmMsg}
+                        <span className="font-mono" style={{ fontSize: "8px", letterSpacing: "0.12em", color: llmMsg.includes("SAVED") ? "#14f195" : "#f59e0b" }}>
+                          // {llmMsg}
                         </span>
                       )}
                     </div>
                   </div>
                 )}
                 {llmMsg && !(llmEnabled || !keyConfigured) && !llmMsg.includes("SAVED") && (
-                  <span
-                    className="font-mono mt-2 block"
-                    style={{ fontSize: "9px", color: "#f59e0b", letterSpacing: "0.08em" }}
-                  >
-                    {llmMsg}
-                  </span>
+                  <div className="font-mono" style={{ background: "#080808", padding: "8px 14px", fontSize: "8px", color: "#f59e0b", letterSpacing: "0.1em" }}>
+                    // {llmMsg}
+                  </div>
                 )}
               </div>
             </CollapsibleSection>
