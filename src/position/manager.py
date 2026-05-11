@@ -60,7 +60,7 @@ class MeteoraPositionManager:
     SOL_RENT_PER_BIN_ARRAY: float = 0.072   # SOL cost per 10240-byte account (rent exempt min)
     TX_FEE_BUFFER_SOL: float = 0.035         # buffer for tx fees + unforeseen costs
     MIN_SOL_WALLET: float = 0.25            # do NOT attempt positions below this balance
-    MIN_RENT_COVERAGE_MULTIPLIER: float = 1.0  # position USD must be ≥ this × bin array rent in USD
+    MIN_RENT_COVERAGE_MULTIPLIER: float = 0.0  # disabled — rent is refundable on close
 
     def __init__(
         self,
