@@ -1002,25 +1002,27 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
                   </button>
                 </div>
 
-                {/* Provider selector — 2-col grid */}
-                {(["anthropic", "openai"] as const).map(p => (
-                  <button key={p} onClick={() => setLlmProvider(p)} className="font-mono"
-                    style={{
-                      background: llmProvider === p ? "rgba(20,241,149,0.06)" : "#080808",
-                      padding: "10px 14px",
-                      fontSize: "8px",
-                      letterSpacing: "0.14em",
-                      textTransform: "uppercase",
-                      color: llmProvider === p ? "#14f195" : "#555",
-                      border: "none",
-                      cursor: "pointer",
-                      textAlign: "left",
-                      borderLeft: `2px solid ${llmProvider === p ? "#14f195" : "transparent"}`,
-                      transition: "color 0.12s, background 0.12s",
-                    }}>
-                    {llmProvider === p ? "▶ " : "  "}{p === "anthropic" ? "ANTHROPIC" : "OPENAI"}
-                  </button>
-                ))}
+                {/* Provider selector — 2-col */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px" }}>
+                  {(["anthropic", "openai"] as const).map(p => (
+                    <button key={p} onClick={() => setLlmProvider(p)} className="font-mono"
+                      style={{
+                        background: llmProvider === p ? "rgba(20,241,149,0.06)" : "#080808",
+                        padding: "10px 14px",
+                        fontSize: "8px",
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                        color: llmProvider === p ? "#14f195" : "#555",
+                        border: "none",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        borderLeft: `2px solid ${llmProvider === p ? "#14f195" : "transparent"}`,
+                        transition: "color 0.12s, background 0.12s",
+                      }}>
+                      {llmProvider === p ? "▶ " : "  "}{p === "anthropic" ? "ANTHROPIC" : "OPENAI"}
+                    </button>
+                  ))}
+                </div>
 
                 {/* API key input */}
                 {(llmEnabled || !keyConfigured) && (

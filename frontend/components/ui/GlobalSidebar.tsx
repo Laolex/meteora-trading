@@ -115,7 +115,12 @@ export default function GlobalSidebar() {
               )}
               {isExpanded ? (
                 <>
-                  <span className="relative z-10" style={{ color: active ? "#14f19599" : "#1e1e1e", marginRight: "6px" }}>//</span>
+                  <motion.span
+                    className="relative z-10"
+                    animate={{ color: active ? "#14f19599" : hovered ? "#14f19550" : "#1e1e1e" }}
+                    transition={{ duration: 0.2 }}
+                    style={{ marginRight: "6px" }}
+                  >//</motion.span>
                   <motion.span
                     className="relative z-10"
                     animate={{
