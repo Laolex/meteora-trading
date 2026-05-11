@@ -120,12 +120,6 @@ class TokenResponse(BaseModel):
 
 @router.get("/nonce", response_model=NonceResponse)
 def get_nonce(pubkey: str = Query(..., description="Solana wallet public key (base58)")) -> NonceResponse:
-    cfg = CONFIG
-    assert cfg is not None
-
-    if pubkey != cfg.authorized_pubkey:
-        raise HTTPException(status_code=403, detail="Pubkey not authorized")
-
     _clean_expired()
 
     nonce_str = f"Sign in to Meteora Agent Dashboard: {uuid.uuid4()}"
@@ -135,13 +129,7 @@ def get_nonce(pubkey: str = Query(..., description="Solana wallet public key (ba
 
 @router.post("/verify", response_model=TokenResponse)
 def verify_signature(body: VerifyRequest) -> TokenResponse:
-    cfg = CONFIG
-    assert cfg is not None
-
     _clean_expired()
-
-    if body.pubkey != cfg.authorized_pubkey:
-        raise HTTPException(status_code=403, detail="Pubkey not authorized")
 
     entry = _nonces.get(body.pubkey)
     if entry is None:

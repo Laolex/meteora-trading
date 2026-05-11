@@ -5,10 +5,7 @@ import { useWallet } from "@solana/wallet-adapter-react"
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui"
 import { verifyWallet, clearToken } from "@/lib/auth"
 
-// Only the operator wallet goes through JWT auth. Everyone else connects as investor.
-const OPERATOR_PUBKEY = process.env.NEXT_PUBLIC_AUTHORIZED_PUBKEY ?? ""
-
-type AuthState = "idle" | "signing" | "verified" | "investor" | "error"
+type AuthState = "idle" | "signing" | "verified" | "error"
 
 export default function WalletButton() {
   const { connected, publicKey, disconnect, signMessage } = useWallet()
@@ -16,14 +13,11 @@ export default function WalletButton() {
   const [errorMsg, setErrorMsg] = useState<string>("")
   const authEnabled = Boolean(process.env.NEXT_PUBLIC_API_URL)
 
-  const isOperator = publicKey?.toBase58() === OPERATOR_PUBKEY
-
   const attemptVerify = useCallback(async () => {
     if (!publicKey || !signMessage) return
 
-    // Non-operator wallets: just mark as investor, no auth needed
-    if (!isOperator || !authEnabled) {
-      setState("investor")
+    if (!authEnabled) {
+      setState("verified")
       return
     }
 
@@ -37,7 +31,7 @@ export default function WalletButton() {
       setErrorMsg(msg)
       setState("error")
     }
-  }, [authEnabled, isOperator, publicKey, signMessage])
+  }, [authEnabled, publicKey, signMessage])
 
   useEffect(() => {
     if (connected && publicKey) {
@@ -105,21 +99,6 @@ export default function WalletButton() {
           className="inline-block w-2 h-2 rounded-full"
           style={{ background: "#14f195", flexShrink: 0 }}
         />
-        {shortPub}
-      </button>
-    )
-  }
-
-  // investor — connected, can use vault, no admin access
-  if (state === "investor") {
-    return (
-      <button
-        onClick={() => void handleDisconnect()}
-        className="flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full border transition-colors min-h-11"
-        style={{ borderColor: "#14f195", color: "#14f195", background: "transparent" }}
-        title="Connected as investor — click to disconnect"
-      >
-        <span className="inline-block w-2 h-2 rounded-full" style={{ background: "#14f195", flexShrink: 0 }} />
         {shortPub}
       </button>
     )

@@ -122,6 +122,44 @@ class Database:
             )
         return [self._row_to_position(r) for r in rows]
 
+    async def list_positions(self, limit: int = 50) -> list[dict]:
+        pool = self._require_pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT
+                    id::text AS id,
+                    pool_address,
+                    pool_name,
+                    lower_bin_id,
+                    upper_bin_id,
+                    deposited_value_usd,
+                    fees_earned_usd,
+                    opened_at,
+                    status,
+                    tx_signature_open
+                FROM positions
+                ORDER BY opened_at DESC
+                LIMIT $1
+                """,
+                limit,
+            )
+        return [
+            {
+                "id": row["id"],
+                "poolAddress": row["pool_address"],
+                "poolName": row["pool_name"],
+                "lowerBinId": row["lower_bin_id"],
+                "upperBinId": row["upper_bin_id"],
+                "depositedValueUsd": float(row["deposited_value_usd"]),
+                "feesEarnedUsd": float(row["fees_earned_usd"]),
+                "openedAt": row["opened_at"].isoformat(),
+                "status": row["status"],
+                "txSignatureOpen": row["tx_signature_open"],
+            }
+            for row in rows
+        ]
+
     async def upsert_position(self, position: Position) -> None:
         pool = self._require_pool()
         async with pool.acquire() as conn:

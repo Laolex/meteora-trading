@@ -1,4 +1,11 @@
-import { getAgentStatus, getKpiSummary, getRiskUtilization, getSafetyConfig, getAgentState } from "@/lib/api"
+"use client"
+
+import { useEffect, useMemo, useState } from "react"
+import { useWallet } from "@solana/wallet-adapter-react"
+
+import type { AgentState, AgentStatus, KpiSummary, RiskUtilization, SafetyConfig } from "@/lib/api"
+import { API_BASE } from "@/lib/api"
+import { getToken, isAuthenticated } from "@/lib/auth"
 import KpiCard from "@/components/dashboard/KpiCard"
 import ActivityFeed from "@/components/dashboard/ActivityFeed"
 import CollapsibleSection from "@/components/dashboard/CollapsibleSection"
@@ -9,14 +16,140 @@ import VaultPanel from "@/components/ui/VaultPanel"
 
 export const dynamic = "force-dynamic"
 
-export default async function DashboardPage() {
-  const [status, kpi, risk, safety, agentState] = await Promise.all([
-    getAgentStatus(),
-    getKpiSummary(),
-    getRiskUtilization(),
-    getSafetyConfig(),
-    getAgentState(),
-  ])
+type DashboardPosition = {
+  id: string
+  poolAddress: string
+  poolName: string
+  lowerBinId: number
+  upperBinId: number
+  depositedValueUsd: number
+  feesEarnedUsd: number
+  openedAt: string
+  status: string
+  txSignatureOpen: string
+}
+
+const NGROK_HEADERS: Record<string, string> = API_BASE.includes("ngrok")
+  ? { "ngrok-skip-browser-warning": "true" }
+  : {}
+
+async function fetchPrivate<T>(path: string, token: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    cache: "no-store",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...NGROK_HEADERS,
+    },
+  })
+  if (!res.ok) throw new Error(`fetch failed: ${res.status}`)
+  return res.json() as Promise<T>
+}
+
+export default function DashboardPage() {
+  const { connected } = useWallet()
+  const [authed, setAuthed] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [status, setStatus] = useState<AgentStatus | null>(null)
+  const [kpi, setKpi] = useState<KpiSummary | null>(null)
+  const [risk, setRisk] = useState<RiskUtilization | null>(null)
+  const [safety, setSafety] = useState<SafetyConfig | null>(null)
+  const [agentState, setAgentState] = useState<AgentState | null>(null)
+  const [positions, setPositions] = useState<DashboardPosition[]>([])
+
+  useEffect(() => {
+    const syncAuth = () => setAuthed(isAuthenticated())
+    syncAuth()
+    window.addEventListener("meteora-auth-changed", syncAuth)
+    window.addEventListener("storage", syncAuth)
+    return () => {
+      window.removeEventListener("meteora-auth-changed", syncAuth)
+      window.removeEventListener("storage", syncAuth)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!connected || !authed) {
+      setLoading(false)
+      return
+    }
+    const token = getToken()
+    if (!token) {
+      setLoading(false)
+      setError("Auth token missing")
+      return
+    }
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    Promise.all([
+      fetchPrivate<AgentStatus>("/status", token),
+      fetchPrivate<KpiSummary>("/kpi", token),
+      fetchPrivate<RiskUtilization>("/risk", token),
+      fetchPrivate<SafetyConfig>("/safety", token),
+      fetchPrivate<AgentState>("/agent/state", token),
+      fetchPrivate<DashboardPosition[]>("/positions?limit=50", token),
+    ])
+      .then(([st, kp, rk, sf, ag, pos]) => {
+        if (cancelled) return
+        setStatus(st)
+        setKpi(kp)
+        setRisk(rk)
+        setSafety(sf)
+        setAgentState(ag)
+        setPositions(pos)
+      })
+      .catch(() => {
+        if (!cancelled) setError("AUTH REQUIRED")
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [connected, authed])
+
+  const fetchedAt = useMemo(
+    () =>
+      new Date().toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }),
+    [status?.walletPubkey, kpi?.openPositions, positions.length],
+  )
+
+  if (!connected || !authed) {
+    return (
+      <div className="min-h-[100dvh] pt-24 pb-16 px-4 md:px-6 max-w-7xl mx-auto">
+        <div className="font-mono text-sm border px-4 py-6" style={{ borderColor: "#222", color: "#888" }}>
+          CONNECT WALLET + SIGN AUTH MESSAGE TO ACCESS DASHBOARD
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-[100dvh] pt-24 pb-16 px-4 md:px-6 max-w-7xl mx-auto">
+        <div className="font-mono text-sm border px-4 py-6" style={{ borderColor: "#222", color: "#888" }}>
+          LOADING DASHBOARD…
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !status || !kpi || !risk || !safety || !agentState) {
+    return (
+      <div className="min-h-[100dvh] pt-24 pb-16 px-4 md:px-6 max-w-7xl mx-auto">
+        <div className="font-mono text-sm border px-4 py-6" style={{ borderColor: "#222", color: "#ef4444" }}>
+          {error ?? "FAILED TO LOAD DASHBOARD"}
+        </div>
+      </div>
+    )
+  }
 
   const fmt = (n: number) => {
     const abs = Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -31,14 +164,8 @@ export default async function DashboardPage() {
     : undefined
   const pnlDeltaPositive = kpi.pnlDayUsd >= dailyAvgFromWeek
 
-  const fetchedAt = new Date().toLocaleTimeString("en-US", {
-    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
-  })
-
   return (
     <div className="crt-scanlines min-h-[100dvh] pt-24 pb-16 px-4 md:px-6 max-w-7xl mx-auto">
-
-      {/* Terminal header */}
       <div className="mb-3" style={{ borderBottom: "1px solid #1e1e1e", paddingBottom: "16px" }}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -49,7 +176,7 @@ export default async function DashboardPage() {
               METEORA AGENT
             </h1>
             <div className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.15em", color: "#333", textTransform: "uppercase" }}>
-              AUTONOMOUS DLMM LIQUIDITY
+              AUTHENTICATED OPS CONSOLE
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -64,27 +191,21 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* Status flex heading */}
       <StatusRow status={status} />
 
-      {/* Main grid — gap below status row */}
       <div
         className="grid gap-0 lg:grid-cols-[220px,1fr] items-start mt-px"
         style={{ gap: "1px", background: "#1e1e1e", marginTop: "1px" }}
       >
-        {/* Left sidebar: Vault only */}
         <div style={{ background: "#0A0A0A" }}>
           <div className="lg:sticky lg:top-24" style={{ borderRight: "1px solid #1e1e1e" }}>
             <VaultPanel />
           </div>
         </div>
 
-        {/* Main content */}
         <div style={{ background: "#0A0A0A" }}>
-
           <CollapsibleSection label="[ METRICS ]" badge={`${kpi.openPositions} OPEN`} defaultOpen={true}>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4" style={{ gap: "1px", background: "#1e1e1e" }}>
               <KpiCard label="Open Positions" value={String(kpi.openPositions)} sub={`max ${safety.maxOpenPositions} open`} accent index={0} />
@@ -95,27 +216,35 @@ export default async function DashboardPage() {
           </CollapsibleSection>
 
           <div style={{ borderTop: "1px solid #1e1e1e" }}>
-            <CollapsibleSection label="[ SESSION ]" badge={status.mode} defaultOpen={false}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4" style={{ gap: "1px", background: "#1e1e1e" }}>
-                {[
-                  { label: "NETWORK",   value: status.network.toUpperCase() },
-                  { label: "POSITIONS", value: `${kpi.openPositions} / ${safety.maxOpenPositions}` },
-                  { label: "LOSS CAP",  value: `${safety.dailyLossLimitPct}%` },
-                  { label: "POS UTIL",  value: `${risk.positionUtilPct.toFixed(0)}%` },
-                  { label: "DEPLOYED",  value: fmt(kpi.totalDeployedUsd) },
-                  { label: "DEP LIMIT", value: fmt(kpi.maxTotalDeployedUsd) },
-                  { label: "PNL DAY",   value: fmtPnl(kpi.pnlDayUsd) },
-                  { label: "PNL WEEK",  value: fmtPnl(kpi.pnlWeekUsd) },
-                ].map(({ label, value }) => (
-                  <div key={label} className="px-4 py-3 font-mono" style={{ background: "#0d0d0d" }}>
-                    <div style={{ fontSize: "8px", letterSpacing: "0.12em", color: "#444", textTransform: "uppercase", marginBottom: "4px" }}>
-                      {label}
-                    </div>
-                    <div style={{ fontSize: "11px", color: "#aaa", letterSpacing: "0.04em" }}>
-                      {value}
-                    </div>
-                  </div>
-                ))}
+            <CollapsibleSection label="[ METEORA POSITIONS ]" badge={`${positions.length} TRACKED`} defaultOpen={true}>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[760px] font-mono" style={{ fontSize: "10px", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid #141414" }}>
+                      {["POOL", "RANGE", "DEPLOYED", "FEES", "STATUS", "OPENED"].map((label) => (
+                        <th
+                          key={label}
+                          className="px-4 py-2 text-left"
+                          style={{ color: "#333", letterSpacing: "0.12em", fontWeight: 500, background: "#0d0d0d" }}
+                        >
+                          {label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {positions.map((p) => (
+                      <tr key={p.id} style={{ borderBottom: "1px solid #111" }}>
+                        <td className="px-4 py-2" style={{ color: "#eaeaea" }}>{p.poolName}</td>
+                        <td className="px-4 py-2" style={{ color: "#888" }}>{p.lowerBinId}..{p.upperBinId}</td>
+                        <td className="px-4 py-2" style={{ color: "#aaa" }}>${p.depositedValueUsd.toFixed(2)}</td>
+                        <td className="px-4 py-2" style={{ color: "#aaa" }}>${p.feesEarnedUsd.toFixed(2)}</td>
+                        <td className="px-4 py-2" style={{ color: p.status === "open" ? "#14f195" : "#666" }}>{p.status.toUpperCase()}</td>
+                        <td className="px-4 py-2" style={{ color: "#666" }}>{new Date(p.openedAt).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CollapsibleSection>
           </div>

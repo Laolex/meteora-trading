@@ -178,6 +178,37 @@ async function makeContext() {
   };
 }
 
+async function ensureUserTokenAccounts(connection, dlmm, owner) {
+  const preIxs = [];
+  const [{ ix: createUserTokenXIx }, { ix: createUserTokenYIx }] = await Promise.all([
+    DLMM.getOrCreateATAInstruction(
+      connection,
+      dlmm.tokenX.publicKey,
+      owner.publicKey,
+      dlmm.tokenX.owner
+    ),
+    DLMM.getOrCreateATAInstruction(
+      connection,
+      dlmm.tokenY.publicKey,
+      owner.publicKey,
+      dlmm.tokenY.owner
+    ),
+  ]);
+  if (createUserTokenXIx) preIxs.push(createUserTokenXIx);
+  if (createUserTokenYIx) preIxs.push(createUserTokenYIx);
+  if (!preIxs.length) return;
+
+  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+  const tx = new anchor.web3.Transaction({
+    blockhash,
+    lastValidBlockHeight,
+    feePayer: owner.publicKey,
+  }).add(...preIxs);
+  await sendAndConfirmTransaction(connection, tx, [owner], {
+    confirmTransactionInitialTimeout: 120000,
+  });
+}
+
 async function openPositionReal(params) {
   const poolAddress = new PublicKey(requireParam(params, "poolAddress"));
   const clientPositionId = String(requireParam(params, "clientPositionId"));
@@ -333,6 +364,7 @@ async function rebalancePositionReal(params) {
 
   const { connection, owner } = await makeContext();
   const dlmm = await DLMM.create(connection, poolAddress);
+  await ensureUserTokenAccounts(connection, dlmm, owner);
   const { userPositions } = await dlmm.getPositionsByUserAndLbPair(owner.publicKey);
   const positionObj = userPositions.find(
     (p) => p.publicKey.toBase58() === positionPubkey.toBase58()
@@ -344,14 +376,6 @@ async function rebalancePositionReal(params) {
 
   const currentLower = Number(positionData.lowerBinId?.toString?.() ?? positionData.lowerBinId);
   const currentUpper = Number(positionData.upperBinId?.toString?.() ?? positionData.upperBinId);
-  const currentWidth = currentUpper - currentLower + 1;
-  const requestedWidth = upperBinId - lowerBinId + 1;
-  if (currentWidth !== requestedWidth) {
-    throw new Error(
-      `rebalancePosition width mismatch: current=${currentWidth} requested=${requestedWidth}. ` +
-      "Current implementation supports in-place recenter with unchanged width."
-    );
-  }
 
   const simulation = await dlmm.simulateRebalancePositionWithBalancedStrategy(
     positionObj.publicKey,

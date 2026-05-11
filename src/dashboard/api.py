@@ -89,6 +89,19 @@ class WalletBalance(BaseModel):
     usdcMint: str
 
 
+class PositionItem(BaseModel):
+    id: str
+    poolAddress: str
+    poolName: str
+    lowerBinId: int
+    upperBinId: int
+    depositedValueUsd: float
+    feesEarnedUsd: float
+    openedAt: str
+    status: str
+    txSignatureOpen: str
+
+
 # --- Startup / shutdown ---
 
 _db: Database
@@ -140,7 +153,7 @@ app.include_router(vault_router)
 # --- Endpoints ---
 
 @app.get("/status", response_model=AgentStatus)
-async def get_status() -> AgentStatus:
+async def get_status(_auth: dict = Depends(require_auth)) -> AgentStatus:
     cfg = CONFIG
     assert cfg is not None
     kill_present = Path(cfg.kill_switch_file).exists()
@@ -156,7 +169,7 @@ async def get_status() -> AgentStatus:
 
 
 @app.get("/kpi", response_model=KpiSummary)
-async def get_kpi() -> KpiSummary:
+async def get_kpi(_auth: dict = Depends(require_auth)) -> KpiSummary:
     cfg = CONFIG
     assert cfg is not None
     stats = await _db.get_position_stats()
@@ -185,7 +198,10 @@ async def get_kpi() -> KpiSummary:
 
 
 @app.get("/activity", response_model=list[ActivityItem])
-async def get_activity(limit: int = Query(default=20, ge=1, le=200)) -> list[ActivityItem]:
+async def get_activity(
+    _auth: dict = Depends(require_auth),
+    limit: int = Query(default=20, ge=1, le=200),
+) -> list[ActivityItem]:
     rows = await _db.get_activity(limit)
     return [ActivityItem(**row) for row in rows]
 
@@ -200,7 +216,7 @@ async def get_activity_private(
 
 
 @app.get("/risk", response_model=RiskUtilization)
-async def get_risk() -> RiskUtilization:
+async def get_risk(_auth: dict = Depends(require_auth)) -> RiskUtilization:
     cfg = CONFIG
     assert cfg is not None
     stats = await _db.get_position_stats()
@@ -227,7 +243,7 @@ async def get_risk() -> RiskUtilization:
 
 
 @app.get("/safety", response_model=SafetyConfig)
-async def get_safety() -> SafetyConfig:
+async def get_safety(_auth: dict = Depends(require_auth)) -> SafetyConfig:
     cfg = CONFIG
     assert cfg is not None
     kill_present = Path(cfg.kill_switch_file).exists()
@@ -245,7 +261,7 @@ async def get_safety() -> SafetyConfig:
 
 
 @app.get("/wallet/balance", response_model=WalletBalance)
-async def get_wallet_balance() -> WalletBalance:
+async def get_wallet_balance(_auth: dict = Depends(require_auth)) -> WalletBalance:
     cfg = CONFIG
     assert cfg is not None
     balance = await get_balance(app.state.rpc, app.state.wallet_keypair.pubkey(), cfg.network)
@@ -267,7 +283,7 @@ _STATE_FILE = Path("/opt/meteora-agent/var/agent-state.json")
 
 
 @app.get("/agent/state", response_model=AgentState)
-async def get_agent_state() -> AgentState:
+async def get_agent_state(_auth: dict = Depends(require_auth)) -> AgentState:
     cfg = CONFIG
     assert cfg is not None
     _openai_key_file = Path("/opt/meteora-agent/var/openai-key.txt")
@@ -307,7 +323,7 @@ class ProofSnapshot(BaseModel):
 
 
 @app.get("/proof", response_model=ProofSnapshot)
-async def get_proof() -> ProofSnapshot:
+async def get_proof(_auth: dict = Depends(require_auth)) -> ProofSnapshot:
     cfg = CONFIG
     assert cfg is not None
 
@@ -337,3 +353,12 @@ async def get_proof() -> ProofSnapshot:
         dbReachable=db_reachable,
         recentActions=recent_actions,
     )
+
+
+@app.get("/positions", response_model=list[PositionItem])
+async def get_positions(
+    _auth: dict = Depends(require_auth),
+    limit: int = Query(default=50, ge=1, le=500),
+) -> list[PositionItem]:
+    rows = await _db.list_positions(limit)
+    return [PositionItem(**row) for row in rows]
