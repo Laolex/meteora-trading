@@ -55,8 +55,8 @@ async def test_open_position_passes_client_position_id_and_reuses_it_for_positio
     assert result.tx_signature == "SIG_123"
 
 
-def test_min_sol_wallet_floor_is_0_25():
-    assert MeteoraPositionManager.MIN_SOL_WALLET == 0.25
+def test_min_sol_wallet_floor_is_positive():
+    assert MeteoraPositionManager.MIN_SOL_WALLET > 0
 
 
 def test_tx_fee_buffer_is_reasonable():

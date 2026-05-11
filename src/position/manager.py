@@ -59,7 +59,7 @@ class MeteoraPositionManager:
     # ── constants for SOL economics ────────────────────────────────────────
     SOL_RENT_PER_BIN_ARRAY: float = 0.072   # SOL cost per 10240-byte account (rent exempt min)
     TX_FEE_BUFFER_SOL: float = 0.035         # buffer for tx fees + unforeseen costs
-    MIN_SOL_WALLET: float = 0.25            # do NOT attempt positions below this balance
+    MIN_SOL_WALLET: float = 0.05            # hard floor — keep enough for tx fees
     MIN_RENT_COVERAGE_MULTIPLIER: float = 0.0  # disabled — rent is refundable on close
 
     def __init__(
@@ -91,47 +91,48 @@ class MeteoraPositionManager:
         resp = await self._rpc.get_balance(self._wallet.pubkey())
         return resp.value
 
+    async def _get_wallet_usdc_balance(self) -> float:
+        """Return wallet's USDC balance in USD (1 USDC = 1 USD)."""
+        from solana.rpc.types import TokenAccountOpts
+        from solders.pubkey import Pubkey as SoldersPubkey
+        USDC_MINT = SoldersPubkey.from_string("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+        try:
+            resp = await self._rpc.get_token_accounts_by_owner_json_parsed(
+                self._wallet.pubkey(),
+                TokenAccountOpts(mint=USDC_MINT),
+            )
+            for acct in resp.value:
+                parsed = acct.account.data.parsed  # type: ignore[union-attr]
+                ui_amount = parsed["info"]["tokenAmount"]["uiAmount"]
+                return float(ui_amount or 0)
+        except Exception as exc:
+            log.warning("Could not fetch USDC balance: %s", exc)
+        return 0.0
+
     async def _check_position_sol_viability(
         self, amount_y_usd: float, bin_range: PositionRange
     ) -> str | None:
         """
         Returns None if OK, or an error reason string if the position is unviable.
-        Checks two things:
-          1. Position size covers bin array rent (SOL economics)
-          2. Wallet has enough SOL to pay rent + fees
-        """
-        n_bins = self._num_bin_arrays_estimate(bin_range)
-        # Use integer lamport arithmetic to avoid float precision issues
-        rent_lamports = round(n_bins * self.SOL_RENT_PER_BIN_ARRAY * 1_000_000_000)
-        buffer_lamports = round(self.TX_FEE_BUFFER_SOL * 1_000_000_000)
-        total_lamports_needed = rent_lamports + buffer_lamports
 
-        # ── check 1: SOL wallet balance ──────────────────────────────────
+        Checks:
+        1. Wallet SOL is above hard floor (for tx fees).
+        2. Wallet USDC balance covers amount_y_usd (avoids on-chain insufficient-funds error).
+        """
         wallet_lamports = await self._get_wallet_sol_lamports()
         wallet_sol = wallet_lamports / 1e9
-        total_sol_needed = total_lamports_needed / 1e9
-        if wallet_lamports < total_lamports_needed:
-            return (
-                f"wallet SOL {wallet_sol:.4f} < required {total_sol_needed:.4f} "
-                f"({n_bins} bins × {self.SOL_RENT_PER_BIN_ARRAY} + {self.TX_FEE_BUFFER_SOL} buffer)"
-            )
-        if wallet_sol < self.MIN_SOL_WALLET:
+        floor_lamports = round(self.MIN_SOL_WALLET * 1_000_000_000)
+        if wallet_lamports < floor_lamports:
             return (
                 f"wallet SOL {wallet_sol:.4f} below hard floor {self.MIN_SOL_WALLET:.2f}; "
                 f"fund wallet before opening positions"
             )
-
-        # ── check 2: position size vs rent ───────────────────────────────
-        rent_sol = rent_lamports / 1e9
-        rent_usd = rent_sol * self._sol_price_usd
-        min_position_usd = rent_usd * self.MIN_RENT_COVERAGE_MULTIPLIER
-        if amount_y_usd < min_position_usd:
+        usdc_balance = await self._get_wallet_usdc_balance()
+        if usdc_balance < amount_y_usd:
             return (
-                f"position ${amount_y_usd:.2f} below minimum ${min_position_usd:.2f} "
-                f"(rent for {n_bins} bins ≈ ${rent_usd:.2f} at ${self._sol_price_usd:.0f}/SOL "
-                f"× {self.MIN_RENT_COVERAGE_MULTIPLIER}x coverage required)"
+                f"insufficient USDC: wallet has ${usdc_balance:.2f}, "
+                f"need ${amount_y_usd:.2f}; fund wallet or lower DEFAULT_POSITION_SIZE_USD"
             )
-
         return None  # all clear
 
     async def open_position(
