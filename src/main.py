@@ -238,8 +238,12 @@ async def run_loop() -> None:
                 #     dry_run=config.dry_run,
                 # )
 
-                if not open_positions and ranked and config.max_open_positions > 0:
-                    top = ranked[0].pool
+                # Only consider pools where Y-token = USDC (amount_y is in USD)
+                USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+                usdc_ranked = [sp for sp in ranked if sp.pool.token_y_mint == USDC_MINT]
+
+                if not open_positions and usdc_ranked and config.max_open_positions > 0:
+                    top = usdc_ranked[0].pool
                     # Compute vol for the top pool so we can size the range adaptively
                     top_price_24h_ago = await db.get_price_24h_ago(top.address)
                     top_vol_pct = compute_volatility_pct(top.current_price, top_price_24h_ago)
