@@ -37,8 +37,20 @@ export default function ActivityFeed({ items = [] }: { items?: ActivityItem[] })
   const [records, setRecords] = useState<ActivityItem[]>(items)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [authed, setAuthed] = useState(false)
 
-  const canView = connected && isAuthenticated()
+  useEffect(() => {
+    const syncAuth = () => setAuthed(isAuthenticated())
+    syncAuth()
+    window.addEventListener("meteora-auth-changed", syncAuth)
+    window.addEventListener("storage", syncAuth)
+    return () => {
+      window.removeEventListener("meteora-auth-changed", syncAuth)
+      window.removeEventListener("storage", syncAuth)
+    }
+  }, [])
+
+  const canView = connected && authed
 
   useEffect(() => {
     if (collapsed || !canView) return

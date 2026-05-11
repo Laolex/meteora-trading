@@ -37,6 +37,7 @@ export async function verifyWallet(
 
   if (typeof window !== "undefined") {
     sessionStorage.setItem("meteora_jwt", token)
+    window.dispatchEvent(new Event("meteora-auth-changed"))
   }
 }
 
@@ -48,6 +49,7 @@ export function getToken(): string | null {
 export function clearToken(): void {
   if (typeof window === "undefined") return
   sessionStorage.removeItem("meteora_jwt")
+  window.dispatchEvent(new Event("meteora-auth-changed"))
 }
 
 export function isAuthenticated(): boolean {
@@ -70,10 +72,9 @@ export function isAuthenticated(): boolean {
 export async function fetchProtectedActivity(limit = 20): Promise<ActivityItem[]> {
   const token = getToken()
   if (!token) throw new Error("Not authenticated")
-  const res = await fetch(`${API_BASE}/activity/private?limit=${limit}`, {
+  const res = await fetch(`/api/activity/private?limit=${limit}`, {
     headers: {
       Authorization: `Bearer ${token}`,
-      ...NGROK_HEADERS,
     },
     cache: "no-store",
   })
