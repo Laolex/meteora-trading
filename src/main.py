@@ -10,6 +10,7 @@ import asyncio
 import json
 import logging
 import sys
+from pathlib import Path
 
 from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair  # type: ignore
@@ -18,10 +19,15 @@ from src.config import CONFIG, Config
 from src.db import Database
 from src.discovery.client import MeteoraClient
 from src.discovery.scorer import ScoringWeights, score_pools
-from src.position.manager import MeteoraPositionManager, PositionRange
-from src.rebalance.decision import Action, ActionType, DecisionContext, decide
+from src.position.manager import MeteoraPositionManager, PositionRange, y_only_range
+from src.rebalance.adaptive import adaptive_range_bins
+from src.rebalance.decision import Action, ActionType, DecisionContext, compute_volatility_pct, decide
 from src.rebalance.guards import SafetyGuard
-from src.vault.capital import sweep_to_vault, top_up_if_needed
+from src.rebalance.memo import build_memo_text, send_memo
+from src.rebalance.tuner import LLMTuner, TunedParams
+# from src.vault.capital import sweep_to_vault, top_up_if_needed
+
+_STATE_FILE = Path("/opt/meteora-agent/var/agent-state.json")
 
 log = logging.getLogger(__name__)
 
@@ -62,7 +68,7 @@ async def run_discovery() -> None:
             token_quality=config.score_weight_token_quality,
             bin_liquidity=config.score_weight_bin_liquidity,
         )
-        ranked = score_pools(pools, weights)
+        ranked = score_pools(pools, weights, min_tvl_usd=config.min_pool_tvl_usd, max_vol_tvl_ratio=config.max_vol_tvl_ratio)
         await db.store_pool_scores(ranked)
 
         log.info("=== TOP 10 POOLS ===")
@@ -88,6 +94,17 @@ def _load_keypair_from_file(path: str) -> Keypair:
 def _position_range(active_bin_id: int, width: int) -> PositionRange:
     half = width // 2
     return PositionRange(lower_bin_id=active_bin_id - half, upper_bin_id=active_bin_id + half)
+
+
+def _y_only_range(active_bin_id: int, width: int) -> PositionRange:
+    return y_only_range(active_bin_id, width)
+
+
+def _tuned_or_default(tuned: TunedParams | None, config) -> tuple[int, float]:
+    """Return (rebalance_drift_bps, exit_volatility_24h_pct) from tuner or config."""
+    if tuned is not None:
+        return tuned.rebalance_drift_bps, tuned.exit_volatility_24h_pct
+    return config.rebalance_drift_bps, config.exit_volatility_24h_pct
 
 
 async def _execute_action(
@@ -128,15 +145,19 @@ async def _execute_action(
     if action.type == ActionType.REBALANCE:
         if action.new_lower_bin_id is None or action.new_upper_bin_id is None:
             raise RuntimeError("Rebalance action missing target range")
+        rebalance_width = action.new_upper_bin_id - action.new_lower_bin_id + 1
         close_sig = await manager.close_position(position)
         await db.mark_position_closed(position.id, close_sig)
+        active_bin = await manager.get_active_bin(pool.address)
         open_result = await manager.open_position(
             pool_address=pool.address,
             pool_name=pool.name,
             amount_x=0.0,
             amount_y=size_usd,
-            bin_range=PositionRange(action.new_lower_bin_id, action.new_upper_bin_id),
+            bin_range=y_only_range(active_bin, rebalance_width),
         )
+        if open_result.error:
+            raise RuntimeError(f"Rebalance open blocked by SOL guard: {open_result.error}")
         open_result.position.deposited_value_usd = size_usd
         await db.upsert_position(open_result.position)
         await db.log_action(
@@ -152,16 +173,6 @@ async def _execute_action(
 
 
 async def run_loop() -> None:
-    """
-    Autonomous loop. Day 5–6 task: wire decision engine + position manager + executor.
-
-    Skeleton only — real loop body needs:
-      1. Refresh pool snapshots for held positions
-      2. For each open position: build DecisionContext → decide() → execute
-      3. If no positions and capital available: open new position from top-ranked pool
-      4. Run safety guards before every write
-      5. Log everything to actions_log
-    """
     config = _require_config()
     log.info("Starting autonomous loop (DRY_RUN=%s, NETWORK=%s)", config.dry_run, config.network)
     wallet = _load_keypair_from_file(str(config.hot_wallet_keypair_path))
@@ -189,6 +200,16 @@ async def run_loop() -> None:
         bin_liquidity=config.score_weight_bin_liquidity,
     )
 
+    tuner: LLMTuner | None = None
+    if config.anthropic_api_key:
+        tuner = LLMTuner(
+            api_key=config.anthropic_api_key,
+            tune_interval_seconds=config.llm_tune_interval_seconds,
+        )
+        log.info("LLM parameter tuner enabled (interval=%ds)", config.llm_tune_interval_seconds)
+    else:
+        log.info("LLM parameter tuner disabled — set ANTHROPIC_API_KEY to enable")
+
     try:
         while True:
             try:
@@ -201,7 +222,7 @@ async def run_loop() -> None:
                 pools = await client.list_all_pools()
                 for snapshot_pool in pools:
                     await db.upsert_pool_snapshot(snapshot_pool)
-                ranked = score_pools(pools, weights)
+                ranked = score_pools(pools, weights, min_tvl_usd=config.min_pool_tvl_usd, max_vol_tvl_ratio=config.max_vol_tvl_ratio)
                 await db.store_pool_scores(ranked)
                 pools_by_addr = {p.address: p for p in pools}
 
@@ -210,24 +231,56 @@ async def run_loop() -> None:
                 await db.ensure_daily_baseline(current_total)
                 day_start = await db.get_today_starting_value()
 
-                await top_up_if_needed(
-                    rpc=rpc,
-                    wallet_pubkey=wallet.pubkey(),
-                    network=config.network,
-                    required_usdc=config.default_position_size_usd,
-                    dry_run=config.dry_run,
-                )
+                # await top_up_if_needed(
+                #     rpc=rpc,
+                #     wallet_pubkey=wallet.pubkey(),
+                #     network=config.network,
+                #     required_usdc=config.default_position_size_usd,
+                #     dry_run=config.dry_run,
+                # )
 
-                if not open_positions and ranked and config.max_open_positions > 0:
-                    top = ranked[0].pool
+                # Only consider pools where Y-token = USDC (amount_y is in USD)
+                USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+                usdc_ranked = [sp for sp in ranked if sp.pool.token_y_mint == USDC_MINT]
+
+                open_pool_addrs = {p.pool_address for p in open_positions}
+                # Pick the top-ranked USDC pool we don't already hold
+                next_pool = next(
+                    (sp for sp in usdc_ranked if sp.pool.address not in open_pool_addrs),
+                    None,
+                )
+                if (
+                    len(open_positions) < config.max_open_positions
+                    and next_pool is not None
+                ):
+                    top = next_pool.pool
+                    # Compute vol for the top pool so we can size the range adaptively
+                    top_price_24h_ago = await db.get_price_24h_ago(top.address)
+                    top_vol_pct = compute_volatility_pct(top.current_price, top_price_24h_ago)
+                    open_width = adaptive_range_bins(
+                        config.target_position_width_bins,
+                        top_vol_pct,
+                        reference_vol_pct=config.adaptive_range_reference_vol_pct,
+                        min_bins=config.adaptive_range_min_bins,
+                        max_bins=config.adaptive_range_max_bins,
+                    )
+                    log.info(
+                        "Adaptive range for %s: vol=%.1f%% → %d bins (base=%d)",
+                        top.name, top_vol_pct, open_width, config.target_position_width_bins,
+                    )
+
+                    # When nothing is deployed the daily-PnL check is meaningless
+                    # (0 vs day_start baseline looks like 100% loss). Pass 0 as baseline
+                    # so the guard skips that check and only validates size/total limits.
                     guard_res = guard.all_clear(
                         proposed_position_usd=config.default_position_size_usd,
                         current_total_usd=current_total,
-                        day_start_value_usd=day_start,
+                        day_start_value_usd=0.0,
                         current_value_usd=current_total,
                     )
                     if guard_res.allowed:
-                        r = _position_range(top.active_bin_id, config.target_position_width_bins)
+                        active_bin = await manager.get_active_bin(top.address)
+                        r = y_only_range(active_bin, open_width)
                         opened = await manager.open_position(
                             pool_address=top.address,
                             pool_name=top.name,
@@ -235,23 +288,26 @@ async def run_loop() -> None:
                             amount_y=config.default_position_size_usd,
                             bin_range=r,
                         )
-                        opened.position.deposited_value_usd = config.default_position_size_usd
-                        await db.upsert_position(opened.position)
-                        await db.log_action(
-                            top.address,
-                            Action(ActionType.REBALANCE, "opened initial position"),
-                            position_id=opened.position.id,
-                            executed=True,
-                            tx_signature=opened.tx_signature,
-                            success=True,
-                        )
-                        log.info(
-                            "Opened initial position on %s (%s) bins %d..%d",
-                            top.name,
-                            top.address,
-                            r.lower_bin_id,
-                            r.upper_bin_id,
-                        )
+                        if opened.error:
+                            log.warning("Position open blocked by SOL guard: %s", opened.error)
+                        else:
+                            opened.position.deposited_value_usd = config.default_position_size_usd
+                            await db.upsert_position(opened.position)
+                            await db.log_action(
+                                top.address,
+                                Action(ActionType.REBALANCE, "opened initial position"),
+                                position_id=opened.position.id,
+                                executed=True,
+                                tx_signature=opened.tx_signature,
+                                success=True,
+                            )
+                            log.info(
+                                "Opened initial position on %s (%s) bins %d..%d",
+                                top.name,
+                                top.address,
+                                r.lower_bin_id,
+                                r.upper_bin_id,
+                            )
                     else:
                         log.warning("Initial open blocked by guard: %s", guard_res.reason)
 
@@ -265,21 +321,72 @@ async def run_loop() -> None:
                         )
                         continue
 
-                    est_fees = max(
-                        0.0,
+                    # Volatility from price history — enables EXIT safety rule
+                    price_24h_ago = await db.get_price_24h_ago(pool.address)
+                    volatility_24h_pct = compute_volatility_pct(pool.current_price, price_24h_ago)
+
+                    # LLM parameter tuning — runs once per hour if not disabled by operator
+                    if tuner is not None and tuner.due():
+                        if config.llm_disabled_file.exists():
+                            log.info("LLM tuner disabled by operator — using config defaults")
+                        else:
+                            drift_now = position.drift_bps_from_center(pool.active_bin_id, pool.bin_step)
+                            rebalance_count = await db.count_rebalances_today(pool.address)
+                            tuned = tuner.tune(
+                                pool_name=pool.name,
+                                volatility_24h_pct=volatility_24h_pct,
+                                fee_apr=pool.fee_apr,
+                                drift_bps=drift_now,
+                                out_of_range=not position.is_in_range(pool.active_bin_id),
+                                rebalance_count=rebalance_count,
+                                default_drift_bps=config.rebalance_drift_bps,
+                                default_exit_vol_pct=config.exit_volatility_24h_pct,
+                            )
+                            # Persist tuner state for dashboard /agent/state endpoint
+                            _STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+                            with open(_STATE_FILE, "w") as _sf:
+                                json.dump({
+                                    "llmEnabled": True,
+                                    "llmDisabledByOperator": False,
+                                    "anthropicKeyConfigured": bool(config.anthropic_api_key),
+                                    "tunedAt": tuned.tuned_at.isoformat(),
+                                    "rebalanceDriftBps": tuned.rebalance_drift_bps,
+                                    "exitVolatilityPct": tuned.exit_volatility_24h_pct,
+                                    "reasoning": tuned.reasoning,
+                                }, _sf)
+
+                    drift_bps, exit_vol_pct = _tuned_or_default(
+                        tuner.cached if tuner else None, config
+                    )
+
+                    # Estimated fees this loop cycle
+                    in_range = position.is_in_range(pool.active_bin_id)
+                    est_fees = (
                         position.deposited_value_usd
                         * (pool.fee_apr / 365.0)
-                        * (config.loop_interval_seconds / 86400.0),
+                        * (config.loop_interval_seconds / 86400.0)
+                        if in_range else 0.0
                     )
+                    total_fees_usd = position.fees_earned_usd + est_fees
+
+                    # Mark-to-market: fees grow NAV; out-of-range positions lock value
+                    current_value_usd = position.deposited_value_usd + total_fees_usd
+
+                    # Persist fee accumulation and updated value every loop
+                    if est_fees > 0:
+                        await db.accumulate_position_fees(
+                            position.id, est_fees, current_value_usd
+                        )
+
                     ctx = DecisionContext(
                         position=position,
                         pool=pool,
-                        volatility_24h_pct=0.0,  # TODO: source from oracle/history
+                        volatility_24h_pct=volatility_24h_pct,
                         sol_price_usd=pool.current_price,
-                        current_fees_usd=position.fees_earned_usd + est_fees,
-                        rebalance_drift_bps=config.rebalance_drift_bps,
+                        current_fees_usd=total_fees_usd,
+                        rebalance_drift_bps=drift_bps,
                         rebalance_min_fees_usd=config.rebalance_min_fees_usd,
-                        exit_volatility_24h_pct=config.exit_volatility_24h_pct,
+                        exit_volatility_24h_pct=exit_vol_pct,
                     )
                     action = decide(ctx)
                     try:
@@ -291,6 +398,10 @@ async def run_loop() -> None:
                             pool=pool,
                             size_usd=max(position.deposited_value_usd, config.default_position_size_usd),
                         )
+                        # On-chain receipt for every non-HOLD action
+                        if action.type in (ActionType.REBALANCE, ActionType.EXIT, ActionType.CLAIM):
+                            memo = build_memo_text(action.type.value, pool.address, action.reason)
+                            await send_memo(rpc, wallet, memo, config.dry_run)
                     except Exception as exc:
                         await db.log_action(
                             pool.address,
@@ -302,13 +413,13 @@ async def run_loop() -> None:
                         )
                         log.exception("Action execution failed for position %s", position.id)
 
-                await sweep_to_vault(
-                    rpc=rpc,
-                    wallet_pubkey=wallet.pubkey(),
-                    network=config.network,
-                    keep_usdc=config.default_position_size_usd,
-                    dry_run=config.dry_run,
-                )
+                # await sweep_to_vault(
+                #     rpc=rpc,
+                #     wallet_pubkey=wallet.pubkey(),
+                #     network=config.network,
+                #     keep_usdc=config.default_position_size_usd,
+                #     dry_run=config.dry_run,
+                # )
 
                 await asyncio.sleep(config.loop_interval_seconds)
             except KeyboardInterrupt:

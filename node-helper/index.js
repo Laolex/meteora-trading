@@ -8,7 +8,7 @@ const crypto = require("crypto");
 const { Connection, Keypair, PublicKey, sendAndConfirmTransaction } = require("@solana/web3.js");
 const BN = require("bn.js");
 const anchor = require("@coral-xyz/anchor");
-const DLMM = require("@meteora-ag/dlmm").default;
+const DLMM = require("@meteora-ag/dlmm");
 
 function fail(message, extra = {}) {
   const err = { error: message, ...extra };
@@ -124,6 +124,12 @@ function validateDecimals(decimals, label) {
   }
 }
 
+function assertNonZeroAmounts(totalXAmount, totalYAmount) {
+  if (totalXAmount.isZero() && totalYAmount.isZero()) {
+    throw new Error("both amountX and amountY are zero — no liquidity would be deposited");
+  }
+}
+
 function uiAmountToBN(value, decimals, label) {
   validateDecimals(decimals, label);
 
@@ -184,6 +190,7 @@ async function openPositionReal(params) {
   const tokenYDecimals = Number(dlmm.tokenY?.mint?.decimals);
   const totalXAmount = uiAmountToBN(requireParam(params, "amountX"), tokenXDecimals, "amountX");
   const totalYAmount = uiAmountToBN(requireParam(params, "amountY"), tokenYDecimals, "amountY");
+  assertNonZeroAmounts(totalXAmount, totalYAmount);
   const positionKeypair = Keypair.generate();
 
   const strategy = {
@@ -203,7 +210,7 @@ async function openPositionReal(params) {
   const txList = Array.isArray(tx) ? tx : [tx];
   let signature = null;
   for (const oneTx of txList) {
-    signature = await sendAndConfirmTransaction(connection, oneTx, [owner, positionKeypair]);
+    signature = await sendAndConfirmTransaction(connection, oneTx, [owner, positionKeypair], { skipPreflight: true, confirmTransactionInitialTimeout: 120000 });
   }
 
   if (!signature) {
@@ -231,9 +238,15 @@ async function closePositionReal(params) {
   const { connection, owner } = await makeContext();
   const dlmm = await DLMM.create(connection, poolAddress);
 
+  // Workaround: dlmm.closePosition expects position.positionData and position.publicKey,
+  // but passing a raw PublicKey fails with "Account position not provided" in SDK 0.11.0.
+  // We fetch and wrap the decoded position account to satisfy the SDK's property access.
+  const decodedPosition = await dlmm.program.account.positionV2.fetch(positionPubkey);
+  const wrappedPosition = { publicKey: positionPubkey, ...decodedPosition };
+
   const tx = await dlmm.closePosition({
     owner: owner.publicKey,
-    position: positionPubkey,
+    position: wrappedPosition,
   });
 
   const txList = Array.isArray(tx) ? tx : [tx];
@@ -260,9 +273,27 @@ async function claimFeesReal(params) {
   const { connection, owner } = await makeContext();
   const dlmm = await DLMM.create(connection, poolAddress);
 
+  // SDK claimSwapFee requires the full position object (with positionData),
+  // not just a pubkey. Fetch all positions and find the matching one.
+  const { userPositions } = await dlmm.getPositionsByUserAndLbPair(owner.publicKey);
+  const positionObj = userPositions.find(
+    (p) => p.publicKey.toBase58() === positionPubkey.toBase58()
+  );
+  if (!positionObj) {
+    throw new Error(`Position ${positionPubkeyStr} not found in pool ${poolAddress.toBase58()}`);
+  }
+
+  if (
+    positionObj.positionData.feeX.isZero() &&
+    positionObj.positionData.feeY.isZero()
+  ) {
+    // No fees to claim — not an error, just a no-op
+    return { signature: "NO_FEES" };
+  }
+
   const tx = await dlmm.claimSwapFee({
     owner: owner.publicKey,
-    position: positionPubkey,
+    position: positionObj,
   });
 
   const txList = Array.isArray(tx) ? tx : [tx];
@@ -305,6 +336,13 @@ function claimFeesMock(params) {
   return { signature: mockSignature() };
 }
 
+async function getActiveBinReal(params) {
+  const poolAddress = new PublicKey(requireParam(params, "poolAddress"));
+  const { connection } = await makeContext();
+  const dlmm = await DLMM.create(connection, poolAddress);
+  return { activeBinId: dlmm.lbPair.activeId };
+}
+
 async function dispatch(payload) {
   ensureMethodAndParams(payload);
   const { method, params } = payload;
@@ -318,6 +356,9 @@ async function dispatch(payload) {
   }
   if (method === "claimFees") {
     return useMock ? claimFeesMock(params) : await claimFeesReal(params);
+  }
+  if (method === "getActiveBin") {
+    return await getActiveBinReal(params);
   }
 
   throw new Error(`Unsupported method '${method}'`);
@@ -338,6 +379,7 @@ module.exports = {
   _internal: {
     uiAmountToBN,
     validateDecimals,
+    assertNonZeroAmounts,
   },
 };
 

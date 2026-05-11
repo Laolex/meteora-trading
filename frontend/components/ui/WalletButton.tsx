@@ -70,9 +70,10 @@ export default function WalletButton() {
           borderRadius: "9999px",
           fontSize: "0.75rem",
           fontWeight: 500,
-          padding: "0.375rem 1rem",
+          padding: "0.5rem 1rem",
           height: "auto",
           lineHeight: "1.25rem",
+          minHeight: "44px",
         }}
       />
     )
@@ -84,7 +85,7 @@ export default function WalletButton() {
   if (state === "signing") {
     return (
       <span
-        className="text-xs font-medium px-4 py-2 rounded-full border"
+        className="text-xs font-medium px-4 py-2 rounded-full border min-h-11 inline-flex items-center"
         style={{ borderColor: "#f59e0b", color: "#f59e0b", background: "transparent" }}
       >
         Signing…
@@ -96,7 +97,7 @@ export default function WalletButton() {
     return (
       <button
         onClick={() => void handleDisconnect()}
-        className="flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full border transition-colors"
+        className="flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full border transition-colors min-h-11"
         style={{ borderColor: "#14f195", color: "#14f195", background: "transparent" }}
         title="Click to disconnect"
       >
@@ -114,7 +115,7 @@ export default function WalletButton() {
     return (
       <button
         onClick={() => void handleDisconnect()}
-        className="flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full border transition-colors"
+        className="flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full border transition-colors min-h-11"
         style={{ borderColor: "#14f195", color: "#14f195", background: "transparent" }}
         title="Connected as investor — click to disconnect"
       >
@@ -129,14 +130,14 @@ export default function WalletButton() {
       <div className="flex flex-col items-end gap-1">
         <div className="flex items-center gap-2">
           <span
-            className="text-xs font-medium px-3 py-1.5 rounded-full border"
+            className="text-xs font-medium px-3 py-1.5 rounded-full border min-h-11 inline-flex items-center"
             style={{ borderColor: "#f59e0b", color: "#f59e0b", background: "transparent" }}
           >
             Sign failed — retry
           </span>
           <button
             onClick={() => void attemptVerify()}
-            className="text-xs px-3 py-1.5 rounded-full border transition-colors"
+            className="text-xs px-3 py-1.5 rounded-full border transition-colors min-h-11"
             style={{ borderColor: "#14f195", color: "#14f195", background: "transparent" }}
           >
             Retry

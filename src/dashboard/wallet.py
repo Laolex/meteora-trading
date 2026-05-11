@@ -11,12 +11,12 @@ from solders.message import MessageV0
 from solders.pubkey import Pubkey  # type: ignore
 from solders.system_program import TransferParams, transfer
 from solders.transaction import VersionedTransaction
+from spl.token.instructions import get_associated_token_address  # type: ignore
 
 USDC_MINT_MAINNET = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 USDC_MINT_DEVNET = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
 
 _TOKEN_PROGRAM_ID = Pubkey.from_string("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
-_ASSOCIATED_TOKEN_PROGRAM_ID = Pubkey.from_string("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJe1brs")
 
 Network = Literal["mainnet", "devnet"]
 
@@ -24,11 +24,6 @@ Network = Literal["mainnet", "devnet"]
 def usdc_mint(network: Network) -> Pubkey:
     mint = USDC_MINT_MAINNET if network == "mainnet" else USDC_MINT_DEVNET
     return Pubkey.from_string(mint)
-
-
-def get_associated_token_address(owner: Pubkey, mint: Pubkey) -> Pubkey:
-    seeds = [bytes(owner), bytes(_TOKEN_PROGRAM_ID), bytes(mint)]
-    return Pubkey.find_program_address(seeds, _ASSOCIATED_TOKEN_PROGRAM_ID)[0]
 
 
 def spl_transfer_instruction(*, source: Pubkey, dest: Pubkey, owner: Pubkey, amount: int) -> Instruction:

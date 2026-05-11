@@ -1,59 +1,63 @@
 # Meteora Agent — Frontend
 
-Premium Next.js dashboard for the Meteora DLMM autonomous agent.
-Colosseum Solana Frontier Hackathon 2026.
+Next.js dashboard for the Meteora DLMM autonomous agent.  
+**Live:** https://meteora-agent.vercel.app
+
+## Stack
+
+- Next.js 16 (App Router)
+- Tailwind CSS v4
+- Motion (Framer Motion v12)
+- `@solana/wallet-adapter-react` — Phantom + Solflare
+- `@solana/web3.js` + `@solana/spl-token` — in-browser tx signing
+- FastAPI backend at `NEXT_PUBLIC_API_URL`
 
 ## Run locally
 
 ```bash
-cd /opt/meteora-agent/frontend
+cd frontend
 npm install
-npm run dev
-# → http://localhost:3000
+
+# Point at local backend (optional — falls back to mock data without it)
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
+echo "NEXT_PUBLIC_AUTHORIZED_PUBKEY=<your-operator-pubkey>" >> .env.local
+echo "NEXT_PUBLIC_SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=..." >> .env.local
+
+npm run dev   # → http://localhost:3000
 ```
 
-For production:
+## Pages
 
-```bash
-npm run build
-npm start
-```
+| Route | Description |
+|---|---|
+| `/` | Landing — thesis, architecture, safety rails, CTA |
+| `/dashboard` | Live agent state — positions, PnL, activity feed, LLM tuner |
+| `/safety` | Safety controls — kill switch, guard config, wallet balance |
+| `/architecture` | System diagram + module map |
+| `/proof` | Git log, DB reachability, recent on-chain actions |
 
-## Connect real API data
+## Dashboard features
 
-All data currently uses mock values in `lib/api.ts`. To wire the real FastAPI backend:
+- **Status bar** — mode (DRY_RUN / LIVE), network, kill switch state
+- **KPI cards** — open positions, daily fees, total deployed, PnL day/week
+- **Activity feed** — every agent decision with reason and tx signature
+- **Risk gauge** — position util, deployed util, daily loss guard status
+- **Wallet balance** — live SOL + USDC from RPC
+- **Fund Agent panel** — send SOL/USDC from connected wallet to hot wallet in one tx
+- **LLM Tuner panel** — current thresholds, last tuning reasoning, enable/disable toggle (operator only)
+- **Vault panel** — on-chain vault state, manager withdraw
 
-1. Set the env var:
-   ```bash
-   NEXT_PUBLIC_API_URL=http://localhost:8000   # or your VPS address
-   ```
+## Authentication
 
-2. In `lib/api.ts`, replace each `// TODO:` mock return with the fetch call shown in the comment. Example:
-   ```ts
-   // before (mock):
-   return { mode: "DRY_RUN", ... }
-
-   // after (real):
-   const res = await fetch(`${API_BASE}/status`)
-   return res.json()
-   ```
-
-3. Implement the FastAPI endpoints in `src/dashboard/` (currently a stub):
-   - `GET /status` → `AgentStatus`
-   - `GET /kpi` → `KpiSummary`
-   - `GET /activity?limit=N` → `ActivityItem[]`
-   - `GET /risk` → `RiskUtilization`
-   - `GET /safety` → `SafetyConfig`
-
-   All types are defined in `lib/api.ts`.
-
-## Add reveal.mp4
-
-Drop a product video at `public/reveal.mp4` and update `components/hero/HeroSection.tsx`
-to replace `<ParticleCanvas />` with a scroll-linked `<video>` element.
+Operator wallet (matching `NEXT_PUBLIC_AUTHORIZED_PUBKEY`) signs a nonce via wallet adapter → receives a JWT. Admin controls (kill switch, LLM toggle, withdraw) require this JWT. All other wallets connect as read-only investors.
 
 ## Deploy
 
 ```bash
-npx vercel --prod
+vercel --prod
 ```
+
+Environment variables required on Vercel:
+- `NEXT_PUBLIC_API_URL` — FastAPI backend URL
+- `NEXT_PUBLIC_AUTHORIZED_PUBKEY` — operator wallet pubkey
+- `NEXT_PUBLIC_SOLANA_RPC_URL` — Helius RPC endpoint

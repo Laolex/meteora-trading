@@ -1,79 +1,62 @@
-"use client"
-
-import { motion } from "motion/react"
-import { viewportOnce, ease } from "@/lib/motion"
 import type { ProofSnapshot } from "@/lib/api"
 
 interface TerminalBlockProps {
   title: string
   lines: { label?: string; value: string; color?: string }[]
-  delay?: number
 }
 
-function TerminalBlock({ title, lines, delay = 0 }: TerminalBlockProps) {
+function TerminalBlock({ title, lines }: TerminalBlockProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={viewportOnce}
-      transition={{ duration: 0.6, ease, delay }}
-      className="rounded-2xl overflow-hidden"
-      style={{ border: "1px solid #222222" }}
-    >
+    <div style={{ borderBottom: "1px solid #111" }}>
       <div
-        className="flex items-center gap-2 px-4 py-3"
-        style={{ borderBottom: "1px solid #1a1a1a", background: "#0d0d0d" }}
+        className="px-4 py-2 flex items-center gap-3"
+        style={{ borderBottom: "1px solid #111", background: "#0d0d0d" }}
       >
-        <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ef4444" }} />
-        <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#f59e0b" }} />
-        <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#14f195" }} />
-        <span className="ml-2 text-xs font-mono" style={{ color: "#444444" }}>{title}</span>
+        <span className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.12em", color: "#333", textTransform: "uppercase" }}>
+          $
+        </span>
+        <span className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.06em", color: "#555" }}>
+          {title}
+        </span>
       </div>
-      <div
-        className="p-4 font-mono text-xs space-y-1.5"
-        style={{ background: "#0a0a0a" }}
-      >
-        {lines.map(({ label, value, color = "#f5f5f5" }, i) => (
+      <div className="px-4 py-3 font-mono space-y-1" style={{ background: "#0a0a0a", fontSize: "10px", lineHeight: 1.65 }}>
+        {lines.map(({ label, value, color = "#eaeaea" }, i) => (
           <div key={i} className="flex gap-2">
-            {label && <span style={{ color: "#444444" }}>{label}</span>}
+            {label && <span style={{ color: "#333", flexShrink: 0 }}>{label}</span>}
             <span style={{ color }}>{value}</span>
           </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   )
 }
 
-interface Props {
-  proof: ProofSnapshot
-}
-
-export default function ReceiptsPanel({ proof }: Props) {
+export default function ReceiptsPanel({ proof }: { proof: ProofSnapshot }) {
   const gitLines = proof.gitLog.length > 0
     ? [
-        { label: "$", value: "git log --oneline -4", color: "#888888" },
+        { label: "$", value: "git log --oneline -4", color: "#555" },
         ...proof.gitLog.map((line) => ({ value: line })),
       ]
     : [
-        { label: "$", value: "git log --oneline -4", color: "#888888" },
-        { value: "no commits found", color: "#444444" },
+        { label: "$", value: "git log --oneline -4", color: "#555" },
+        { value: "no commits found", color: "#333" },
       ]
 
   const agentLines = [
-    { label: "$", value: "systemctl --user status meteora-agent", color: "#888888" },
+    { label: "$", value: "systemctl --user status meteora-agent", color: "#555" },
     { value: "● meteora-agent.service — Meteora DLMM Autonomous Agent" },
     { value: `   Mode: ${proof.agentMode}, network=${proof.agentNetwork}`, color: "#f59e0b" },
-    { value: `   DB: ${proof.dbReachable ? "connected" : "unreachable"}`, color: proof.dbReachable ? "#14f195" : "#ef4444" },
+    { value: `   DB: ${proof.dbReachable ? "connected" : "unreachable"}`, color: proof.dbReachable ? "#14f195" : "#e61919" },
   ]
 
   const actionLines: { label?: string; value: string; color?: string }[] = [
-    { label: "$", value: "SELECT action_type, pool_name, reason FROM actions_log ORDER BY id DESC LIMIT 3", color: "#888888" },
-    { value: " action_type │ pool_name    │ reason", color: "#444444" },
-    { value: "─────────────┼──────────────┼───────────────────────────────", color: "#333333" },
+    { label: "$", value: "SELECT action_type, pool_name, reason FROM actions_log ORDER BY id DESC LIMIT 3", color: "#555" },
+    { value: " action_type │ pool_name    │ reason", color: "#333" },
+    { value: "─────────────┼──────────────┼───────────────────────────────", color: "#222" },
   ]
 
   if (proof.recentActions.length === 0) {
-    actionLines.push({ value: " (no actions logged yet)", color: "#555555" })
+    actionLines.push({ value: " (no actions logged yet)", color: "#2a2a2a" })
   } else {
     for (const a of proof.recentActions) {
       const type = a.actionType.padEnd(12)
@@ -81,14 +64,17 @@ export default function ReceiptsPanel({ proof }: Props) {
       const reason = (a.reason ?? "").substring(0, 35)
       actionLines.push({ value: ` ${type} │ ${pool} │ ${reason}` })
     }
-    actionLines.push({ value: `(${proof.recentActions.length} rows)`, color: "#888888" })
+    actionLines.push({ value: `(${proof.recentActions.length} rows)`, color: "#555" })
   }
 
   return (
-    <div className="space-y-6">
-      <TerminalBlock title="git log --oneline -4" delay={0} lines={gitLines} />
-      <TerminalBlock title="systemctl status meteora-agent" delay={0.08} lines={agentLines} />
-      <TerminalBlock title="actions_log (recent)" delay={0.16} lines={actionLines} />
+    <div>
+      <div className="px-4 py-2" style={{ borderBottom: "1px solid #141414", background: "#0d0d0d" }}>
+        <span className="term-label">[ RECEIPTS ]</span>
+      </div>
+      <TerminalBlock title="git log --oneline -4" lines={gitLines} />
+      <TerminalBlock title="systemctl status meteora-agent" lines={agentLines} />
+      <TerminalBlock title="actions_log (recent)" lines={actionLines} />
     </div>
   )
 }

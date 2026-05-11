@@ -74,6 +74,7 @@ export interface SafetyConfig {
 
 export interface MarketSnapshot {
   solPriceUsd: number
+  metPriceUsd: number | null
   ongoingTrades: number
   updatedAt: string
 }
@@ -109,19 +110,23 @@ const NGROK_HEADERS: Record<string, string> = process.env.NEXT_PUBLIC_API_URL?.i
 
 async function apiFetch<T>(path: string, fallback: T): Promise<T> {
   if (!process.env.NEXT_PUBLIC_API_URL) return fallback
-  const res = await fetch(`${API_BASE}${path}`, {
-    cache: "no-store",
-    headers: NGROK_HEADERS,
-  })
-  if (!res.ok) throw new Error(`API ${path} → ${res.status}`)
-  return res.json() as Promise<T>
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      cache: "no-store",
+      headers: NGROK_HEADERS,
+    })
+    if (!res.ok) return fallback
+    return res.json() as Promise<T>
+  } catch {
+    return fallback
+  }
 }
 
 // --- Mock fallbacks (used when NEXT_PUBLIC_API_URL is not set) ---
 
 const MOCK_STATUS: AgentStatus = {
   mode: "DRY_RUN",
-  network: "devnet",
+  network: "mainnet",
   walletPubkey: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
   serviceStatus: "active",
   killSwitchPresent: false,
@@ -183,7 +188,7 @@ const MOCK_SAFETY: SafetyConfig = {
   maxTotalDeployedUsd: 500,
   dailyLossLimitPct: 5,
   maxOpenPositions: 1,
-  network: "devnet",
+  network: "mainnet",
 }
 
 const MOCK_WALLET_BALANCE: WalletBalance = {
@@ -245,28 +250,62 @@ export async function getProofSnapshot(): Promise<ProofSnapshot> {
   return apiFetch("/proof", MOCK_PROOF_SNAPSHOT)
 }
 
+export interface AgentState {
+  llmEnabled: boolean
+  llmDisabledByOperator: boolean
+  anthropicKeyConfigured: boolean
+  tunedAt: string | null
+  rebalanceDriftBps: number
+  exitVolatilityPct: number
+  reasoning: string | null
+  baseRangeBins: number
+}
+
+const MOCK_AGENT_STATE: AgentState = {
+  llmEnabled: false,
+  llmDisabledByOperator: false,
+  anthropicKeyConfigured: false,
+  tunedAt: null,
+  rebalanceDriftBps: 50,
+  exitVolatilityPct: 30.0,
+  reasoning: null,
+  baseRangeBins: 40,
+}
+
+export async function getAgentState(): Promise<AgentState> {
+  return apiFetch("/agent/state", MOCK_AGENT_STATE).catch(() => MOCK_AGENT_STATE)
+}
+
+// MET token mint on Solana mainnet
+
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
-  const response = await fetch(
-    "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",
-    { cache: "no-store" },
-  )
+  const [cgRes, activity] = await Promise.allSettled([
+    fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana,meteora&vs_currencies=usd", { cache: "no-store" }),
+    getActivity(50),
+  ])
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch SOL price: ${response.status}`)
+  let solPriceUsd: number | null = null
+  let metPriceUsd: number | null = null
+
+  if (cgRes.status === "fulfilled" && cgRes.value.ok) {
+    const data = (await cgRes.value.json()) as {
+      solana?: { usd?: number }
+      meteora?: { usd?: number }
+    }
+    solPriceUsd = data.solana?.usd ?? null
+    metPriceUsd = data.meteora?.usd ?? null
   }
-
-  const data = (await response.json()) as { solana?: { usd?: number } }
-  const solPriceUsd = data.solana?.usd
 
   if (typeof solPriceUsd !== "number") {
-    throw new Error("Invalid SOL price payload")
+    solPriceUsd = 0
   }
 
-  const activity = await getActivity(50)
-  const ongoingTrades = activity.filter((item) => item.success === null).length
+  const acts = activity.status === "fulfilled" ? activity.value : []
+  const ongoingTrades = acts.filter((item) => item.success === null).length
 
   return {
     solPriceUsd,
+    metPriceUsd,
     ongoingTrades,
     updatedAt: new Date().toISOString(),
   }

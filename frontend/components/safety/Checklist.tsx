@@ -1,4 +1,3 @@
-import Card from "@/components/ui/Card"
 import type { SafetyConfig, WalletBalance } from "@/lib/api"
 
 interface Props {
@@ -42,38 +41,48 @@ export default function Checklist({ safety, wallet, dbReachable }: Props) {
   ]
 
   return (
-    <Card>
-      <h2 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "#888888" }}>
-        Before going live — checklist
-      </h2>
-      <ul className="space-y-3">
+    <div>
+      <div className="px-4 py-2" style={{ borderBottom: "1px solid #141414" }}>
+        <span className="term-label">[ PRE-LIVE CHECKLIST ]</span>
+      </div>
+      <div>
         {items.map(({ label, done, detail }) => (
-          <li key={label} className="flex items-start gap-3 text-sm">
+          <div
+            key={label}
+            className="px-4 py-3 flex items-start gap-3"
+            style={{ borderBottom: "1px solid #111" }}
+          >
             <span
-              className="mt-0.5 w-4 h-4 rounded flex items-center justify-center text-xs flex-shrink-0"
+              className="font-mono flex-shrink-0 mt-0.5"
               style={{
-                background: done ? "#14f19520" : "#1a1a1a",
-                border: `1px solid ${done ? "#14f195" : "#333"}`,
-                color: done ? "#14f195" : "#444",
+                fontSize: "9px",
+                letterSpacing: "0.08em",
+                padding: "1px 5px",
+                border: `1px solid ${done ? "#14f195" : "#2a2a2a"}`,
+                color: done ? "#14f195" : "#2a2a2a",
+                background: done ? "#14f1950d" : "transparent",
               }}
-              aria-label={done ? "done" : "not done"}
             >
-              {done ? "✓" : ""}
+              {done ? "OK" : "··"}
             </span>
-            <span style={{ color: done ? "#f5f5f5" : "#888888" }}>
-              {label}
+            <div className="flex-1 min-w-0">
+              <div className="font-mono" style={{ fontSize: "10px", color: done ? "#888" : "#3a3a3a", letterSpacing: "0.03em" }}>
+                {label}
+              </div>
               {detail && (
-                <span className="ml-2 font-mono text-xs" style={{ color: done ? "#14f19580" : "#444" }}>
+                <div className="font-mono mt-0.5" style={{ fontSize: "9px", color: done ? "#14f19560" : "#2a2a2a", letterSpacing: "0.06em" }}>
                   [{detail}]
-                </span>
+                </div>
               )}
-            </span>
-          </li>
+            </div>
+          </div>
         ))}
-      </ul>
-      <p className="text-xs mt-4" style={{ color: "#444444" }}>
-        Live data — update via .env and agent config.
-      </p>
-    </Card>
+      </div>
+      <div className="px-4 py-2">
+        <span className="font-mono" style={{ fontSize: "8px", color: "#2a2a2a", letterSpacing: "0.06em" }}>
+          LIVE DATA — UPDATE VIA .ENV AND AGENT CONFIG
+        </span>
+      </div>
+    </div>
   )
 }

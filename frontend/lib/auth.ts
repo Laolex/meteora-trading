@@ -83,6 +83,22 @@ export async function adminKillSwitch(arm: boolean): Promise<{ ok: boolean; arme
   return res.json() as Promise<{ ok: boolean; armed: boolean }>
 }
 
+export async function adminToggleLlm(enable: boolean): Promise<{ ok: boolean; enabled: boolean }> {
+  const token = getToken()
+  if (!token) throw new Error("Not authenticated")
+  const res = await fetch(`${API_BASE}/admin/llm-toggle`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...NGROK_HEADERS,
+    },
+    body: JSON.stringify({ enable }),
+  })
+  if (!res.ok) throw new Error(`llm-toggle failed: ${res.status}`)
+  return res.json() as Promise<{ ok: boolean; enabled: boolean }>
+}
+
 export async function adminWithdraw(
   amountSol: number,
   amountUsdc: number,
@@ -104,6 +120,48 @@ export async function adminWithdraw(
     throw new Error((err as { detail?: string }).detail ?? `withdraw failed: ${res.status}`)
   }
   return res.json() as Promise<{ ok: boolean; txSignature: string }>
+}
+
+export async function adminUpdateConfig(params: {
+  maxPositionUsd?: number
+  maxTotalDeployedUsd?: number
+  dailyLossPct?: number
+}): Promise<{ ok: boolean }> {
+  const token = getToken()
+  if (!token) throw new Error("Not authenticated")
+  const res = await fetch(`${API_BASE}/admin/config`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...NGROK_HEADERS,
+    },
+    body: JSON.stringify(params),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Unknown error" }))
+    throw new Error((err as { detail?: string }).detail ?? `config update failed: ${res.status}`)
+  }
+  return res.json() as Promise<{ ok: boolean }>
+}
+
+export async function adminSetLlmKey(apiKey: string, provider: "anthropic" | "openai" = "anthropic"): Promise<{ ok: boolean; provider: string }> {
+  const token = getToken()
+  if (!token) throw new Error("Not authenticated")
+  const res = await fetch(`${API_BASE}/admin/llm-key`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...NGROK_HEADERS,
+    },
+    body: JSON.stringify({ apiKey, provider }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Unknown error" }))
+    throw new Error((err as { detail?: string }).detail ?? `llm-key failed: ${res.status}`)
+  }
+  return res.json() as Promise<{ ok: boolean; provider: string }>
 }
 
 export async function vaultManagerWithdraw(

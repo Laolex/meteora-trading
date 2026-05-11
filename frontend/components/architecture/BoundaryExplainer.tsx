@@ -1,9 +1,3 @@
-"use client"
-
-import { motion } from "motion/react"
-import { staggerContainer, cardReveal, viewportOnce } from "@/lib/motion"
-import Card from "@/components/ui/Card"
-
 const boundaries = [
   {
     q: "What signs transactions?",
@@ -21,21 +15,27 @@ const boundaries = [
 
 export default function BoundaryExplainer() {
   return (
-    <motion.div
-      variants={staggerContainer}
-      initial="hidden"
-      whileInView="visible"
-      viewport={viewportOnce}
-      className="grid md:grid-cols-3 gap-6"
-    >
-      {boundaries.map(({ q, a }) => (
-        <motion.div key={q} variants={cardReveal}>
-          <Card className="h-full">
-            <p className="text-sm font-semibold mb-3" style={{ color: "#14f195" }}>{q}</p>
-            <p className="text-sm leading-relaxed" style={{ color: "#888888" }}>{a}</p>
-          </Card>
-        </motion.div>
+    <div style={{ border: "1px solid #1e1e1e", background: "#0d0d0d" }}>
+      {boundaries.map(({ q, a }, i) => (
+        <div
+          key={q}
+          className="px-4 py-4"
+          style={{ borderBottom: i < boundaries.length - 1 ? "1px solid #111" : undefined }}
+        >
+          <div
+            className="font-mono mb-2"
+            style={{ fontSize: "10px", color: "#14f195", letterSpacing: "0.08em", textTransform: "uppercase" }}
+          >
+            Q: {q}
+          </div>
+          <p
+            className="font-mono"
+            style={{ fontSize: "10px", letterSpacing: "0.03em", color: "#555", lineHeight: 1.75 }}
+          >
+            {a}
+          </p>
+        </div>
       ))}
-    </motion.div>
+    </div>
   )
 }

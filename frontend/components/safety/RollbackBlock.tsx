@@ -1,18 +1,19 @@
-import Card from "@/components/ui/Card"
-
 const steps = [
   {
-    title: "1. Enable kill switch",
+    label: "STEP 1",
+    title: "Enable kill switch",
     code: "touch /opt/meteora-agent/var/kill",
     note: "Agent halts within one loop iteration (~60s).",
   },
   {
-    title: "2. Stop the service",
+    label: "STEP 2",
+    title: "Stop the service",
     code: "pkill -f 'python -m src.main'\n# or: systemctl --user stop meteora-agent",
     note: "Wait for the process to exit cleanly.",
   },
   {
-    title: "3. Tail logs",
+    label: "STEP 3",
+    title: "Tail logs",
     code: "tail -f /opt/meteora-agent/runtime.log",
     note: "Confirm last action and check for open positions before re-enabling.",
   },
@@ -20,24 +21,39 @@ const steps = [
 
 export default function RollbackBlock() {
   return (
-    <Card>
-      <h2 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "#888888" }}>
-        Incident / rollback procedure
-      </h2>
-      <div className="space-y-6">
-        {steps.map(({ title, code, note }) => (
-          <div key={title}>
-            <p className="text-sm font-medium mb-2" style={{ color: "#f5f5f5" }}>{title}</p>
+    <div>
+      <div className="px-4 py-2" style={{ borderBottom: "1px solid #141414" }}>
+        <span className="term-label">[ INCIDENT / ROLLBACK PROCEDURE ]</span>
+      </div>
+      <div>
+        {steps.map(({ label, title, code, note }, i) => (
+          <div
+            key={label}
+            className="px-4 py-4"
+            style={{ borderBottom: i < steps.length - 1 ? "1px solid #111" : undefined }}
+          >
+            <div className="flex items-baseline gap-3 mb-2">
+              <span className="font-mono" style={{ fontSize: "8px", letterSpacing: "0.12em", color: "#e61919" }}>{label}</span>
+              <span className="font-mono" style={{ fontSize: "10px", color: "#888", letterSpacing: "0.06em", textTransform: "uppercase" }}>{title}</span>
+            </div>
             <pre
-              className="text-xs font-mono p-3 rounded-xl overflow-x-auto"
-              style={{ background: "#0d0d0d", border: "1px solid #1a1a1a", color: "#14f195" }}
+              className="font-mono overflow-x-auto"
+              style={{
+                fontSize: "10px",
+                padding: "8px 12px",
+                background: "#0a0a0a",
+                border: "1px solid #1e1e1e",
+                color: "#14f195",
+                lineHeight: 1.6,
+                letterSpacing: "0.02em",
+              }}
             >
               {code}
             </pre>
-            <p className="text-xs mt-2" style={{ color: "#888888" }}>{note}</p>
+            <p className="font-mono mt-2" style={{ fontSize: "9px", color: "#3a3a3a", letterSpacing: "0.03em" }}>{note}</p>
           </div>
         ))}
       </div>
-    </Card>
+    </div>
   )
 }

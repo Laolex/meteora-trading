@@ -28,10 +28,7 @@ class VaultOpResponse(BaseModel):
 
 @router.get("/state")
 async def vault_state():
-    try:
-        return await vault_client.get_state()
-    except Exception as exc:
-        return {"initialized": False, "error": str(exc)}
+    return {"initialized": False, "note": "vault disabled — manual funding only"}
 
 
 @router.post("/manager-withdraw", response_model=VaultOpResponse)

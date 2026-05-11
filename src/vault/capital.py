@@ -1,4 +1,3 @@
-"""Vault capital helpers: top up hot wallet from vault and sweep surplus back."""
 from __future__ import annotations
 
 import logging
@@ -6,7 +5,7 @@ import logging
 from solana.rpc.async_api import AsyncClient
 from solders.pubkey import Pubkey  # type: ignore
 
-from src.dashboard.wallet import get_balance
+from src.dashboard.wallet import Network, get_balance
 from src.vault import client as vault_client
 
 log = logging.getLogger(__name__)
@@ -15,7 +14,7 @@ log = logging.getLogger(__name__)
 async def top_up_if_needed(
     rpc: AsyncClient,
     wallet_pubkey: Pubkey,
-    network: str,
+    network: "Network",
     required_usdc: float,
     dry_run: bool,
 ) -> None:
@@ -39,7 +38,7 @@ async def top_up_if_needed(
 async def sweep_to_vault(
     rpc: AsyncClient,
     wallet_pubkey: Pubkey,
-    network: str,
+    network: "Network",
     keep_usdc: float,
     dry_run: bool,
 ) -> None:

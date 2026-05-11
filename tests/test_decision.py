@@ -3,11 +3,12 @@ Decision engine tests. Cover every branch of the decision tree.
 """
 from __future__ import annotations
 
+import pytest
 from datetime import datetime
 
 from src.discovery.models import PoolSnapshot
 from src.position.models import Position, PositionStatus
-from src.rebalance.decision import ActionType, DecisionContext, decide
+from src.rebalance.decision import ActionType, DecisionContext, compute_volatility_pct, decide
 
 
 def _pool(active_bin: int = 0, bin_step: int = 25) -> PoolSnapshot:
@@ -73,6 +74,22 @@ def test_in_range_high_drift_rebalances():
     # active_bin=8, range -10..10, center=0, bin_step=25 → drift = 8*25 = 200bps > 50bps
     action = decide(_ctx(_position(), _pool(active_bin=8)))
     assert action.type == ActionType.REBALANCE
+
+
+def test_compute_volatility_pct_normal():
+    assert compute_volatility_pct(110.0, 100.0) == pytest.approx(10.0)
+
+
+def test_compute_volatility_pct_downward():
+    assert compute_volatility_pct(90.0, 100.0) == pytest.approx(10.0)
+
+
+def test_compute_volatility_pct_no_baseline():
+    assert compute_volatility_pct(150.0, None) == 0.0
+
+
+def test_compute_volatility_pct_zero_baseline():
+    assert compute_volatility_pct(150.0, 0.0) == 0.0
 
 
 def test_recenter_preserves_width():

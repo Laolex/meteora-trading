@@ -1,8 +1,7 @@
 import HeroSection from "@/components/hero/HeroSection"
 import ValuePillars from "@/components/landing/ValuePillars"
-import HowItWorks from "@/components/landing/HowItWorks"
+import FlowAndProof from "@/components/landing/FlowAndProof"
 import SafetyBlock from "@/components/landing/SafetyBlock"
-import ProofBlock from "@/components/landing/ProofBlock"
 import CtaSection from "@/components/landing/CtaSection"
 import { getSafetyConfig, getProofSnapshot } from "@/lib/api"
 
@@ -15,8 +14,7 @@ export default async function Home() {
     <>
       <HeroSection />
       <ValuePillars />
-      <HowItWorks />
-      <ProofBlock proof={proof} />
+      <FlowAndProof proof={proof} />
       <SafetyBlock safety={safety} />
       <CtaSection />
     </>
