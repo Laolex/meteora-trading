@@ -133,7 +133,7 @@ export default function HeroSection() {
             className="grid grid-cols-1 sm:grid-cols-3 w-full sm:w-auto"
             style={{ border: "1px solid #222", background: "#0a0a0a" }}
           >
-            {stats.map(({ label, value }, i) => (
+            {stats.map(({ label, value }) => (
               <div
                 key={label}
                 className="px-6 py-4 text-center border-b border-[#1a1a1a] sm:border-b-0 sm:border-r sm:border-[#1a1a1a] last:border-b-0 last:sm:border-r-0"

@@ -67,10 +67,10 @@ export default function FlowAndProof({ proof }: Props) {
             className="mb-14"
           >
             <span
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.18em] font-medium mb-5"
-              style={{ background: "rgba(20,241,149,0.08)", color: "#14f195", border: "1px solid rgba(20,241,149,0.15)" }}
+              className="inline-flex items-center gap-2 px-3 py-1 text-[10px] uppercase tracking-[0.18em] font-medium mb-5"
+              style={{ background: "#0d0d0d", color: "#14f195", border: "1px solid #1e1e1e" }}
             >
-              <span className="w-1 h-1 rounded-full" style={{ background: "#14f195" }} />
+              <span className="w-1 h-1" style={{ background: "#14f195" }} />
               The loop
             </span>
             <h2 className="text-3xl md:text-5xl font-bold" style={{ color: "#f0f0f0", letterSpacing: "-0.025em" }}>
@@ -99,25 +99,15 @@ export default function FlowAndProof({ proof }: Props) {
                 variants={cardReveal}
               >
                 {/* outer shell */}
-                <div
-                  style={{
-                    padding: "5px",
-                    borderRadius: "1.75rem",
-                    background: "rgba(255,255,255,0.025)",
-                    border: "1px solid rgba(255,255,255,0.07)",
-                  }}
-                >
+                <div style={{ padding: "1px", background: "#1e1e1e" }}>
                   <motion.div
                     className="flex flex-col px-6 py-7 h-full"
                     style={{
-                      borderRadius: "calc(1.75rem - 5px)",
-                      background: "linear-gradient(160deg, rgba(16,22,30,0.92) 0%, rgba(12,18,26,0.86) 100%)",
-                      border: "1px solid rgba(20,241,149,0.08)",
-                      boxShadow: "inset 0 1px 1px rgba(255,255,255,0.05)",
+                      background: "#0d0d0d",
+                      border: "1px solid #141414",
                     }}
                     whileHover={{
-                      borderColor: "rgba(20,241,149,0.22)",
-                      boxShadow: "0 0 24px rgba(20,241,149,0.07), inset 0 1px 1px rgba(255,255,255,0.07)",
+                      borderColor: "#14f19566",
                     }}
                     transition={{ duration: 0.22 }}
                   >
@@ -131,10 +121,10 @@ export default function FlowAndProof({ proof }: Props) {
                       </span>
                       {i < steps.length - 1 && (
                         <span
-                          className="ml-auto w-1.5 h-1.5 rounded-full"
-                          style={{ background: "rgba(20,241,149,0.3)" }}
-                          aria-hidden
-                        />
+                            className="ml-auto w-1.5 h-1.5"
+                            style={{ background: "rgba(20,241,149,0.3)" }}
+                            aria-hidden
+                          />
                       )}
                     </div>
                     <h3 className="text-base font-semibold mb-3" style={{ color: "#f0f0f0", letterSpacing: "-0.015em" }}>
@@ -160,16 +150,16 @@ export default function FlowAndProof({ proof }: Props) {
             className="mb-14"
           >
             <span
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.18em] font-medium mb-5"
-              style={{ background: "rgba(20,241,149,0.08)", color: "#14f195", border: "1px solid rgba(20,241,149,0.15)" }}
+              className="inline-flex items-center gap-2 px-3 py-1 text-[10px] uppercase tracking-[0.18em] font-medium mb-5"
+              style={{ background: "#0d0d0d", color: "#14f195", border: "1px solid #1e1e1e" }}
             >
-              <span className="w-1 h-1 rounded-full" style={{ background: "#14f195" }} />
+              <span className="w-1 h-1" style={{ background: "#14f195" }} />
               Live receipts
             </span>
             <h2 className="text-3xl md:text-5xl font-bold mb-3" style={{ color: "#f0f0f0", letterSpacing: "-0.025em" }}>
               Proof of operation
             </h2>
-            <p className="text-base" style={{ color: "#555" }}>
+            <p className="text-base" style={{ color: "#7a7a7a" }}>
               The agent runs. These aren&apos;t mock screenshots.
             </p>
           </motion.div>
@@ -181,21 +171,12 @@ export default function FlowAndProof({ proof }: Props) {
             viewport={viewportOnce}
             transition={{ duration: 0.85, ease }}
           >
-            <div
-              style={{
-                padding: "5px",
-                borderRadius: "1.75rem",
-                background: "rgba(255,255,255,0.025)",
-                border: "1px solid rgba(255,255,255,0.07)",
-              }}
-            >
+            <div style={{ padding: "1px", background: "#1e1e1e" }}>
               <div
                 className="overflow-hidden font-mono text-sm"
                 style={{
-                  borderRadius: "calc(1.75rem - 5px)",
-                  background: "linear-gradient(160deg, rgba(8,12,18,0.98) 0%, rgba(6,10,16,0.95) 100%)",
-                  border: "1px solid rgba(20,241,149,0.1)",
-                  boxShadow: "inset 0 1px 1px rgba(255,255,255,0.04)",
+                  background: "#0a0a0a",
+                  border: "1px solid #141414",
                 }}
               >
                 {/* terminal chrome */}
@@ -218,11 +199,12 @@ export default function FlowAndProof({ proof }: Props) {
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={viewportOnce}
                       transition={{ duration: 0.45, ease, delay: i * 0.1 }}
+                      className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2"
                     >
-                      <span style={{ color: "#2a2a2a" }}>$ </span>
-                      <span style={{ color: "#444" }}>{label} </span>
-                      <span style={{ color: "#333" }}>→ </span>
-                      <span style={{ color }}>{value}</span>
+                      <span style={{ color: "#2a2a2a" }}>$</span>
+                      <span style={{ color: "#444" }}>{label}</span>
+                      <span style={{ color: "#333" }}>→</span>
+                      <span className="break-words" style={{ color }}>{value}</span>
                     </motion.div>
                   ))}
                 </div>

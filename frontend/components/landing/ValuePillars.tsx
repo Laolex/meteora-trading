@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react"
 import { staggerContainer, cardReveal, viewportOnce, ease } from "@/lib/motion"
-import Card from "@/components/ui/Card"
 
 function IconBolt() {
   return (
@@ -81,10 +80,10 @@ export default function ValuePillars() {
           className="mb-14"
         >
           <span
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.18em] font-medium mb-5"
-            style={{ background: "rgba(20,241,149,0.08)", color: "#14f195", border: "1px solid rgba(20,241,149,0.15)" }}
+            className="inline-flex items-center gap-2 px-3 py-1 text-[10px] uppercase tracking-[0.18em] font-medium mb-5"
+            style={{ background: "#0d0d0d", color: "#14f195", border: "1px solid #1e1e1e" }}
           >
-            <span className="w-1 h-1 rounded-full" style={{ background: "#14f195" }} />
+            <span className="w-1 h-1" style={{ background: "#14f195" }} />
             What it does
           </span>
           <h2 className="text-3xl md:text-5xl font-bold" style={{ color: "#f0f0f0", letterSpacing: "-0.025em", maxWidth: "600px" }}>
@@ -103,31 +102,21 @@ export default function ValuePillars() {
           {/* featured card — col-span-3, row-span-2 */}
           <motion.div variants={cardReveal} className="md:col-span-3 md:row-span-2">
             {/* outer shell */}
-            <div
-              className="h-full"
-              style={{
-                padding: "5px",
-                borderRadius: "2rem",
-                background: "rgba(255,255,255,0.025)",
-                border: "1px solid rgba(255,255,255,0.07)",
-              }}
-            >
+            <div className="h-full" style={{ padding: "1px", background: "#1e1e1e" }}>
               <motion.div
-                className="h-full rounded-[calc(2rem-5px)] p-8 md:p-10 flex flex-col"
+                className="h-full p-7 md:p-9 flex flex-col"
                 style={{
-                  background: "linear-gradient(160deg, rgba(16,22,30,0.96) 0%, rgba(12,18,26,0.9) 100%)",
-                  border: "1px solid rgba(20,241,149,0.12)",
-                  boxShadow: "inset 0 1px 1px rgba(255,255,255,0.06)",
+                  background: "#0d0d0d",
+                  border: "1px solid #141414",
                 }}
                 whileHover={{
-                  borderColor: "rgba(20,241,149,0.28)",
-                  boxShadow: "0 0 40px rgba(20,241,149,0.08), inset 0 1px 1px rgba(255,255,255,0.08)",
+                  borderColor: "#14f19566",
                 }}
                 transition={{ duration: 0.25 }}
               >
                 <div
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center mb-8"
-                  style={{ background: "rgba(20,241,149,0.08)", border: "1px solid rgba(20,241,149,0.14)" }}
+                  className="w-11 h-11 flex items-center justify-center mb-8"
+                  style={{ background: "#0a0a0a", border: "1px solid #1e1e1e" }}
                 >
                   <IconBolt />
                 </div>
@@ -142,7 +131,7 @@ export default function ValuePillars() {
                 </p>
 
                 {/* accent metric */}
-                <div className="mt-auto pt-10 flex items-end gap-6">
+                 <div className="mt-auto pt-10 flex flex-wrap items-end gap-6">
                   <div>
                     <p className="text-4xl font-bold font-mono" style={{ color: "#14f195", letterSpacing: "-0.03em", textShadow: "0 0 30px rgba(20,241,149,0.3)" }}>
                       ~60s
@@ -167,10 +156,15 @@ export default function ValuePillars() {
           {/* smaller cards — col-span-2 each */}
           {pillars.slice(1).map(({ Icon, title, description }) => (
             <motion.div key={title} variants={cardReveal} className="md:col-span-2">
-              <Card className="h-full" hover tone="glass" bezel>
+              <motion.div
+                className="h-full p-6"
+                style={{ background: "#0d0d0d", border: "1px solid #1e1e1e" }}
+                whileHover={{ borderColor: "#14f19566" }}
+                transition={{ duration: 0.2 }}
+              >
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-6"
-                  style={{ background: "rgba(20,241,149,0.08)", border: "1px solid rgba(20,241,149,0.14)" }}
+                  className="w-10 h-10 flex items-center justify-center mb-6"
+                  style={{ background: "#0a0a0a", border: "1px solid #1e1e1e" }}
                 >
                   <Icon />
                 </div>
@@ -180,7 +174,7 @@ export default function ValuePillars() {
                 <p className="text-sm leading-relaxed" style={{ color: "#7a7a7a" }}>
                   {description}
                 </p>
-              </Card>
+              </motion.div>
             </motion.div>
           ))}
         </motion.div>
