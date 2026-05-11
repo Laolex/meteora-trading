@@ -60,7 +60,7 @@ class MeteoraPositionManager:
     SOL_RENT_PER_BIN_ARRAY: float = 0.072   # SOL cost per 10240-byte account (rent exempt min)
     TX_FEE_BUFFER_SOL: float = 0.050         # buffer for tx fees + unforeseen costs
     MIN_SOL_WALLET: float = 0.25            # do NOT attempt positions below this balance
-    MIN_RENT_COVERAGE_MULTIPLIER: float = 2.0  # position USD must be ≥ this × bin array rent in USD
+    MIN_RENT_COVERAGE_MULTIPLIER: float = 1.0  # position USD must be ≥ this × bin array rent in USD
 
     def __init__(
         self,
@@ -87,6 +87,10 @@ class MeteoraPositionManager:
         resp = await self._rpc.get_balance(self._wallet.pubkey())
         return resp.value / 1e9
 
+    async def _get_wallet_sol_lamports(self) -> int:
+        resp = await self._rpc.get_balance(self._wallet.pubkey())
+        return resp.value
+
     async def _check_position_sol_viability(
         self, amount_y_usd: float, bin_range: PositionRange
     ) -> str | None:
@@ -97,12 +101,16 @@ class MeteoraPositionManager:
           2. Wallet has enough SOL to pay rent + fees
         """
         n_bins = self._num_bin_arrays_estimate(bin_range)
-        rent_sol = n_bins * self.SOL_RENT_PER_BIN_ARRAY
-        total_sol_needed = rent_sol + self.TX_FEE_BUFFER_SOL
+        # Use integer lamport arithmetic to avoid float precision issues
+        rent_lamports = round(n_bins * self.SOL_RENT_PER_BIN_ARRAY * 1_000_000_000)
+        buffer_lamports = round(self.TX_FEE_BUFFER_SOL * 1_000_000_000)
+        total_lamports_needed = rent_lamports + buffer_lamports
 
         # ── check 1: SOL wallet balance ──────────────────────────────────
-        wallet_sol = await self._get_wallet_sol_balance()
-        if wallet_sol < total_sol_needed:
+        wallet_lamports = await self._get_wallet_sol_lamports()
+        wallet_sol = wallet_lamports / 1e9
+        total_sol_needed = total_lamports_needed / 1e9
+        if wallet_lamports < total_lamports_needed:
             return (
                 f"wallet SOL {wallet_sol:.4f} < required {total_sol_needed:.4f} "
                 f"({n_bins} bins × {self.SOL_RENT_PER_BIN_ARRAY} + {self.TX_FEE_BUFFER_SOL} buffer)"

@@ -155,6 +155,8 @@ async def _execute_action(
             amount_y=size_usd,
             bin_range=y_only_range(pool.active_bin_id, rebalance_width),
         )
+        if open_result.error:
+            raise RuntimeError(f"Rebalance open blocked by SOL guard: {open_result.error}")
         open_result.position.deposited_value_usd = size_usd
         await db.upsert_position(open_result.position)
         await db.log_action(
@@ -271,23 +273,26 @@ async def run_loop() -> None:
                             amount_y=config.default_position_size_usd,
                             bin_range=r,
                         )
-                        opened.position.deposited_value_usd = config.default_position_size_usd
-                        await db.upsert_position(opened.position)
-                        await db.log_action(
-                            top.address,
-                            Action(ActionType.REBALANCE, "opened initial position"),
-                            position_id=opened.position.id,
-                            executed=True,
-                            tx_signature=opened.tx_signature,
-                            success=True,
-                        )
-                        log.info(
-                            "Opened initial position on %s (%s) bins %d..%d",
-                            top.name,
-                            top.address,
-                            r.lower_bin_id,
-                            r.upper_bin_id,
-                        )
+                        if opened.error:
+                            log.warning("Position open blocked by SOL guard: %s", opened.error)
+                        else:
+                            opened.position.deposited_value_usd = config.default_position_size_usd
+                            await db.upsert_position(opened.position)
+                            await db.log_action(
+                                top.address,
+                                Action(ActionType.REBALANCE, "opened initial position"),
+                                position_id=opened.position.id,
+                                executed=True,
+                                tx_signature=opened.tx_signature,
+                                success=True,
+                            )
+                            log.info(
+                                "Opened initial position on %s (%s) bins %d..%d",
+                                top.name,
+                                top.address,
+                                r.lower_bin_id,
+                                r.upper_bin_id,
+                            )
                     else:
                         log.warning("Initial open blocked by guard: %s", guard_res.reason)
 
