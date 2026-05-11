@@ -26,7 +26,7 @@ type DashboardPosition = {
   feesEarnedUsd: number
   openedAt: string
   status: string
-  txSignatureOpen: string
+  txSignatureOpen: string | null
 }
 
 const NGROK_HEADERS: Record<string, string> = API_BASE.includes("ngrok")
@@ -121,10 +121,9 @@ export default function DashboardPage() {
     [status?.walletPubkey, kpi?.openPositions, positions.length],
   )
 
-  const livePositions = useMemo(
-    () => positions.filter((p) => p.status === "open"),
-    [positions],
-  )
+  const livePositions = useMemo(() => {
+    return positions.filter((p) => p.status?.toLowerCase() === "open")
+  }, [positions])
 
   if (!connected || !authed) {
     return (
@@ -198,9 +197,13 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2" style={{ gap: "1px", background: "#1e1e1e" }}>
+      <StatusRow status={status} />
+
+      <div
+        className="grid gap-0 lg:grid-cols-[240px,1fr] items-start mt-px"
+        style={{ gap: "1px", background: "#1e1e1e", marginTop: "1px" }}
+      >
         <div style={{ background: "#0A0A0A" }}>
-          <StatusRow status={status} />
           <div style={{ borderTop: "1px solid #1e1e1e" }}>
             <VaultPanel />
           </div>
@@ -219,7 +222,7 @@ export default function DashboardPage() {
           <div style={{ borderTop: "1px solid #1e1e1e" }}>
             <CollapsibleSection label="[ METEORA LIVE POSITIONS ]" badge={`${livePositions.length} ACTIVE`} defaultOpen={true}>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[940px] font-mono" style={{ fontSize: "10px", borderCollapse: "collapse" }}>
+                <table className="w-full min-w-[760px] font-mono" style={{ fontSize: "10px", borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ borderBottom: "1px solid #141414" }}>
                       {["POOL", "RANGE", "DEPLOYED", "FEES", "STATUS", "OPENED", "TXN"].map((label) => (
@@ -243,14 +246,18 @@ export default function DashboardPage() {
                         <td className="px-4 py-2" style={{ color: p.status === "open" ? "#14f195" : "#666" }}>{p.status.toUpperCase()}</td>
                         <td className="px-4 py-2" style={{ color: "#666" }}>{new Date(p.openedAt).toLocaleString()}</td>
                         <td className="px-4 py-2" style={{ color: "#888" }}>
-                          <a
-                            href={`https://explorer.solana.com/tx/${p.txSignatureOpen}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ color: "#e61919", textDecoration: "none", letterSpacing: "0.08em" }}
-                          >
-                            {p.txSignatureOpen.slice(0, 10)}…
-                          </a>
+                          {p.txSignatureOpen ? (
+                            <a
+                              href={`https://explorer.solana.com/tx/${p.txSignatureOpen}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: "#e61919", textDecoration: "none", letterSpacing: "0.08em" }}
+                            >
+                              {p.txSignatureOpen.slice(0, 10)}…
+                            </a>
+                          ) : (
+                            <span>—</span>
+                          )}
                         </td>
                       </tr>
                     ))}
