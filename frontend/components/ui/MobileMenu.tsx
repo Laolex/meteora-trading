@@ -36,7 +36,7 @@ export default function MobileMenu() {
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="md:hidden relative flex items-center justify-center w-8 h-8 rounded-full"
+        className="md:hidden relative flex items-center justify-center w-11 h-11 rounded-full"
         style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
       >
         <span className="relative w-4 h-3 flex flex-col justify-between">
@@ -81,14 +81,14 @@ export default function MobileMenu() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.97 }}
               transition={{ duration: 0.24, ease }}
-              className="fixed top-[76px] left-1/2 -translate-x-1/2 z-50 md:hidden rounded-2xl overflow-hidden w-[calc(100vw-2rem)] max-w-[420px]"
+              className="fixed top-[76px] left-1/2 -translate-x-1/2 z-50 md:hidden rounded-2xl overflow-hidden w-[calc(100vw-2rem)] max-w-[420px] max-h-[calc(100dvh-96px)]"
               style={{
                 background: "#0d0f14",
                 border: "1px solid rgba(255,255,255,0.08)",
                 boxShadow: "0 24px 48px rgba(0,0,0,0.8)",
               }}
             >
-              <nav className="p-1.5">
+              <nav className="p-1.5 overflow-y-auto max-h-[calc(100dvh-172px)]">
                 {links.map(({ href, label }, i) => {
                   const active = pathname === href
                   return (
@@ -101,7 +101,7 @@ export default function MobileMenu() {
                       <Link
                         href={href}
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition-colors duration-150"
+                        className="flex min-h-11 items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition-colors duration-150"
                         style={{
                           background: active ? "rgba(20,241,149,0.06)" : "transparent",
                           color: active ? "#f5f5f5" : "#666",
@@ -121,7 +121,7 @@ export default function MobileMenu() {
               </nav>
 
               <div
-                className="px-3.5 py-2.5 flex items-center justify-between"
+                className="px-3.5 py-2.5 flex min-h-11 items-center justify-between"
                 style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
               >
                 <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: "#2a2a2a" }}>

@@ -42,13 +42,13 @@ export default function FootnoteTicker() {
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-40 font-mono"
+      className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 z-40 font-mono"
       style={{
         background: "#0d0d0d",
         border: "1px solid #1e1e1e",
         borderLeft: "3px solid #14f195",
         padding: "8px 14px",
-        minWidth: "300px",
+        maxWidth: "420px",
       }}
     >
       {/* Status bar line */}

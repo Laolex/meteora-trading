@@ -99,6 +99,7 @@ export default function HeroSection() {
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
                 padding: "10px 22px",
+                minHeight: "44px",
                 border: "1px solid #14f195",
                 color: "#14f195",
                 background: "transparent",
@@ -114,6 +115,7 @@ export default function HeroSection() {
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
                 padding: "10px 22px",
+                minHeight: "44px",
                 border: "1px solid #333",
                 color: "#666",
                 background: "transparent",
@@ -128,13 +130,13 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease, delay: 0.55 }}
-            style={{ border: "1px solid #222", display: "inline-flex", background: "#0a0a0a" }}
+            className="grid grid-cols-1 sm:grid-cols-3 w-full sm:w-auto"
+            style={{ border: "1px solid #222", background: "#0a0a0a" }}
           >
             {stats.map(({ label, value }, i) => (
               <div
                 key={label}
-                className="px-6 py-4 text-center"
-                style={{ borderRight: i < stats.length - 1 ? "1px solid #1a1a1a" : "none" }}
+                className="px-6 py-4 text-center border-b border-[#1a1a1a] sm:border-b-0 sm:border-r sm:border-[#1a1a1a] last:border-b-0 last:sm:border-r-0"
               >
                 <p className="font-mono font-bold" style={{ fontSize: "18px", color: "#14f195", letterSpacing: "-0.01em" }}>
                   {value}

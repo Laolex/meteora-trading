@@ -414,7 +414,7 @@ export default function SettingsModal({ status, risk: _risk, agentState, safety 
           onClick={() => setOpen(false)}
         >
           <div
-            className="fixed right-0 top-0 h-screen w-full max-w-sm overflow-y-auto"
+            className="fixed right-0 top-0 h-[100dvh] w-full max-w-sm overflow-y-auto"
             style={{
               background: "#080808",
               borderLeft: "1px solid #1e1e1e",

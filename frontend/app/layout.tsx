@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${spaceMono.variable}`}>
-      <body className="min-h-screen antialiased relative">
+      <body className="min-h-[100dvh] antialiased relative">
         <div aria-hidden className="pointer-events-none fixed inset-0 z-0 app-bg" />
         <div aria-hidden className="pointer-events-none fixed inset-0 z-0 app-grain" />
         <GlobalParticles />

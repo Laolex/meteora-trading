@@ -36,7 +36,7 @@ export default async function DashboardPage() {
   })
 
   return (
-    <div className="crt-scanlines min-h-screen pt-24 pb-16 px-4 md:px-6 max-w-7xl mx-auto">
+    <div className="crt-scanlines min-h-[100dvh] pt-24 pb-16 px-4 md:px-6 max-w-7xl mx-auto">
 
       {/* Terminal header */}
       <div className="mb-3" style={{ borderBottom: "1px solid #1e1e1e", paddingBottom: "16px" }}>
@@ -85,7 +85,7 @@ export default async function DashboardPage() {
         <div style={{ background: "#0A0A0A" }}>
 
           <CollapsibleSection label="[ METRICS ]" badge={`${kpi.openPositions} OPEN`} defaultOpen={true}>
-            <div className="grid grid-cols-2 xl:grid-cols-4" style={{ gap: "1px", background: "#1e1e1e" }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4" style={{ gap: "1px", background: "#1e1e1e" }}>
               <KpiCard label="Open Positions" value={String(kpi.openPositions)} sub={`max ${safety.maxOpenPositions} open`} accent index={0} />
               <KpiCard label="Daily Fees" value={fmt(kpi.dailyFeesUsd)} sub="fees collected today" index={1} />
               <KpiCard label="Total Deployed" value={fmt(kpi.totalDeployedUsd)} sub={`limit ${fmt(kpi.maxTotalDeployedUsd)}`} index={2} />
@@ -95,7 +95,7 @@ export default async function DashboardPage() {
 
           <div style={{ borderTop: "1px solid #1e1e1e" }}>
             <CollapsibleSection label="[ SESSION ]" badge={status.mode} defaultOpen={false}>
-              <div className="grid grid-cols-2 xl:grid-cols-4" style={{ gap: "1px", background: "#1e1e1e" }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4" style={{ gap: "1px", background: "#1e1e1e" }}>
                 {[
                   { label: "NETWORK",   value: status.network.toUpperCase() },
                   { label: "POSITIONS", value: `${kpi.openPositions} / ${safety.maxOpenPositions}` },

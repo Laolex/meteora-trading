@@ -31,7 +31,7 @@ const styles: Record<string, React.CSSProperties> = {
 }
 
 const base =
-  "inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer border-0 outline-none"
+  "inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer border-0 outline-none"
 
 const arrowContainerVariants = {
   rest: { x: 0, y: 0, scale: 1 },

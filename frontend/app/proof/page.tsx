@@ -8,7 +8,7 @@ export default async function ProofPage() {
   const proof = await getProofSnapshot()
 
   return (
-    <div className="crt-scanlines min-h-screen pt-24 pb-16 px-4 md:px-6 max-w-4xl mx-auto">
+    <div className="crt-scanlines min-h-[100dvh] pt-24 pb-16 px-4 md:px-6 max-w-4xl mx-auto">
       {/* Terminal header */}
       <div className="mb-8" style={{ borderBottom: "1px solid #1e1e1e", paddingBottom: "16px" }}>
         <div className="flex flex-wrap items-start justify-between gap-3">
