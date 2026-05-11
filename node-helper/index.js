@@ -243,15 +243,24 @@ async function closePositionReal(params) {
   // We fetch and wrap the decoded position account to satisfy the SDK's property access.
   const decodedPosition = await dlmm.program.account.positionV2.fetch(positionPubkey);
   const wrappedPosition = { publicKey: positionPubkey, ...decodedPosition };
+  const lowerBinId = Number(decodedPosition.lowerBinId?.toString?.() ?? decodedPosition.lowerBinId);
+  const upperBinId = Number(decodedPosition.upperBinId?.toString?.() ?? decodedPosition.upperBinId);
+  if (!Number.isFinite(lowerBinId) || !Number.isFinite(upperBinId)) {
+    throw new Error(`Invalid position bin range for ${positionPubkeyStr}`);
+  }
 
-  const tx = await dlmm.closePosition({
-    owner: owner.publicKey,
-    position: wrappedPosition,
+  // ClosePosition2 fails for non-empty positions; remove liquidity and close in one flow.
+  const txList = await dlmm.removeLiquidity({
+    user: owner.publicKey,
+    position: wrappedPosition.publicKey,
+    fromBinId: lowerBinId,
+    toBinId: upperBinId,
+    bps: new BN(10000),
+    shouldClaimAndClose: true,
   });
 
-  const txList = Array.isArray(tx) ? tx : [tx];
   let signature = null;
-  for (const oneTx of txList) {
+  for (const oneTx of (Array.isArray(txList) ? txList : [txList])) {
     signature = await sendAndConfirmTransaction(connection, oneTx, [owner]);
   }
 

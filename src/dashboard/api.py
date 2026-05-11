@@ -10,7 +10,7 @@ import subprocess
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Query
+from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -21,7 +21,7 @@ from src.config import CONFIG, RUNTIME_OVERRIDES
 
 _LLM_KEY_FILE = Path("/opt/meteora-agent/var/anthropic-key.txt")
 from src.db import Database
-from src.dashboard.auth import router as auth_router
+from src.dashboard.auth import require_auth, router as auth_router
 from src.dashboard.admin import router as admin_router
 from src.dashboard.vault_api import router as vault_router
 from src.dashboard.wallet import get_balance
@@ -175,6 +175,15 @@ async def get_kpi() -> KpiSummary:
 
 @app.get("/activity", response_model=list[ActivityItem])
 async def get_activity(limit: int = Query(default=20, ge=1, le=200)) -> list[ActivityItem]:
+    rows = await _db.get_activity(limit)
+    return [ActivityItem(**row) for row in rows]
+
+
+@app.get("/activity/private", response_model=list[ActivityItem])
+async def get_activity_private(
+    _auth: dict = Depends(require_auth),
+    limit: int = Query(default=20, ge=1, le=200),
+) -> list[ActivityItem]:
     rows = await _db.get_activity(limit)
     return [ActivityItem(**row) for row in rows]
 

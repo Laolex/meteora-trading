@@ -1,9 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion } from "motion/react"
+import { useWallet } from "@solana/wallet-adapter-react"
 import { viewportOnce, ease } from "@/lib/motion"
 import type { ActivityItem } from "@/lib/api"
+import { fetchProtectedActivity, isAuthenticated } from "@/lib/auth"
 
 const ACTION_COLOR: Record<string, string> = {
   open: "#14f195",
@@ -29,8 +31,37 @@ function ResultToken({ success }: { success: boolean | null }) {
   return <span style={{ color: "#444", letterSpacing: "0.08em" }}>[ ··· ]</span>
 }
 
-export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
+export default function ActivityFeed({ items = [] }: { items?: ActivityItem[] }) {
+  const { connected } = useWallet()
   const [collapsed, setCollapsed] = useState(true)
+  const [records, setRecords] = useState<ActivityItem[]>(items)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const canView = connected && isAuthenticated()
+
+  useEffect(() => {
+    if (collapsed || !canView) return
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    fetchProtectedActivity(20)
+      .then((next) => {
+        if (!cancelled) setRecords(next)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRecords([])
+          setError("AUTH REQUIRED")
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [collapsed, canView])
 
   return (
     <motion.div
@@ -49,14 +80,19 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
         <span className="term-label">[ RECENT ACTIVITY ]</span>
         <div className="flex items-center gap-2">
           <span className="font-mono" style={{ fontSize: "9px", color: "#333", letterSpacing: "0.08em" }}>
-            {items.length} RECORDS
+            {canView ? `${records.length} RECORDS` : "LOCKED"}
           </span>
           <span className="font-mono" style={{ fontSize: "9px", color: "#333" }}>{collapsed ? "+" : "−"}</span>
         </div>
       </button>
 
       {/* Table */}
-      {!collapsed && <div className="overflow-x-auto">
+      {!collapsed && !canView && (
+        <div className="px-4 py-5 font-mono" style={{ fontSize: "10px", letterSpacing: "0.1em", color: "#666" }}>
+          CONNECT AUTHORIZED WALLET TO VIEW LIVE ACTIVITY
+        </div>
+      )}
+      {!collapsed && canView && <div className="overflow-x-auto">
         <table className="w-full min-w-[680px] font-mono" style={{ fontSize: "10px", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: "1px solid #141414" }}>
@@ -79,7 +115,21 @@ export default function ActivityFeed({ items }: { items: ActivityItem[] }) {
             </tr>
           </thead>
           <tbody>
-            {items.map((item, i) => (
+            {loading && (
+              <tr style={{ borderBottom: "1px solid #111" }}>
+                <td className="px-4 py-3" colSpan={6} style={{ color: "#666", letterSpacing: "0.08em" }}>
+                  LOADING ACTIVITY…
+                </td>
+              </tr>
+            )}
+            {!loading && error && (
+              <tr style={{ borderBottom: "1px solid #111" }}>
+                <td className="px-4 py-3" colSpan={6} style={{ color: "#e61919", letterSpacing: "0.08em" }}>
+                  {error}
+                </td>
+              </tr>
+            )}
+            {!loading && !error && records.map((item, i) => (
               <motion.tr
                 key={item.id}
                 initial={{ opacity: 0 }}

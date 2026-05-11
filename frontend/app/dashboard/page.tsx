@@ -1,4 +1,4 @@
-import { getAgentStatus, getKpiSummary, getActivity, getRiskUtilization, getSafetyConfig, getAgentState } from "@/lib/api"
+import { getAgentStatus, getKpiSummary, getRiskUtilization, getSafetyConfig, getAgentState } from "@/lib/api"
 import KpiCard from "@/components/dashboard/KpiCard"
 import ActivityFeed from "@/components/dashboard/ActivityFeed"
 import CollapsibleSection from "@/components/dashboard/CollapsibleSection"
@@ -10,10 +10,9 @@ import VaultPanel from "@/components/ui/VaultPanel"
 export const dynamic = "force-dynamic"
 
 export default async function DashboardPage() {
-  const [status, kpi, activity, risk, safety, agentState] = await Promise.all([
+  const [status, kpi, risk, safety, agentState] = await Promise.all([
     getAgentStatus(),
     getKpiSummary(),
-    getActivity(20),
     getRiskUtilization(),
     getSafetyConfig(),
     getAgentState(),
@@ -122,7 +121,7 @@ export default async function DashboardPage() {
           </div>
 
           <div style={{ borderTop: "1px solid #1e1e1e", background: "#0A0A0A" }}>
-            <ActivityFeed items={activity} />
+            <ActivityFeed />
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { API_BASE } from "./api"
+import type { ActivityItem } from "./api"
 import bs58 from "bs58"
 
 export { API_BASE }
@@ -64,6 +65,20 @@ export function isAuthenticated(): boolean {
   } catch {
     return false
   }
+}
+
+export async function fetchProtectedActivity(limit = 20): Promise<ActivityItem[]> {
+  const token = getToken()
+  if (!token) throw new Error("Not authenticated")
+  const res = await fetch(`${API_BASE}/activity/private?limit=${limit}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...NGROK_HEADERS,
+    },
+    cache: "no-store",
+  })
+  if (!res.ok) throw new Error(`fetchProtectedActivity failed: ${res.status}`)
+  return res.json() as Promise<ActivityItem[]>
 }
 
 export async function adminKillSwitch(arm: boolean): Promise<{ ok: boolean; armed: boolean }> {
