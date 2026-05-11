@@ -148,12 +148,13 @@ async def _execute_action(
         rebalance_width = action.new_upper_bin_id - action.new_lower_bin_id + 1
         close_sig = await manager.close_position(position)
         await db.mark_position_closed(position.id, close_sig)
+        active_bin = await manager.get_active_bin(pool.address)
         open_result = await manager.open_position(
             pool_address=pool.address,
             pool_name=pool.name,
             amount_x=0.0,
             amount_y=size_usd,
-            bin_range=y_only_range(pool.active_bin_id, rebalance_width),
+            bin_range=y_only_range(active_bin, rebalance_width),
         )
         if open_result.error:
             raise RuntimeError(f"Rebalance open blocked by SOL guard: {open_result.error}")
@@ -269,7 +270,8 @@ async def run_loop() -> None:
                         current_value_usd=current_total,
                     )
                     if guard_res.allowed:
-                        r = y_only_range(top.active_bin_id, open_width)
+                        active_bin = await manager.get_active_bin(top.address)
+                        r = y_only_range(active_bin, open_width)
                         opened = await manager.open_position(
                             pool_address=top.address,
                             pool_name=top.name,

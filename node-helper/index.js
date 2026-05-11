@@ -336,6 +336,13 @@ function claimFeesMock(params) {
   return { signature: mockSignature() };
 }
 
+async function getActiveBinReal(params) {
+  const poolAddress = new PublicKey(requireParam(params, "poolAddress"));
+  const { connection } = await makeContext();
+  const dlmm = await DLMM.create(connection, poolAddress);
+  return { activeBinId: dlmm.lbPair.activeId };
+}
+
 async function dispatch(payload) {
   ensureMethodAndParams(payload);
   const { method, params } = payload;
@@ -349,6 +356,9 @@ async function dispatch(payload) {
   }
   if (method === "claimFees") {
     return useMock ? claimFeesMock(params) : await claimFeesReal(params);
+  }
+  if (method === "getActiveBin") {
+    return await getActiveBinReal(params);
   }
 
   throw new Error(`Unsupported method '${method}'`);

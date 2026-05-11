@@ -189,6 +189,11 @@ class MeteoraPositionManager:
         position.tx_signature_open = sig
         return OpenResult(tx_signature=sig, position=position)
 
+    async def get_active_bin(self, pool_address: str) -> int:
+        """Fetch the current active bin ID for a pool from on-chain state."""
+        result = await self._invoke_helper("getActiveBin", {"poolAddress": pool_address})
+        return int(result["activeBinId"])
+
     async def close_position(self, position: Position) -> str:
         """Close fully — withdraw all liquidity + claim fees. Returns tx sig."""
         if self._dry_run:
