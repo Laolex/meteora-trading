@@ -273,9 +273,27 @@ async function claimFeesReal(params) {
   const { connection, owner } = await makeContext();
   const dlmm = await DLMM.create(connection, poolAddress);
 
+  // SDK claimSwapFee requires the full position object (with positionData),
+  // not just a pubkey. Fetch all positions and find the matching one.
+  const { userPositions } = await dlmm.getPositionsByUserAndLbPair(owner.publicKey);
+  const positionObj = userPositions.find(
+    (p) => p.publicKey.toBase58() === positionPubkey.toBase58()
+  );
+  if (!positionObj) {
+    throw new Error(`Position ${positionPubkeyStr} not found in pool ${poolAddress.toBase58()}`);
+  }
+
+  if (
+    positionObj.positionData.feeX.isZero() &&
+    positionObj.positionData.feeY.isZero()
+  ) {
+    // No fees to claim — not an error, just a no-op
+    return { signature: "NO_FEES" };
+  }
+
   const tx = await dlmm.claimSwapFee({
     owner: owner.publicKey,
-    position: positionPubkey,
+    position: positionObj,
   });
 
   const txList = Array.isArray(tx) ? tx : [tx];

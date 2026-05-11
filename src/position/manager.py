@@ -209,7 +209,10 @@ class MeteoraPositionManager:
             "poolAddress": position.pool_address,
             "positionId": position.id,
         })
-        return result["signature"]
+        sig = result["signature"]
+        if sig == "NO_FEES":
+            log.info("claim_fees: no fees accrued yet for position %s", position.id)
+        return sig
 
     async def _invoke_helper(self, method: str, params: dict) -> dict:
         """
