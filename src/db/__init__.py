@@ -139,6 +139,7 @@ class Database:
                     status,
                     tx_signature_open
                 FROM positions
+                WHERE status = 'open'
                 ORDER BY opened_at DESC
                 LIMIT $1
                 """,

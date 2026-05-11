@@ -121,6 +121,11 @@ export default function DashboardPage() {
     [status?.walletPubkey, kpi?.openPositions, positions.length],
   )
 
+  const livePositions = useMemo(
+    () => positions.filter((p) => p.status === "open"),
+    [positions],
+  )
+
   if (!connected || !authed) {
     return (
       <div className="min-h-[100dvh] pt-24 pb-16 px-4 md:px-6 max-w-7xl mx-auto">
@@ -166,17 +171,18 @@ export default function DashboardPage() {
 
   return (
     <div className="crt-scanlines min-h-[100dvh] pt-24 pb-16 px-4 md:px-6 max-w-7xl mx-auto">
-      <div className="mb-3" style={{ borderBottom: "1px solid #1e1e1e", paddingBottom: "16px" }}>
+      <div className="mb-3" style={{ borderBottom: "2px solid #1e1e1e", paddingBottom: "16px" }}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1
               className="font-mono font-black leading-none mb-1"
-              style={{ fontSize: "clamp(1.4rem, 3vw, 2rem)", letterSpacing: "-0.03em", color: "#eaeaea", textTransform: "uppercase" }}
+              style={{ fontSize: "clamp(2.1rem, 7vw, 6.8rem)", letterSpacing: "-0.05em", color: "#eaeaea", textTransform: "uppercase" }}
             >
               METEORA AGENT
             </h1>
-            <div className="font-mono" style={{ fontSize: "9px", letterSpacing: "0.15em", color: "#333", textTransform: "uppercase" }}>
-              AUTHENTICATED OPS CONSOLE
+            <div className="font-mono flex flex-wrap items-center gap-3" style={{ fontSize: "10px", letterSpacing: "0.12em", color: "#666", textTransform: "uppercase" }}>
+              <span>[ AUTHENTICATED OPS CONSOLE ]</span>
+              <span style={{ color: "#e61919" }}>[ LIVE TELEMETRY ]</span>
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -186,7 +192,7 @@ export default function DashboardPage() {
               <SettingsModal status={status} risk={risk} agentState={agentState} safety={safety} />
             </div>
             <div className="font-mono flex items-center gap-2" style={{ fontSize: "9px", letterSpacing: "0.1em", color: "#333" }}>
-              <span className="inline-block w-1.5 h-1.5" style={{ background: "#14f195", boxShadow: "0 0 4px #14f195" }} />
+              <span className="inline-block w-1.5 h-1.5" style={{ background: "#e61919" }} />
               UPDATED {fetchedAt}
             </div>
           </div>
@@ -206,7 +212,7 @@ export default function DashboardPage() {
         </div>
 
         <div style={{ background: "#0A0A0A" }}>
-          <CollapsibleSection label="[ METRICS ]" badge={`${kpi.openPositions} OPEN`} defaultOpen={true}>
+          <CollapsibleSection label="[ METRICS ]" badge={`${kpi.openPositions} LIVE`} defaultOpen={true}>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4" style={{ gap: "1px", background: "#1e1e1e" }}>
               <KpiCard label="Open Positions" value={String(kpi.openPositions)} sub={`max ${safety.maxOpenPositions} open`} accent index={0} />
               <KpiCard label="Daily Fees" value={fmt(kpi.dailyFeesUsd)} sub="fees collected today" index={1} />
@@ -216,12 +222,12 @@ export default function DashboardPage() {
           </CollapsibleSection>
 
           <div style={{ borderTop: "1px solid #1e1e1e" }}>
-            <CollapsibleSection label="[ METEORA POSITIONS ]" badge={`${positions.length} TRACKED`} defaultOpen={true}>
+            <CollapsibleSection label="[ METEORA LIVE POSITIONS ]" badge={`${livePositions.length} ACTIVE`} defaultOpen={true}>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px] font-mono" style={{ fontSize: "10px", borderCollapse: "collapse" }}>
+                <table className="w-full min-w-[940px] font-mono" style={{ fontSize: "10px", borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ borderBottom: "1px solid #141414" }}>
-                      {["POOL", "RANGE", "DEPLOYED", "FEES", "STATUS", "OPENED"].map((label) => (
+                      {["POOL", "RANGE", "DEPLOYED", "FEES", "STATUS", "OPENED", "TXN"].map((label) => (
                         <th
                           key={label}
                           className="px-4 py-2 text-left"
@@ -233,7 +239,7 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {positions.map((p) => (
+                    {livePositions.map((p) => (
                       <tr key={p.id} style={{ borderBottom: "1px solid #111" }}>
                         <td className="px-4 py-2" style={{ color: "#eaeaea" }}>{p.poolName}</td>
                         <td className="px-4 py-2" style={{ color: "#888" }}>{p.lowerBinId}..{p.upperBinId}</td>
@@ -241,8 +247,25 @@ export default function DashboardPage() {
                         <td className="px-4 py-2" style={{ color: "#aaa" }}>${p.feesEarnedUsd.toFixed(2)}</td>
                         <td className="px-4 py-2" style={{ color: p.status === "open" ? "#14f195" : "#666" }}>{p.status.toUpperCase()}</td>
                         <td className="px-4 py-2" style={{ color: "#666" }}>{new Date(p.openedAt).toLocaleString()}</td>
+                        <td className="px-4 py-2" style={{ color: "#888" }}>
+                          <a
+                            href={`https://explorer.solana.com/tx/${p.txSignatureOpen}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: "#e61919", textDecoration: "none", letterSpacing: "0.08em" }}
+                          >
+                            {p.txSignatureOpen.slice(0, 10)}…
+                          </a>
+                        </td>
                       </tr>
                     ))}
+                    {livePositions.length === 0 && (
+                      <tr style={{ borderBottom: "1px solid #111" }}>
+                        <td className="px-4 py-4" colSpan={7} style={{ color: "#666", letterSpacing: "0.08em" }}>
+                          NO LIVE POSITIONS
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
