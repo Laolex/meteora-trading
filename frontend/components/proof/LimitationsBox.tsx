@@ -1,7 +1,7 @@
 const limitations = [
   "src/executor/ is an unused skeleton — TX confirmation and retry are handled directly in node-helper via sendAndConfirmTransaction; the executor layer was superseded before use",
   "Positions that trip the circuit breaker (5 consecutive failures) are skipped until manual reset — no automatic recovery; operator must clear the failure state via service restart or direct intervention",
-  "Dashboard panels are server snapshots. Live values update by refresh interval, and operators can force an immediate reload via the dashboard REFRESH control",
+  "Dashboard panels are authenticated server snapshots, not a realtime stream. Values refresh on page reload or when operators trigger the dashboard REFRESH control",
   "On-chain vault is deployed and live on devnet — no mainnet vault deployment has occurred; all LP capital is managed directly from the operator wallet",
 ]
 
@@ -30,7 +30,7 @@ export default function LimitationsBox() {
           </div>
         ))}
         <p className="font-mono mt-3" style={{ fontSize: "9px", color: "#2a2a2a", letterSpacing: "0.04em", lineHeight: 1.7 }}>
-          The safety rails, scoring engine, discovery loop, node-helper DLMM integration, and on-chain vault are all complete.
+          The safety rails, scoring engine, discovery loop, node-helper DLMM integration, and vault plumbing are implemented.
           Remaining work: mainnet vault deployment and operational tuning for real-capital execution.
         </p>
       </div>

@@ -248,7 +248,7 @@ export default function DashboardPage() {
                         <td className="px-4 py-2" style={{ color: "#888" }}>
                           {p.txSignatureOpen ? (
                             <a
-                              href={`https://explorer.solana.com/tx/${p.txSignatureOpen}`}
+                              href={`https://solscan.io/tx/${p.txSignatureOpen}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{ color: "#e61919", textDecoration: "none", letterSpacing: "0.08em" }}

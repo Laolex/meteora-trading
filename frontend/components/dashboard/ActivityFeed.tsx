@@ -169,7 +169,7 @@ export default function ActivityFeed({ items = [] }: { items?: ActivityItem[] })
                   {item.txSignature
                     ? (
                       <a
-                        href={`https://explorer.solana.com/tx/${item.txSignature}`}
+                        href={`https://solscan.io/tx/${item.txSignature}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: "#14f195", textDecoration: "none" }}

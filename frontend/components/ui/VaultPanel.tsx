@@ -116,7 +116,7 @@ function ActionForm({ label, buttonText, allAmount, onSubmit }: ActionFormProps)
         </button>
       </form>
       {successSig && (
-        <a href={`https://explorer.solana.com/tx/${successSig}`} target="_blank" rel="noopener noreferrer"
+        <a href={`https://solscan.io/tx/${successSig}`} target="_blank" rel="noopener noreferrer"
           className="block mt-1 font-mono truncate" style={{ fontSize: "8px", color: "#14f195", letterSpacing: "0.04em" }}
         >
           TX: {successSig.slice(0, 8)}…{successSig.slice(-8)}
@@ -196,7 +196,7 @@ function ShareWithdrawForm({ shareBalance, onSubmit, onSuccess }: ShareWithdrawF
         </button>
       </form>
       {successSig && (
-        <a href={`https://explorer.solana.com/tx/${successSig}`} target="_blank" rel="noopener noreferrer"
+        <a href={`https://solscan.io/tx/${successSig}`} target="_blank" rel="noopener noreferrer"
           className="block mt-1 font-mono truncate" style={{ fontSize: "8px", color: "#14f195" }}
         >
           TX: {successSig.slice(0, 8)}…{successSig.slice(-8)}

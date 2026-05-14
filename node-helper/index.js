@@ -162,6 +162,25 @@ function dlmmStrategyType() {
   return anchor.BN ? 0 : 0;
 }
 
+async function sendAndConfirmWithDiagnostics(connection, tx, signers, options, context) {
+  try {
+    return await sendAndConfirmTransaction(connection, tx, signers, options);
+  } catch (err) {
+    let logs = [];
+    if (Array.isArray(err?.logs)) {
+      logs = err.logs;
+    } else if (typeof err?.getLogs === "function") {
+      try {
+        logs = await err.getLogs(connection);
+      } catch (logErr) {
+        logs = [`failed to fetch SendTransactionError logs: ${logErr.message || String(logErr)}`];
+      }
+    }
+    const logsText = logs.length ? `\nSolana logs:\n${logs.join("\n")}` : "";
+    throw new Error(`${context} failed: ${err.message || String(err)}${logsText}`);
+  }
+}
+
 async function makeContext() {
   const rpcUrl = process.env.SOLANA_RPC_URL || process.env.SOLANA_DEVNET_RPC_URL;
   if (!rpcUrl) {
@@ -204,9 +223,9 @@ async function ensureUserTokenAccounts(connection, dlmm, owner) {
     lastValidBlockHeight,
     feePayer: owner.publicKey,
   }).add(...preIxs);
-  await sendAndConfirmTransaction(connection, tx, [owner], {
+  await sendAndConfirmWithDiagnostics(connection, tx, [owner], {
     confirmTransactionInitialTimeout: 120000,
-  });
+  }, "ensureUserTokenAccounts");
 }
 
 async function openPositionReal(params) {
@@ -241,7 +260,13 @@ async function openPositionReal(params) {
   const txList = Array.isArray(tx) ? tx : [tx];
   let signature = null;
   for (const oneTx of txList) {
-    signature = await sendAndConfirmTransaction(connection, oneTx, [owner, positionKeypair], { skipPreflight: true, confirmTransactionInitialTimeout: 120000 });
+    signature = await sendAndConfirmWithDiagnostics(
+      connection,
+      oneTx,
+      [owner, positionKeypair],
+      { skipPreflight: true, confirmTransactionInitialTimeout: 120000 },
+      "openPosition"
+    );
   }
 
   if (!signature) {
@@ -292,7 +317,13 @@ async function closePositionReal(params) {
 
   let signature = null;
   for (const oneTx of (Array.isArray(txList) ? txList : [txList])) {
-    signature = await sendAndConfirmTransaction(connection, oneTx, [owner]);
+    signature = await sendAndConfirmWithDiagnostics(
+      connection,
+      oneTx,
+      [owner],
+      undefined,
+      "closePosition"
+    );
   }
 
   if (!signature) {
@@ -339,7 +370,13 @@ async function claimFeesReal(params) {
   const txList = Array.isArray(tx) ? tx : [tx];
   let signature = null;
   for (const oneTx of txList) {
-    signature = await sendAndConfirmTransaction(connection, oneTx, [owner]);
+    signature = await sendAndConfirmWithDiagnostics(
+      connection,
+      oneTx,
+      [owner],
+      undefined,
+      "claimFees"
+    );
   }
 
   if (!signature) {
@@ -402,9 +439,9 @@ async function rebalancePositionReal(params) {
       lastValidBlockHeight,
       feePayer: owner.publicKey,
     }).add(ix);
-    signature = await sendAndConfirmTransaction(connection, tx, [owner], {
+    signature = await sendAndConfirmWithDiagnostics(connection, tx, [owner], {
       confirmTransactionInitialTimeout: 120000,
-    });
+    }, "rebalancePosition:initBinArray");
   }
 
   {
@@ -414,9 +451,9 @@ async function rebalancePositionReal(params) {
       lastValidBlockHeight,
       feePayer: owner.publicKey,
     }).add(...ixs.rebalancePositionInstruction);
-    signature = await sendAndConfirmTransaction(connection, tx, [owner], {
+    signature = await sendAndConfirmWithDiagnostics(connection, tx, [owner], {
       confirmTransactionInitialTimeout: 120000,
-    });
+    }, "rebalancePosition");
   }
 
   if (!signature) {
