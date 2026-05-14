@@ -419,9 +419,19 @@ async function rebalancePositionReal(params) {
   // Without this, the deposit step fails with Token error 0x1 when the
   // active bin shifts by even one tick after the simulation snapshot.
   const REBALANCE_SLIPPAGE_BPS = Number(process.env.METEORA_REBALANCE_SLIPPAGE_BPS || "50");
+
+  // The SDK derives the target deposit width from positionData.lowerBinId/upperBinId.
+  // Override those two fields (plain numbers) so the rebalance uses the adaptive
+  // width computed by the Python agent rather than the stale original open width.
+  const targetPositionData = {
+    ...positionData,
+    lowerBinId,
+    upperBinId,
+  };
+
   const simulation = await dlmm.simulateRebalancePositionWithBalancedStrategy(
     positionObj.publicKey,
-    positionData,
+    targetPositionData,
     DLMM.StrategyType.Spot,
     new BN(0),
     new BN(0),
