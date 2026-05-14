@@ -175,3 +175,7 @@ systemctl enable --now meteora-agent
 journalctl -u meteora-agent -f
 ```
 
+## Agent wallet
+
+`9fXLvgjnfngxKCusuv7AGchM3JsnreMtF1YBBKpwsibr`
+
