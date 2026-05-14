@@ -42,6 +42,9 @@ class DecisionContext:
     rebalance_drift_bps: int
     exit_volatility_24h_pct: float
 
+    # Adaptive bin width for rebalance recentering
+    adaptive_width: int | None = None
+
 
 def decide(ctx: DecisionContext) -> Action:
     """
@@ -68,7 +71,7 @@ def decide(ctx: DecisionContext) -> Action:
 
     # 2. Out of range
     if not in_range:
-        new_lower, new_upper = _recenter_range(ctx.pool.active_bin_id, p)
+        new_lower, new_upper = _recenter_range(ctx.pool.active_bin_id, p, ctx.adaptive_width)
         return Action(
             type=ActionType.REBALANCE,
             reason=(
@@ -82,7 +85,7 @@ def decide(ctx: DecisionContext) -> Action:
 
     # 3. In range but drifted
     if drift_bps >= ctx.rebalance_drift_bps:
-        new_lower, new_upper = _recenter_range(ctx.pool.active_bin_id, p)
+        new_lower, new_upper = _recenter_range(ctx.pool.active_bin_id, p, ctx.adaptive_width)
         return Action(
             type=ActionType.REBALANCE,
             reason=f"drift {drift_bps}bps >= threshold {ctx.rebalance_drift_bps}bps",
@@ -104,9 +107,8 @@ def compute_volatility_pct(price_now: float, price_24h_ago: float | None) -> flo
     return abs((price_now - price_24h_ago) / price_24h_ago) * 100.0
 
 
-def _recenter_range(active_bin_id: int, position: Position) -> tuple[int, int]:
-    """Preserve the same bin width, recentered on active bin."""
-    width = position.upper_bin_id - position.lower_bin_id + 1
+def _recenter_range(active_bin_id: int, position: Position, adaptive_width: int | None = None) -> tuple[int, int]:
+    width = adaptive_width if adaptive_width is not None else (position.upper_bin_id - position.lower_bin_id + 1)
     half = width // 2
     if width % 2 == 0:
         return active_bin_id - half, active_bin_id + half - 1

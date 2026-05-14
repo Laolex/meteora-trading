@@ -402,6 +402,13 @@ async def run_loop() -> None:
                             position.id, est_fees, current_value_usd
                         )
 
+                    adaptive_width = adaptive_range_bins(
+                        config.target_position_width_bins,
+                        volatility_24h_pct,
+                        reference_vol_pct=config.adaptive_range_reference_vol_pct,
+                        min_bins=config.adaptive_range_min_bins,
+                        max_bins=config.adaptive_range_max_bins,
+                    )
                     ctx = DecisionContext(
                         position=position,
                         pool=pool_live,
@@ -410,6 +417,7 @@ async def run_loop() -> None:
                         current_fees_usd=total_fees_usd,
                         rebalance_drift_bps=drift_bps,
                         exit_volatility_24h_pct=exit_vol_pct,
+                        adaptive_width=adaptive_width,
                     )
                     action = decide(ctx)
                     try:
