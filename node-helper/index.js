@@ -411,22 +411,38 @@ async function rebalancePositionReal(params) {
   }
   const positionData = positionObj.positionData;
 
-  const currentLower = Number(positionData.lowerBinId?.toString?.() ?? positionData.lowerBinId);
-  const currentUpper = Number(positionData.upperBinId?.toString?.() ?? positionData.upperBinId);
-
-  // xWithdrawBps / yWithdrawBps: keep 0.5% of each token in wallet as a
-  // buffer against price drift between simulation and on-chain execution.
-  // Without this, the deposit step fails with Token error 0x1 when the
-  // active bin shifts by even one tick after the simulation snapshot.
   const REBALANCE_SLIPPAGE_BPS = Number(process.env.METEORA_REBALANCE_SLIPPAGE_BPS || "50");
 
-  // The SDK derives the target deposit width from positionData.lowerBinId/upperBinId.
-  // Override those two fields (plain numbers) so the rebalance uses the adaptive
-  // width computed by the Python agent rather than the stale original open width.
+  // Expand positionBinData to cover the full target range so that
+  // BalancedStrategyBuilder computes deposit width = targetWidth instead of the
+  // current (narrower) position width.  New bins outside the actual position
+  // get zero amounts — _simulateWithdraw skips them, _simulateDeposit fills them.
+  const rewardCount = positionData.positionBinData.length > 0
+    ? positionData.positionBinData[0].positionRewardAmount.length
+    : 0;
+  const actualBinMap = new Map(positionData.positionBinData.map(b => [b.binId, b]));
+  const expandedBinData = [];
+  for (let binId = lowerBinId; binId <= upperBinId; binId++) {
+    expandedBinData.push(actualBinMap.has(binId) ? actualBinMap.get(binId) : {
+      binId,
+      price: "0",
+      pricePerToken: "0",
+      binXAmount: "0",
+      binYAmount: "0",
+      binLiquidity: "0",
+      positionLiquidity: "0",
+      positionXAmount: "0",
+      positionYAmount: "0",
+      positionFeeXAmount: "0",
+      positionFeeYAmount: "0",
+      positionRewardAmount: Array(rewardCount).fill("0"),
+    });
+  }
   const targetPositionData = {
     ...positionData,
     lowerBinId,
     upperBinId,
+    positionBinData: expandedBinData,
   };
 
   const simulation = await dlmm.simulateRebalancePositionWithBalancedStrategy(
@@ -436,7 +452,7 @@ async function rebalancePositionReal(params) {
     new BN(0),
     new BN(0),
     new BN(REBALANCE_SLIPPAGE_BPS),
-    new BN(REBALANCE_SLIPPAGE_BPS)
+    new BN(REBALANCE_SLIPPAGE_BPS),
   );
   const maxActiveBinSlippage = new BN(5);
   const ixs = await dlmm.rebalancePosition(
