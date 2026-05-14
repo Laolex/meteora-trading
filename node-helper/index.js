@@ -414,14 +414,19 @@ async function rebalancePositionReal(params) {
   const currentLower = Number(positionData.lowerBinId?.toString?.() ?? positionData.lowerBinId);
   const currentUpper = Number(positionData.upperBinId?.toString?.() ?? positionData.upperBinId);
 
+  // xWithdrawBps / yWithdrawBps: keep 0.5% of each token in wallet as a
+  // buffer against price drift between simulation and on-chain execution.
+  // Without this, the deposit step fails with Token error 0x1 when the
+  // active bin shifts by even one tick after the simulation snapshot.
+  const REBALANCE_SLIPPAGE_BPS = Number(process.env.METEORA_REBALANCE_SLIPPAGE_BPS || "50");
   const simulation = await dlmm.simulateRebalancePositionWithBalancedStrategy(
     positionObj.publicKey,
     positionData,
     DLMM.StrategyType.Spot,
     new BN(0),
     new BN(0),
-    new BN(0),
-    new BN(0)
+    new BN(REBALANCE_SLIPPAGE_BPS),
+    new BN(REBALANCE_SLIPPAGE_BPS)
   );
   const maxActiveBinSlippage = new BN(5);
   const ixs = await dlmm.rebalancePosition(
