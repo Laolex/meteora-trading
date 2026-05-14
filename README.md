@@ -175,19 +175,3 @@ systemctl enable --now meteora-agent
 journalctl -u meteora-agent -f
 ```
 
-## Submission checklist
-
-- [x] GitHub repo public
-- [x] Live dashboard — meteora-agent.vercel.app
-- [x] Autonomous loop running on VPS
-- [x] Adaptive range sizing
-- [x] LLM parameter tuner (Claude Haiku)
-- [x] On-chain decision receipts (SPL Memo)
-- [x] 53 unit tests passing
-- [x] Safety rails — kill switch, loss limit, size caps
-- [x] Operator LLM toggle from dashboard
-- [x] Fund agent wallet from dashboard (wallet connect)
-- [ ] Mainnet position (pending wallet funding)
-- [ ] Pitch video (≤ 3 min)
-- [ ] Technical demo video (≤ 3 min)
-- [ ] Submit at colosseum.com/frontier
