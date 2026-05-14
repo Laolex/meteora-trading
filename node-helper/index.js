@@ -413,46 +413,76 @@ async function rebalancePositionReal(params) {
 
   const REBALANCE_SLIPPAGE_BPS = Number(process.env.METEORA_REBALANCE_SLIPPAGE_BPS || "50");
 
-  // Expand positionBinData to cover the full target range so that
-  // BalancedStrategyBuilder computes deposit width = targetWidth instead of the
-  // current (narrower) position width.  New bins outside the actual position
-  // get zero amounts — _simulateWithdraw skips them, _simulateDeposit fills them.
-  const rewardCount = positionData.positionBinData.length > 0
-    ? positionData.positionBinData[0].positionRewardAmount.length
-    : 0;
-  const actualBinMap = new Map(positionData.positionBinData.map(b => [b.binId, b]));
-  const expandedBinData = [];
-  for (let binId = lowerBinId; binId <= upperBinId; binId++) {
-    expandedBinData.push(actualBinMap.has(binId) ? actualBinMap.get(binId) : {
-      binId,
-      price: "0",
-      pricePerToken: "0",
-      binXAmount: "0",
-      binYAmount: "0",
-      binLiquidity: "0",
-      positionLiquidity: "0",
-      positionXAmount: "0",
-      positionYAmount: "0",
-      positionFeeXAmount: "0",
-      positionFeeYAmount: "0",
-      positionRewardAmount: Array(rewardCount).fill("0"),
-    });
-  }
-  const targetPositionData = {
-    ...positionData,
-    lowerBinId,
-    upperBinId,
-    positionBinData: expandedBinData,
+  // On-chain RebalanceLiquidity validates that removes.minBinId/maxBinId match the
+  // position's recorded lowerBinId/upperBinId.  BalancedStrategyBuilder ties the
+  // withdraw range to positionData.lowerBinId/upperBinId, so we can't safely
+  // override those to the adaptive target without breaking the on-chain check.
+  //
+  // Solution: use simulateRebalancePositionWithStrategy with a custom strategy
+  // object that emits the CURRENT position range for withdraws and the adaptive
+  // target width for deposits — these are independent in the low-level API.
+  const currentLower = positionData.lowerBinId;
+  const currentUpper = positionData.upperBinId;
+
+  const activeId = new BN(dlmm.lbPair.activeId);
+  const binStep = new BN(dlmm.lbPair.binStep);
+
+  const targetWidth = upperBinId - lowerBinId + 1;
+  const binPerSide = Math.floor(targetWidth / 2);
+  const binPerBid = targetWidth % 2 === 0 ? binPerSide + 1 : binPerSide;
+  const binPerAsk = targetWidth % 2 === 0 ? binPerSide - 1 : binPerSide;
+  const minDeltaId = new BN(-binPerBid);
+  const maxDeltaId = new BN(binPerAsk);
+
+  // Redeposit amounts mirror BalancedStrategyBuilder: total withdrawn minus slippage buffer
+  const totalXAmountOut = new BN(positionData.totalXAmount).add(new BN(String(positionData.feeX)));
+  const totalYAmountOut = new BN(positionData.totalYAmount).add(new BN(String(positionData.feeY)));
+  const redepositAmountX = totalXAmountOut.mul(new BN(10000 - REBALANCE_SLIPPAGE_BPS)).div(new BN(10000));
+  const redepositAmountY = totalYAmountOut.mul(new BN(10000 - REBALANCE_SLIPPAGE_BPS)).div(new BN(10000));
+
+  const stratParams = DLMM.buildLiquidityStrategyParameters(
+    redepositAmountX, redepositAmountY,
+    minDeltaId, maxDeltaId,
+    binStep, false, activeId,
+    DLMM.getLiquidityStrategyParameterBuilder(DLMM.StrategyType.Spot)
+  );
+
+  // rebalancePosition uses the ORIGINAL positionData so that rebalancePositionBinData
+  // matches the actual on-chain position bins (correct withdraw lookup).
+  const rebalancePosition = await DLMM.RebalancePosition.create({
+    program: dlmm.program,
+    positionAddress: positionObj.publicKey,
+    pairAddress: poolAddress,
+    positionData,
+    shouldClaimFee: true,
+    shouldClaimReward: true,
+  });
+
+  // Custom strategy: correct withdraw (current range) + adaptive deposit (target width)
+  const customStrategy = {
+    buildRebalanceStrategyParameters() {
+      return {
+        deposits: [{
+          minDeltaId,
+          maxDeltaId,
+          x0: stratParams.x0,
+          y0: stratParams.y0,
+          deltaX: stratParams.deltaX,
+          deltaY: stratParams.deltaY,
+          favorXInActiveBin: false,
+        }],
+        withdraws: [{
+          minBinId: new BN(currentLower),
+          maxBinId: new BN(currentUpper),
+          bps: new BN(10000),
+        }],
+      };
+    }
   };
 
-  const simulation = await dlmm.simulateRebalancePositionWithBalancedStrategy(
-    positionObj.publicKey,
-    targetPositionData,
-    DLMM.StrategyType.Spot,
-    new BN(0),
-    new BN(0),
-    new BN(REBALANCE_SLIPPAGE_BPS),
-    new BN(REBALANCE_SLIPPAGE_BPS),
+  const simulation = await dlmm.simulateRebalancePositionWithStrategy(
+    rebalancePosition,
+    customStrategy,
   );
   const maxActiveBinSlippage = new BN(5);
   const ixs = await dlmm.rebalancePosition(
@@ -579,7 +609,7 @@ async function main() {
     const result = await dispatch(payload);
     process.stdout.write(`${JSON.stringify(result)}\n`);
   } catch (err) {
-    fail(err.message || String(err));
+    fail(err.message || String(err), { stack: err.stack });
   }
 }
 
