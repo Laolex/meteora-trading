@@ -525,11 +525,25 @@ async function rebalancePositionReal(params) {
   const updatedLower = Number(updated.lowerBinId?.toString?.() ?? updated.lowerBinId);
   const updatedUpper = Number(updated.upperBinId?.toString?.() ?? updated.upperBinId);
 
+  let solFeeLamports = 5000;
+  try {
+    const txMeta = await connection.getTransaction(signature, {
+      commitment: "confirmed",
+      maxSupportedTransactionVersion: 0,
+    });
+    if (txMeta?.meta?.fee != null) {
+      solFeeLamports = txMeta.meta.fee;
+    }
+  } catch (_) {}
+
   return {
     signature,
     positionPubkey: positionPubkey.toBase58(),
     lowerBinId: updatedLower,
     upperBinId: updatedUpper,
+    feeX: positionData.feeX.toString(),
+    feeY: positionData.feeY.toString(),
+    solFeeLamports,
   };
 }
 

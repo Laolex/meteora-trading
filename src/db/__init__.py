@@ -277,6 +277,24 @@ class Database:
                 baseline_usd,
             )
 
+    async def record_rebalance_pnl(self, fees_usd: float, gas_usd: float) -> None:
+        pool = self._require_pool()
+        today = date.today()
+        async with pool.acquire() as conn:
+            await conn.execute(
+                """
+                UPDATE pnl_daily
+                SET
+                    fees_collected_usd = fees_collected_usd + $2,
+                    gas_spent_usd = gas_spent_usd + $3,
+                    rebalance_count = rebalance_count + 1
+                WHERE day = $1
+                """,
+                today,
+                fees_usd,
+                gas_usd,
+            )
+
     async def get_today_starting_value(self) -> float:
         pool = self._require_pool()
         today = date.today()

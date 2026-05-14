@@ -56,6 +56,9 @@ class RebalanceResult:
     tx_signature: str
     lower_bin_id: int
     upper_bin_id: int
+    fee_x_raw: int = 0
+    fee_y_raw: int = 0
+    sol_fee_lamports: int = 5000
 
 
 class MeteoraPositionManager:
@@ -246,6 +249,9 @@ class MeteoraPositionManager:
             tx_signature=result["signature"],
             lower_bin_id=int(result.get("lowerBinId", bin_range.lower_bin_id)),
             upper_bin_id=int(result.get("upperBinId", bin_range.upper_bin_id)),
+            fee_x_raw=int(result.get("feeX", 0)),
+            fee_y_raw=int(result.get("feeY", 0)),
+            sol_fee_lamports=int(result.get("solFeeLamports", 5000)),
         )
 
     async def claim_fees(self, position: Position) -> str:

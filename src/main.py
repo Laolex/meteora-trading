@@ -170,6 +170,12 @@ async def _execute_action(
             success=True,
             is_dry_run=dry_run,
         )
+        if not dry_run:
+            sol_price = pool.current_price  # current_price is SOL/USDC for both active pools
+            fee_x_usd = rebalance_result.fee_x_raw / 1e9 * sol_price
+            fee_y_usd = rebalance_result.fee_y_raw / 1e6
+            gas_usd = rebalance_result.sol_fee_lamports / 1e9 * sol_price
+            await db.record_rebalance_pnl(fee_x_usd + fee_y_usd, gas_usd)
         return
     raise RuntimeError(f"Unknown action type: {action.type}")
 
