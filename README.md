@@ -1,5 +1,21 @@
 # Meteora DLMM Autonomous Agent
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Autonomous_LP_Agent-7aa2f7?style=for-the-badge" alt="category"/>
+  <img src="https://img.shields.io/badge/Dry--run_by_default-00C853?style=for-the-badge" alt="safe"/>
+  <img src="https://img.shields.io/badge/License-MIT-bb9af7?style=for-the-badge" alt="MIT"/>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Rust-000000?style=flat-square&logo=rust&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Anchor-2A2A2A?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=next.js&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Solana-9945FF?style=flat-square&logo=solana&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Claude_API-D97757?style=flat-square&logo=anthropic&logoColor=white"/>
+</p>
+
+
 Autonomous discovery, rebalancing, and AI-tuned liquidity management for Meteora DLMM positions on Solana.
 
 **Submission:** Colosseum Solana Frontier Hackathon (April 6 – May 11, 2026)  
